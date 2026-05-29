@@ -1,18 +1,18 @@
 # Redsauce Inventory Agent para Windows
 
-Agente de inventario para equipos Windows. Recopila informacion tecnica del sistema, software instalado y componentes relevantes para analisis de vulnerabilidades, y envia el inventario a la plataforma Redsauce para su correlacion con CVEs.
+Agente de inventario para equipos Windows. Recopila información técnica del sistema, software instalado y componentes relevantes para análisis de vulnerabilidades, y envía el inventario a la plataforma Redsauce para su correlación con CVEs.
 
-Este repositorio se usa solo como punto de descarga y documentacion publica del agente Windows. El codigo fuente no se distribuye aqui; el instalador oficial se publica como archivo adjunto en la seccion **Releases**.
+Este repositorio se usa solo como punto de descarga y documentación pública del agente Windows. El código fuente no se distribuye aquí; el instalador oficial se publica como archivo adjunto en la sección **Releases**.
 
 ---
 
 ## Descarga
 
-Descarga siempre la ultima version desde:
+Descarga siempre la última versión desde:
 
 [Descargar RSAgentSetup.exe](../../releases/latest/download/RSAgentSetup.exe)
 
-O entra en la pagina de Releases del repositorio y descarga el archivo:
+O entra en la página de Releases del repositorio y descarga el archivo:
 
 ```text
 RSAgentSetup.exe
@@ -35,19 +35,19 @@ https://rsm1.redsauce.net
 
 ---
 
-## Instalacion grafica
+## Instalación gráfica
 
-1. Descarga `RSAgentSetup.exe` desde el ultimo Release.
+1. Descarga `RSAgentSetup.exe` desde el último Release.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
 4. Introduce el UUID asignado por RSM cuando el asistente lo solicite.
-5. Finaliza la instalacion.
+5. Finaliza la instalación.
 
-Al terminar, el instalador crea y arranca automaticamente el servicio Windows `RSAgent`.
+Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`.
 
 ---
 
-## Que hace el instalador
+## Qué hace el instalador
 
 El instalador `RSAgentSetup.exe` realiza estas acciones:
 
@@ -56,47 +56,47 @@ El instalador `RSAgentSetup.exe` realiza estas acciones:
 3. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
 4. Genera `config.json` con el UUID, token embebido y URL de la API.
 5. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
-6. Registra el servicio Windows `RSAgent` con inicio automatico.
-7. Configura recuperacion del servicio ante fallos.
+6. Registra el servicio Windows `RSAgent` con inicio automático.
+7. Configura recuperación del servicio ante fallos.
 8. Arranca el servicio y ejecuta el primer inventario.
 9. Registra el desinstalador en "Agregar o quitar programas".
 
-Si ya existia una version previa del servicio, el instalador la detiene, la elimina y registra la nueva version.
+Si ya existía una versión previa del servicio, el instalador la detiene, la elimina y registra la nueva versión.
 
 ---
 
-## Ejecucion automatica
+## Ejecución automática
 
 El agente funciona como servicio Windows:
 
 - Nombre del servicio: `RSAgent`.
 - Nombre visible: `Redsauce Inventory Agent`.
-- Inicio: automatico con Windows.
-- Primera ejecucion: al arrancar el servicio.
-- Ejecucion programada: una vez al dia a las `03:00`, hora local del equipo.
-- Reintentos: si falla la recopilacion o el envio, reintenta cada 30 minutos.
+- Inicio: automático con Windows.
+- Primera ejecución: al arrancar el servicio.
+- Ejecución programada: una vez al día a las `03:00`, hora local del equipo.
+- Reintentos: si falla la recopilación o el envío, reintenta cada 30 minutos.
 
 ---
 
-## Que informacion recopila
+## Qué información recopila
 
 El agente genera un inventario JSON con cuatro bloques principales.
 
 ### `system`
 
-Informacion basica del host:
+Información básica del host:
 
 - Hostname y FQDN.
 - UUID asignado por RSM.
-- Nombre, version, build y edicion de Windows.
+- Nombre, versión, build y edición de Windows.
 - Arquitectura del sistema.
 - Zona horaria.
-- Fecha de recopilacion.
-- Version del agente.
+- Fecha de recopilación.
+- Versión del agente.
 
 ### `hardware`
 
-Informacion de hardware necesaria para correlacion tecnica:
+Información de hardware necesaria para correlación técnica:
 
 - Modelo de CPU.
 - Discos detectados mediante WMI, incluyendo dispositivo y modelo.
@@ -113,11 +113,11 @@ Software instalado detectado desde varias fuentes:
 | `pip` | Paquetes Python detectados con `pip` o `pip3` |
 | `npm` | Paquetes globales de Node.js detectados con `npm` |
 
-Cada paquete incluye nombre, version y origen.
+Cada paquete incluye nombre, versión y origen.
 
 ### `core_software`
 
-Versiones de componentes relevantes para analisis de vulnerabilidades:
+Versiones de componentes relevantes para análisis de vulnerabilidades:
 
 - IIS
 - Apache/httpd
@@ -137,32 +137,32 @@ Versiones de componentes relevantes para analisis de vulnerabilidades:
 - .NET runtimes
 - .NET SDKs
 
-Cuando un componente no esta instalado o no esta disponible en el `PATH`, simplemente no se incluye en el inventario.
+Cuando un componente no está instalado o no está disponible en el `PATH`, simplemente no se incluye en el inventario.
 
 ---
 
 ## Archivos y rutas
 
-| Ruta | Descripcion |
+| Ruta | Descripción |
 | --- | --- |
 | `C:\Program Files\RSAgent\RsAgent.exe` | Ejecutable principal del agente |
 | `C:\Program Files\RSAgent\unins000.exe` | Desinstalador |
-| `C:\ProgramData\RSAgent\config.json` | Configuracion local del agente |
-| `C:\ProgramData\RSAgent\inventory.json` | Ultimo inventario generado |
+| `C:\ProgramData\RSAgent\config.json` | Configuración local del agente |
+| `C:\ProgramData\RSAgent\inventory.json` | Último inventario generado |
 | `C:\ProgramData\RSAgent\logs\rs_agent.log` | Log principal |
 | `C:\ProgramData\RSAgent\logs\rs_agent.log.1` | Logs rotados |
 
-El log rota automaticamente al superar 5 MB y conserva hasta tres ficheros rotados.
+El log rota automáticamente al superar 5 MB y conserva hasta tres ficheros rotados.
 
 ---
 
-## Comprobacion de instalacion
+## Comprobación de instalación
 
-### Desde la interfaz grafica
+### Desde la interfaz gráfica
 
 1. Abre `services.msc`.
 2. Busca el servicio `RSAgent`.
-3. Comprueba que esta iniciado y configurado con inicio automatico.
+3. Comprueba que está iniciado y configurado con inicio automático.
 
 ### Desde PowerShell
 
@@ -172,19 +172,19 @@ Ver estado del servicio:
 Get-Service RSAgent
 ```
 
-Ver las ultimas lineas del log:
+Ver las últimas líneas del log:
 
 ```powershell
 Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 50
 ```
 
-Comprobar que existe el ultimo inventario:
+Comprobar que existe el último inventario:
 
 ```powershell
 Get-Item "C:\ProgramData\RSAgent\inventory.json"
 ```
 
-Una ejecucion correcta deja en el log una linea similar a:
+Una ejecución correcta deja en el log una línea similar a:
 
 ```text
 Inventario enviado correctamente a RSM.
@@ -192,9 +192,9 @@ Inventario enviado correctamente a RSM.
 
 ---
 
-## Ejecucion manual
+## Ejecución manual
 
-Aunque normalmente se ejecuta como servicio, tambien puede lanzarse una ejecucion puntual desde PowerShell con permisos de Administrador:
+Aunque normalmente se ejecuta como servicio, también puede lanzarse una ejecución puntual desde PowerShell con permisos de Administrador:
 
 ```powershell
 & "C:\Program Files\RSAgent\RsAgent.exe" --run-once
@@ -204,12 +204,12 @@ Esto genera `inventory.json`, intenta enviarlo a RSM y escribe el resultado en e
 
 ---
 
-## Desinstalacion
+## Desinstalación
 
 Desde Windows:
 
 ```text
-Configuracion -> Apps -> Redsauce Inventory Agent -> Desinstalar
+Configuración -> Apps -> Redsauce Inventory Agent -> Desinstalar
 ```
 
 Desde PowerShell:
@@ -220,7 +220,7 @@ Desde PowerShell:
 
 El desinstalador detiene y elimina el servicio `RSAgent`, borra `C:\Program Files\RSAgent\` y elimina el ejecutable principal.
 
-En modo grafico pregunta si tambien debe eliminar la configuracion, el inventario y los logs de:
+En modo gráfico pregunta si también debe eliminar la configuración, el inventario y los logs de:
 
 ```text
 C:\ProgramData\RSAgent\
@@ -228,7 +228,7 @@ C:\ProgramData\RSAgent\
 
 ---
 
-## Resolucion de problemas
+## Resolución de problemas
 
 ### El servicio no aparece
 
@@ -240,7 +240,7 @@ Get-Service RSAgent
 
 Si no existe, reinstala `RSAgentSetup.exe` como Administrador.
 
-### El servicio existe pero no envia inventario
+### El servicio existe pero no envía inventario
 
 Revisa el log:
 
@@ -250,19 +250,19 @@ Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 100
 
 Comprueba especialmente:
 
-- Que el UUID usado durante la instalacion es valido.
+- Que el UUID usado durante la instalación es válido.
 - Que el equipo tiene salida HTTPS hacia `rsm1.redsauce.net`.
-- Que no hay proxy, firewall o inspeccion TLS bloqueando la conexion.
+- Que no hay proxy, firewall o inspección TLS bloqueando la conexión.
 
 ### El inventario no contiene algunos paquetes
 
-El agente solo puede listar herramientas disponibles en el equipo. Por ejemplo, los paquetes de `winget`, `choco`, `pip` o `npm` solo se incluyen si esas herramientas estan instaladas y accesibles desde el entorno del servicio.
+El agente solo puede listar herramientas disponibles en el equipo. Por ejemplo, los paquetes de `winget`, `choco`, `pip` o `npm` solo se incluyen si esas herramientas están instaladas y accesibles desde el entorno del servicio.
 
 ---
 
-## Version actual
+## Versión actual
 
-Version del agente: `0.1.0`
+Versión del agente: `0.1.0`
 
 Nombre del instalador publicado:
 
