@@ -1,8 +1,8 @@
-# Redsauce Inventory Agent para Windows
+# Firulai Inventory Agent para Windows
 
-Agente de inventario para equipos Windows. Recopila información técnica del sistema, software instalado y componentes relevantes para análisis de vulnerabilidades, y envía el inventario a la plataforma Redsauce para su correlación con CVEs.
+Agente de inventario para equipos Windows. Recopila información técnica del sistema, software instalado y componentes relevantes para análisis de vulnerabilidades, y envía el inventario a Firulai para su correlación con CVEs.
 
-Este repositorio se usa solo como punto de descarga y documentación pública del agente Windows. El código fuente no se distribuye aquí; el instalador oficial se publica como archivo adjunto en la sección **Releases**.
+Este repositorio se usa como punto de descarga y documentación pública del agente Windows. El instalador oficial se publica como archivo adjunto en la sección **Releases**.
 
 ---
 
@@ -31,7 +31,7 @@ RSAgentSetup.exe
 https://rsm1.redsauce.net
 ```
 
-- UUID asignado por RSM para identificar el equipo.
+- UUID facilitado en Firulai para identificar el equipo.
 
 ---
 
@@ -40,10 +40,10 @@ https://rsm1.redsauce.net
 1. Descarga `RSAgentSetup.exe` desde el último Release.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
-4. Introduce el UUID asignado por RSM cuando el asistente lo solicite.
+4. Introduce el UUID que se te ha facilitado en Firulai cuando el asistente lo solicite.
 5. Finaliza la instalación.
 
-Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`.
+Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
 
 ---
 
@@ -54,12 +54,12 @@ El instalador `RSAgentSetup.exe` realiza estas acciones:
 1. Solicita privilegios de Administrador mediante UAC.
 2. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
 3. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
-4. Genera `config.json` con el UUID, token embebido y URL de la API.
+4. Genera `config.json` con la configuración local del agente.
 5. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
 6. Registra el servicio Windows `RSAgent` con inicio automático.
-7. Configura recuperación del servicio ante fallos.
+7. Configura la recuperación del servicio ante fallos.
 8. Arranca el servicio y ejecuta el primer inventario.
-9. Registra el desinstalador en "Agregar o quitar programas".
+9. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
 Si ya existía una versión previa del servicio, el instalador la detiene, la elimina y registra la nueva versión.
 
@@ -70,10 +70,10 @@ Si ya existía una versión previa del servicio, el instalador la detiene, la el
 El agente funciona como servicio Windows:
 
 - Nombre del servicio: `RSAgent`.
-- Nombre visible: `Redsauce Inventory Agent`.
+- Nombre visible: `Firulai Inventory Agent`.
 - Inicio: automático con Windows.
 - Primera ejecución: al arrancar el servicio.
-- Ejecución programada: una vez al día a las `03:00`, hora local del equipo.
+- Ejecución programada: una vez al día, por la noche, a las `03:00` hora local del equipo.
 - Reintentos: si falla la recopilación o el envío, reintenta cada 30 minutos.
 
 ---
@@ -87,7 +87,7 @@ El agente genera un inventario JSON con cuatro bloques principales.
 Información básica del host:
 
 - Hostname y FQDN.
-- UUID asignado por RSM.
+- UUID asignado por Firulai.
 - Nombre, versión, build y edición de Windows.
 - Arquitectura del sistema.
 - Zona horaria.
@@ -200,29 +200,39 @@ Aunque normalmente se ejecuta como servicio, también puede lanzarse una ejecuci
 & "C:\Program Files\RSAgent\RsAgent.exe" --run-once
 ```
 
-Esto genera `inventory.json`, intenta enviarlo a RSM y escribe el resultado en el log.
+Esto genera `inventory.json`, intenta enviarlo a Firulai y escribe el resultado en el log.
 
 ---
 
-## Desinstalación
+## Desinstalación gráfica
 
-Desde Windows:
+La desinstalación puede iniciarse desde Windows:
 
 ```text
-Configuración -> Apps -> Redsauce Inventory Agent -> Desinstalar
+Configuración -> Apps -> Aplicaciones instaladas -> Firulai Inventory Agent -> Desinstalar
 ```
 
-Desde PowerShell:
+También puede iniciarse desde PowerShell con permisos de Administrador:
 
 ```powershell
 & "C:\Program Files\RSAgent\unins000.exe"
 ```
 
-El desinstalador detiene y elimina el servicio `RSAgent`, borra `C:\Program Files\RSAgent\` y elimina el ejecutable principal.
+Durante la desinstalación aparecerá una única confirmación indicando que se eliminará la instalación local del agente y que se solicitará a Firulai el borrado de todos los datos asociados a ese sistema, incluyendo inventario y vulnerabilidades detectadas.
 
-En modo gráfico pregunta si también debe eliminar la configuración, el inventario y los logs de:
+Si confirmas la operación, el desinstalador:
+
+1. Lee el UUID configurado para este equipo.
+2. Detiene el servicio `RSAgent`.
+3. Solicita a Firulai el borrado de los datos asociados al UUID.
+4. Si Firulai confirma la solicitud, elimina el servicio y borra los archivos locales del agente.
+
+Por seguridad, si no se puede contactar con Firulai o la solicitud de borrado no se confirma correctamente, la desinstalación se cancela. En ese caso, los archivos locales se conservan para que puedas revisar la conectividad y volver a intentarlo.
+
+Una desinstalación completada elimina:
 
 ```text
+C:\Program Files\RSAgent\
 C:\ProgramData\RSAgent\
 ```
 
@@ -253,6 +263,16 @@ Comprueba especialmente:
 - Que el UUID usado durante la instalación es válido.
 - Que el equipo tiene salida HTTPS hacia `rsm1.redsauce.net`.
 - Que no hay proxy, firewall o inspección TLS bloqueando la conexión.
+
+### La desinstalación se cancela
+
+Si la desinstalación se cancela durante la solicitud de borrado, revisa:
+
+- Que el equipo tiene conexión a Internet.
+- Que puede acceder por HTTPS a `https://rsm1.redsauce.net`.
+- Que el UUID sigue asociado al sistema en Firulai.
+
+Después de corregir el problema, vuelve a ejecutar la desinstalación.
 
 ### El inventario no contiene algunos paquetes
 
