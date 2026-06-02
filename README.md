@@ -45,6 +45,8 @@ https://rsm1.redsauce.net
 
 Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
 
+Antes de instalar, el asistente valida que no exista ya un agente en el equipo y que el UUID existe en Firulai y está disponible. Si detecta una instalación previa, el proceso se cancela y se debe desinstalar primero el agente actual.
+
 ---
 
 ## Qué hace el instalador
@@ -52,16 +54,21 @@ Al terminar, el instalador crea y arranca automáticamente el servicio Windows `
 El instalador `RSAgentSetup.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
-2. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
-3. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
-4. Genera `config.json` con la configuración local del agente.
-5. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
-6. Registra el servicio Windows `RSAgent` con inicio automático.
-7. Configura la recuperación del servicio ante fallos.
-8. Arranca el servicio y ejecuta el primer inventario.
-9. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
+2. Valida el formato del UUID introducido.
+3. Comprueba que no exista una instalación local previa.
+4. Valida en Firulai que el UUID existe y está disponible para este equipo.
+5. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
+6. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
+7. Genera `config.json` con la configuración local del agente.
+8. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
+9. Registra el servicio Windows `RSAgent` con inicio automático.
+10. Configura la recuperación del servicio ante fallos.
+11. Arranca el servicio y ejecuta el primer inventario.
+12. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
-Si ya existía una versión previa del servicio, el instalador la detiene, la elimina y registra la nueva versión.
+Si ya existe una instalación previa o el servicio está ejecutándose, el instalador lo detecta al inicio y cancela la instalación. Para reinstalar, primero hay que desinstalar el agente actual.
+
+La instalación se considera existente si aparece cualquiera de estas señales: servicio `RSAgent`, `RsAgent.exe`, `unins000.exe` o `C:\ProgramData\RSAgent\config.json`.
 
 ---
 
