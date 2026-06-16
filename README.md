@@ -32,6 +32,7 @@ https://rsm1.redsauce.net
 ```
 
 - UUID facilitado en Firulai para identificar el equipo.
+- Alias obligatorio para identificar el sistema. Se guarda en Firulai y se puede modificar posteriormente desde Firulai.
 
 ---
 
@@ -40,7 +41,7 @@ https://rsm1.redsauce.net
 1. Descarga `RSAgentSetup.exe` desde el último Release.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
-4. Introduce el UUID que se te ha facilitado en Firulai cuando el asistente lo solicite.
+4. Introduce el UUID que se te ha facilitado en Firulai y escribe un alias para el sistema cuando el asistente lo solicite.
 5. Finaliza la instalación.
 
 Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
@@ -54,17 +55,18 @@ Antes de instalar, el asistente valida que no exista ya un agente en el equipo y
 El instalador `RSAgentSetup.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
-2. Valida el formato del UUID introducido.
+2. Valida el formato del UUID introducido y que el alias no este vacio.
 3. Comprueba que no exista una instalación local previa.
 4. Valida en Firulai que el UUID existe y está disponible para este equipo.
-5. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
-6. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
-7. Genera `config.json` con la configuración local del agente.
-8. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
-9. Registra el servicio Windows `RSAgent` con inicio automático.
-10. Configura la recuperación del servicio ante fallos.
-11. Arranca el servicio y ejecuta el primer inventario.
-12. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
+5. Guarda el alias en Firulai sobre el item System asociado al UUID.
+6. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
+7. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
+8. Genera `config.json` con la configuración local del agente.
+9. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
+10. Registra el servicio Windows `RSAgent` con inicio automático.
+11. Configura la recuperación del servicio ante fallos.
+12. Arranca el servicio y ejecuta el primer inventario.
+13. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
 Si ya existe una instalación previa o el servicio está ejecutándose, el instalador lo detecta al inicio y cancela la instalación. Para reinstalar, primero hay que desinstalar el agente actual.
 
@@ -289,7 +291,7 @@ El agente solo puede listar herramientas disponibles en el equipo. Por ejemplo, 
 
 ## Versión actual
 
-Versión del agente: `0.1.0`
+Versión del agente: `0.1.1`
 
 Nombre del instalador publicado:
 
