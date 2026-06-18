@@ -55,7 +55,7 @@ Antes de instalar, el asistente valida que no exista ya un agente en el equipo y
 El instalador `RSAgentSetup.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
-2. Valida el formato del UUID introducido y que el alias no este vacio.
+2. Valida el formato del UUID introducido y que el alias no esté vacío.
 3. Comprueba que no exista una instalación local previa.
 4. Valida en Firulai que el UUID existe y está disponible para este equipo.
 5. Guarda el alias en Firulai sobre el item System asociado al UUID.
@@ -227,16 +227,18 @@ También puede iniciarse desde PowerShell con permisos de Administrador:
 & "C:\Program Files\RSAgent\unins000.exe"
 ```
 
-Durante la desinstalación aparecerá una única confirmación indicando que se eliminará la instalación local del agente y que se solicitará a Firulai el borrado de todos los datos asociados a ese sistema, incluyendo inventario y vulnerabilidades detectadas.
+Durante la desinstalación aparecerá una única confirmación indicando que solo se eliminarán los archivos locales del agente junto al instalador. No se borrarán los datos de RSM. El sistema quedará como inactivo en Firulai y, desde Firulai, se podrán eliminar definitivamente sus datos o volver a instalar el agente más adelante enlazándolo al System y al inventario ya guardados.
 
 Si confirmas la operación, el desinstalador:
 
 1. Lee el UUID configurado para este equipo.
 2. Detiene el servicio `RSAgent`.
-3. Solicita a Firulai el borrado de los datos asociados al UUID.
-4. Si Firulai confirma la solicitud, elimina el servicio y borra los archivos locales del agente.
+3. Busca en RSM el item System asociado al UUID.
+4. Actualiza la propiedad `Hostnamestatus` (`1751`) con el valor `Disconnected`.
+5. Si Firulai confirma la actualización, informa de que los datos no se borrarán y elimina el servicio y los archivos locales del agente.
+6. Si el UUID ya no existe en Firulai, informa de que no hay ningún System enlazado y desinstala igualmente la aplicación local.
 
-Por seguridad, si no se puede contactar con Firulai o la solicitud de borrado no se confirma correctamente, la desinstalación se cancela. En ese caso, los archivos locales se conservan para que puedas revisar la conectividad y volver a intentarlo.
+Por seguridad, si no se puede contactar con Firulai o la actualización de estado no se confirma correctamente, la desinstalación se cancela. En ese caso, los archivos locales se conservan para que puedas revisar la conectividad y volver a intentarlo.
 
 Una desinstalación completada elimina:
 
@@ -275,7 +277,7 @@ Comprueba especialmente:
 
 ### La desinstalación se cancela
 
-Si la desinstalación se cancela durante la solicitud de borrado, revisa:
+Si la desinstalación se cancela durante la actualización de estado en Firulai, revisa:
 
 - Que el equipo tiene conexión a Internet.
 - Que puede acceder por HTTPS a `https://rsm1.redsauce.net`.
