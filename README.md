@@ -64,9 +64,10 @@ El instalador `RSAgentSetup.exe` realiza estas acciones:
 8. Genera `config.json` con la configuración local del agente, incluyendo el token facilitado por Firulai.
 9. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
 10. Registra el servicio Windows `RSAgent` con inicio automático.
-11. Configura la recuperación del servicio ante fallos.
-12. Arranca el servicio y ejecuta el primer inventario.
-13. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
+11. Registra el origen `RSAgent` en el log Aplicación de Windows.
+12. Configura la recuperación del servicio ante fallos.
+13. Arranca el servicio y ejecuta el primer inventario.
+14. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
 Si ya existe una instalación previa o el servicio está ejecutándose, el instalador lo detecta al inicio y cancela la instalación. Para reinstalar, primero hay que desinstalar el agente actual.
 
@@ -83,7 +84,11 @@ El agente funciona como servicio Windows:
 - Inicio: automático con Windows.
 - Primera ejecución: al arrancar el servicio.
 - Ejecución programada: una vez al día, por la noche, a las `03:00` hora local del equipo.
+- Recuperación: si el equipo estaba suspendido a las `03:00`, ejecuta el inventario al reanudarse Windows.
+- Comprobación de respaldo: mientras el equipo está activo, contrasta el reloj real como máximo cada cinco minutos para detectar ejecuciones vencidas aunque Windows no entregue el evento de reanudación.
 - Reintentos: si falla la recopilación o el envío, reintenta cada 30 minutos.
+
+El agente no despierta el equipo. Cuando pierde la ejecución de las `03:00`, realiza una sola ejecución al volver a estar disponible, aunque se hayan perdido varias noches. La última ejecución correcta se guarda en `state.json`; solo se actualiza después de que Firulai confirme el envío. Un bloqueo interno evita que el temporizador, el arranque y la reanudación lancen inventarios simultáneos.
 
 ---
 
@@ -157,6 +162,7 @@ Cuando un componente no está instalado o no está disponible en el `PATH`, simp
 | `C:\Program Files\RSAgent\RsAgent.exe` | Ejecutable principal del agente |
 | `C:\Program Files\RSAgent\unins000.exe` | Desinstalador |
 | `C:\ProgramData\RSAgent\config.json` | Configuración local del agente |
+| `C:\ProgramData\RSAgent\state.json` | Fecha UTC de la última ejecución enviada correctamente |
 | `C:\ProgramData\RSAgent\inventory.json` | Último inventario generado |
 | `C:\ProgramData\RSAgent\logs\rs_agent.log` | Log principal |
 | `C:\ProgramData\RSAgent\logs\rs_agent.log.1` | Logs rotados |
@@ -193,10 +199,45 @@ Comprobar que existe el último inventario:
 Get-Item "C:\ProgramData\RSAgent\inventory.json"
 ```
 
+Comprobar la última ejecución correcta guardada:
+
+```powershell
+Get-Content "C:\ProgramData\RSAgent\state.json"
+```
+
+### Registro de eventos de Windows
+
+El instalador registra el origen `RSAgent` en **Visor de eventos > Registros de Windows > Aplicación**. El agente publica estos eventos:
+
+| ID | Nivel | Significado |
+| --- | --- | --- |
+| `1000` | Información | Servicio iniciado |
+| `1001` | Información | Servicio detenido o Windows apagándose |
+| `1100` | Información | Ejecución de inventario iniciada |
+| `1101` | Información | Ejecución y envío completados correctamente |
+| `1102` | Error | Ejecución fallida, incluyendo fase y excepción |
+| `1200` | Advertencia | Ejecución de las 03:00 perdida por suspensión; comienza la recuperación |
+
+Consultar los últimos eventos desde PowerShell:
+
+```powershell
+Get-WinEvent -FilterHashtable @{
+  LogName = 'Application'
+  ProviderName = 'RSAgent'
+  StartTime = (Get-Date).AddDays(-7)
+} | Select-Object TimeCreated, Id, LevelDisplayName, Message
+```
+
+Seguir el fichero de log detallado en tiempo real:
+
+```powershell
+Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 100 -Wait
+```
+
 Una ejecución correcta deja en el log una línea similar a:
 
 ```text
-Inventario enviado correctamente a Firulai.
+Ejecución completada correctamente.
 ```
 
 ---
@@ -209,7 +250,7 @@ Aunque normalmente se ejecuta como servicio, también puede lanzarse una ejecuci
 & "C:\Program Files\RSAgent\RsAgent.exe" --run-once
 ```
 
-Esto genera `inventory.json`, intenta enviarlo a Firulai y escribe el resultado en el log.
+Esto genera `inventory.json`, intenta enviarlo a Firulai, actualiza `state.json` si el envío termina correctamente y escribe el resultado tanto en el fichero de log como en el registro Aplicación de Windows.
 
 ---
 
@@ -294,7 +335,7 @@ El agente solo puede listar herramientas disponibles en el equipo. Por ejemplo, 
 
 ## Versión actual
 
-Versión del agente: `0.1.2`
+Versión del agente: `0.1.3`
 
 Nombre del instalador publicado:
 
