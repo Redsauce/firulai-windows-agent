@@ -41,8 +41,9 @@ https://rsm1.redsauce.net
 1. Descarga `RSAgentSetup.exe` desde el último Release.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
-4. Introduce el UUID y el token que se te han facilitado en Firulai, y escribe un alias para el sistema cuando el asistente lo solicite.
-5. Finaliza la instalación.
+4. Lee el Acuerdo de licencia y aviso de uso y marca la casilla de aceptación. No se puede continuar sin aceptarlo.
+5. Introduce el UUID y el token que se te han facilitado en Firulai, y escribe un alias para el sistema cuando el asistente lo solicite.
+6. Finaliza la instalación.
 
 Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
 
@@ -55,19 +56,20 @@ Antes de instalar, el asistente valida que no exista ya un agente en el equipo, 
 El instalador `RSAgentSetup.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
-2. Valida el formato del UUID introducido y que el alias y el token no estén vacíos.
-3. Comprueba que no exista una instalación local previa.
-4. Valida en Firulai que el UUID existe y está disponible para este equipo.
-5. Guarda el alias en Firulai sobre el item System asociado al UUID.
-6. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
-7. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
-8. Genera `config.json` con la configuración local del agente, incluyendo el token facilitado por Firulai.
-9. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
-10. Registra el servicio Windows `RSAgent` con inicio automático.
-11. Registra el origen `RSAgent` en el log Aplicación de Windows.
-12. Configura la recuperación del servicio ante fallos.
-13. Arranca el servicio y ejecuta el primer inventario.
-14. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
+2. Muestra el Acuerdo de licencia y aviso de uso y exige su aceptación antes de solicitar credenciales.
+3. Valida el formato del UUID introducido y que el alias y el token no estén vacíos.
+4. Comprueba que no exista una instalación local previa.
+5. Valida en Firulai que el UUID existe y está disponible para este equipo.
+6. Guarda el alias en Firulai sobre el item System asociado al UUID.
+7. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
+8. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
+9. Genera `config.json` con la configuración local del agente, incluyendo el token facilitado por Firulai.
+10. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
+11. Registra el servicio Windows `RSAgent` con inicio automático.
+12. Registra el origen `RSAgent` en el log Aplicación de Windows.
+13. Configura la recuperación del servicio ante fallos.
+14. Arranca el servicio y ejecuta el primer inventario.
+15. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
 Si ya existe una instalación previa o el servicio está ejecutándose, el instalador lo detecta al inicio y cancela la instalación. Para reinstalar, primero hay que desinstalar el agente actual.
 
