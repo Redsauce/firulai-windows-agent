@@ -10,12 +10,12 @@ Este repositorio se usa como punto de descarga y documentación pública del age
 
 Descarga siempre la última versión desde:
 
-[Descargar RSAgentSetup.exe](../../releases/latest/download/RSAgentSetup.exe)
+[Descargar FirulaiAgent.exe](../../releases/latest/download/FirulaiAgent.exe)
 
 O entra en la página de Releases del repositorio y descarga el archivo:
 
 ```text
-RSAgentSetup.exe
+FirulaiAgent.exe
 ```
 
 ---
@@ -38,7 +38,7 @@ https://rsm1.redsauce.net
 
 ## Instalación gráfica
 
-1. Descarga `RSAgentSetup.exe` desde el último Release.
+1. Descarga `FirulaiAgent.exe` desde el último Release.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
 4. Lee el Acuerdo de licencia y aviso de uso y marca la casilla de aceptación. No se puede continuar sin aceptarlo.
@@ -53,7 +53,7 @@ Antes de instalar, el asistente valida que no exista ya un agente en el equipo, 
 
 ## Qué hace el instalador
 
-El instalador `RSAgentSetup.exe` realiza estas acciones:
+El instalador `FirulaiAgent.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
 2. Muestra el Acuerdo de licencia y aviso de uso y exige su aceptación antes de solicitar credenciales.
@@ -302,7 +302,7 @@ Ejecuta:
 Get-Service RSAgent
 ```
 
-Si no existe, reinstala `RSAgentSetup.exe` como Administrador.
+Si no existe, reinstala `FirulaiAgent.exe` como Administrador.
 
 ### El servicio existe pero no envía inventario
 
@@ -342,5 +342,5 @@ Versión del agente: `0.1.3`
 Nombre del instalador publicado:
 
 ```text
-RSAgentSetup.exe
+FirulaiAgent.exe
 ```
