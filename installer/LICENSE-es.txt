@@ -1,0 +1,184 @@
+﻿FIRULAI INVENTORY AGENT PARA WINDOWS
+
+Versión del acuerdo: 20 de julio de 2026
+
+Lea atentamente este documento antes de instalar o utilizar el software.
+
+Este Acuerdo de Licencia y Aviso de Uso (en adelante, el «Acuerdo») regula la
+instalación y el uso de Firulai Inventory Agent para Windows (en adelante, el
+«Agente»), publicado por Redsauce para su utilización con la plataforma
+Firulai.
+
+Al marcar la casilla de aceptación y continuar con la instalación, usted
+confirma que ha leído y acepta este Acuerdo, y que dispone de autorización
+suficiente para instalar y ejecutar el Agente en el equipo y en la organización
+correspondientes. Si no acepta todas las condiciones, no instale ni utilice el
+Agente.
+
+1. FINALIDAD DEL AGENTE
+
+El Agente es una herramienta de inventario técnico y apoyo a la gestión de
+vulnerabilidades. Se instala como un servicio de Windows, recopila
+periódicamente información técnica del equipo y la transmite a Firulai mediante
+una conexión HTTPS para mantener el inventario y correlacionarlo con
+vulnerabilidades conocidas.
+
+El Agente no sustituye una auditoría de seguridad, un análisis profesional ni
+las medidas de prevención, actualización, copia de seguridad o respuesta ante
+incidentes que correspondan al usuario.
+
+2. LICENCIA DE USO
+
+Redsauce concede al usuario una licencia limitada, no exclusiva, no
+transferible y revocable para instalar y ejecutar el Agente únicamente:
+
+  a) en sistemas que el usuario posea, administre o esté expresamente autorizado
+     a supervisar;
+  b) para usar dichos sistemas con una cuenta o servicio autorizado de Firulai;
+     y
+  c) conforme a este Acuerdo y, cuando exista, al contrato comercial aplicable
+     a la plataforma Firulai.
+
+No se adquiere la propiedad del Agente ni de Firulai. Queda prohibido vender,
+alquilar, sublicenciar, distribuir, eludir controles de acceso, utilizar el
+Agente para acceder sin autorización a sistemas de terceros o emplearlo con una
+finalidad ilícita. La observación, estudio, modificación o ingeniería inversa
+solo estará permitida en la medida en que una norma imperativa lo autorice.
+
+3. AUTORIZACIÓN Y RESPONSABILIDAD DEL USUARIO
+
+La instalación requiere privilegios de administrador. El usuario declara que
+está autorizado para instalar un servicio con inicio automático, recopilar el
+inventario técnico descrito, transmitirlo y almacenarlo en Firulai, y utilizar
+el UUID, el alias y el token del Agente («Agent token») asociados a la cuenta
+correspondiente.
+
+El usuario es responsable de obtener las autorizaciones internas, laborales,
+contractuales o de cualquier otra naturaleza que sean necesarias antes de
+desplegar el Agente. También deberá proteger el instalador, el UUID y el token
+del Agente, limitando su acceso a personal autorizado.
+
+4. INFORMACIÓN RECOPILADA Y ENVIADA
+
+Para prestar su función, el Agente puede recopilar y enviar a Firulai:
+
+  - nombre del equipo (hostname), nombre de dominio completo (FQDN), UUID
+    asignado, versión, edición, compilación y arquitectura de Windows, zona
+    horaria, fecha de recopilación y versión del Agente;
+  - información técnica de hardware, como modelo de CPU y datos identificativos
+    y de modelo de los discos detectados;
+  - nombres, versiones y origen del software y paquetes instalados, obtenidos
+    del Registro de Windows y de gestores compatibles, como winget, Chocolatey,
+    pip y npm;
+  - versiones de componentes esenciales del sistema y estado técnico necesario
+    para mantener el inventario; y
+  - metadatos operativos, mensajes de error y registros necesarios para
+    diagnosticar la ejecución y el envío.
+
+El Agente utiliza el UUID para identificar el sistema y el token del Agente para
+autorizar las comunicaciones con Firulai. El token se guarda localmente en un
+archivo de configuración cuyos permisos se restringen a SYSTEM y
+Administradores.
+
+El Agente no está diseñado para recopilar deliberadamente contraseñas, claves
+privadas ni el contenido de documentos del usuario. No obstante, nombres de
+equipos, nombres de paquetes u otros metadatos técnicos podrían constituir
+datos personales o información confidencial según el entorno. El usuario debe
+evaluar esa circunstancia y aplicar las medidas y bases jurídicas necesarias.
+
+5. FUNCIONAMIENTO EN SEGUNDO PLANO
+
+Una vez instalado, el Agente:
+
+  - se registra como servicio de Windows con inicio automático;
+  - realiza un primer inventario tras la instalación;
+  - intenta actualizar el inventario diariamente, normalmente a las 03:00, hora
+    local, y puede recuperar una ejecución pendiente;
+  - puede reintentar los envíos que no se completen correctamente; y
+  - conserva localmente configuración, estado, inventario y registros técnicos.
+
+El Agente necesita conectividad HTTPS con la infraestructura de Firulai. La
+desinstalación elimina el servicio y los archivos locales del Agente, pero no
+elimina automáticamente el inventario ya almacenado en Firulai. El sistema se
+marca como desconectado o inactivo y los datos remotos deberán gestionarse
+desde Firulai.
+
+6. SEGURIDAD Y USO AUTORIZADO
+
+El usuario no utilizará el Agente para vigilar, inventariar o acceder a equipos
+sin permiso. Deberá mantener Windows y sus mecanismos de protección
+actualizados, controlar las cuentas administrativas y comunicar cualquier
+sospecha de exposición del token del Agente o de uso no autorizado.
+
+Los resultados de inventario y vulnerabilidades pueden contener errores,
+omisiones, falsos positivos, retrasos o diferencias respecto del estado real
+del equipo. El usuario deberá verificar los resultados antes de adoptar
+decisiones que afecten a su disponibilidad, integridad o seguridad.
+
+7. SOFTWARE Y SERVICIOS DE TERCEROS
+
+El Agente puede consultar herramientas presentes en el equipo y comunicarse con
+servicios o fuentes de información de terceros utilizados por Firulai. Dichos
+componentes y servicios pueden estar sujetos a sus propias licencias,
+condiciones y políticas. Redsauce no concede derechos sobre productos de
+terceros.
+
+8. ACTUALIZACIONES, CAMBIOS Y SUSPENSIÓN
+
+Redsauce puede publicar correcciones, nuevas versiones o cambios necesarios
+para la seguridad, compatibilidad o funcionamiento del Agente. Algunas
+funciones pueden cambiar o dejar de estar disponibles. El acceso podrá
+suspenderse o revocarse cuando finalice el servicio aplicable, se incumpla este
+Acuerdo o sea necesario para proteger Firulai, sus usuarios o terceros.
+
+9. GARANTÍAS
+
+En la medida permitida por la legislación aplicable, el Agente se proporciona
+«tal cual» y según disponibilidad. Redsauce no garantiza que funcione sin
+interrupciones o errores, que detecte todas las vulnerabilidades, que los datos
+de terceros sean completos o actuales, ni que el uso del Agente evite
+incidentes de seguridad.
+
+Nada de este Acuerdo excluye garantías o derechos que no puedan limitarse
+legalmente. Las garantías expresas incluidas en un contrato comercial vigente
+prevalecerán para las materias reguladas específicamente por dicho contrato.
+
+10. LIMITACIÓN DE RESPONSABILIDAD
+
+En la medida permitida por la legislación aplicable, Redsauce no responderá por
+daños indirectos, pérdida de beneficios, pérdida de datos, interrupción de
+actividad ni decisiones adoptadas exclusivamente a partir de los resultados
+del Agente. Las limitaciones de responsabilidad previstas en el contrato del
+servicio Firulai serán aplicables cuando exista dicho contrato.
+
+Esta limitación no se aplicará a responsabilidades que no puedan excluirse o
+limitarse conforme a una norma imperativa.
+
+11. VIGENCIA Y EXTINCIÓN
+
+El Acuerdo estará vigente mientras el Agente permanezca instalado o en uso. La
+licencia se extinguirá si el usuario incumple sus condiciones o pierde la
+autorización para utilizar Firulai. En tal caso, el usuario deberá dejar de
+utilizar y desinstalar el Agente. La extinción no implica por sí sola la
+eliminación de los datos ya almacenados en Firulai.
+
+12. CONDICIONES APLICABLES Y CONTACTO
+
+Este Acuerdo se complementa con el contrato, las condiciones del servicio y la
+información de privacidad aplicables a la cuenta Firulai. En caso de conflicto,
+prevalecerá el documento específicamente negociado o la norma imperativa que
+resulte aplicable.
+
+La información corporativa y los canales de contacto vigentes de Redsauce
+pueden consultarse en:
+
+https://redsauce.net
+
+ACEPTACIÓN
+
+Al continuar, el usuario reconoce que comprende el funcionamiento descrito,
+acepta la recopilación y transmisión del inventario técnico y confirma que
+cuenta con autorización para instalar el Agente.
+
+Si no acepta íntegramente estas condiciones, seleccione «Cancelar» y no instale
+ni utilice el Agente.
