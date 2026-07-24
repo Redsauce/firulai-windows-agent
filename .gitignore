@@ -1,0 +1,5 @@
+Output/
+src/RsAgent/bin/
+src/RsAgent/obj/
+*.user
+*.suo
