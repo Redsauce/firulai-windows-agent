@@ -9,21 +9,20 @@ Documento interno para generar, publicar y actualizar el instalador Windows.
 Subir código fuente y scripts:
 
 ```text
-README.md
-README_RELEASE.md
-RsAgent.sln
-src/RsAgent/*.cs
-src/RsAgent/RsAgent.csproj
-installer/LICENSE-es.txt
-installer/RsAgent.iss
+agent/windows/README.md
+agent/windows/README_RELEASE.md
+agent/windows/RsAgent.sln
+agent/windows/src/RsAgent/*.cs
+agent/windows/src/RsAgent/RsAgent.csproj
+agent/windows/installer/RsAgent.iss
 ```
 
 No subir artefactos generados:
 
 ```text
-Output/
-src/RsAgent/bin/
-src/RsAgent/obj/
+agent/windows/Output/
+agent/windows/src/RsAgent/bin/
+agent/windows/src/RsAgent/obj/
 ```
 
 Estos directorios estan ignorados en `.gitignore`.
@@ -41,29 +40,36 @@ RSAgentSetup.exe
 Enlace estable para la aplicación:
 
 ```text
-https://github.com/Redsauce/firulai-windows-agent/releases/latest/download/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe
 ```
 
 Enlace a una versión concreta:
 
 ```text
-https://github.com/Redsauce/firulai-windows-agent/releases/download/v0.1.3/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/download/v0.2.1/RSAgentSetup.exe
 ```
 
 ---
 
 ## Generar el instalador
 
-Desde la raíz de `firulai-windows-agent`:
+Desde `agent/windows`:
 
 ```powershell
-cd firulai-windows-agent
+cd agent\windows
 ```
 
-Compilar el agente con MSBuild y el Developer Pack de .NET Framework 4.8:
+Compilar el agente:
 
 ```powershell
-msbuild .\RsAgent.sln /t:Build /p:Configuration=Release
+& "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
+  /target:exe `
+  /out:.\src\RsAgent\bin\Release\RsAgent.exe `
+  /r:System.Management.dll `
+  /r:System.Net.Http.dll `
+  /r:System.ServiceProcess.dll `
+  /r:System.Web.Extensions.dll `
+  .\src\RsAgent\*.cs
 ```
 
 Generar el instalador. Inno Setup puede estar instalado para todos los usuarios o solo para el usuario actual:
@@ -86,7 +92,7 @@ if (-not $iscc) {
 Resultado:
 
 ```text
-Output/RSAgentSetup.exe
+agent/windows/Output/RSAgentSetup.exe
 ```
 
 El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador.
@@ -199,13 +205,13 @@ La clave del origen se conserva al desinstalar para que Windows pueda seguir mos
 6. Probar que una segunda instalación sobre el mismo equipo se cancela y pide desinstalar primero.
 7. Probar instalación con UUID inexistente o ya asignado y comprobar que se cancela antes de crear archivos.
 8. Probar desinstalación y comprobar en Firulai que el System asociado al UUID queda con `Hostnamestatus` (`1751`) = `Disconnected`.
-9. Crear tag en GitHub, por ejemplo `v0.1.3`.
+9. Crear tag en GitHub, por ejemplo `v0.2.1`.
 10. Crear GitHub Release para ese tag.
 11. Adjuntar `RSAgentSetup.exe` como asset.
 12. Comprobar que descarga desde:
 
 ```text
-https://github.com/Redsauce/firulai-windows-agent/releases/latest/download/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe
 ```
 
 Para esta versión, los endpoints de Firulai del instalador Windows apuntan a `https://rsm1.redsauce.net/AppController/commands_RSM/api/...`. Como cambia la URL configurada en el instalador y en el `config.json` generado, hay que compilar de nuevo `RsAgent.exe` y generar un nuevo `RSAgentSetup.exe`.
@@ -237,7 +243,7 @@ No hace falta generar otro EXE si solo cambia:
 En la aplicación, el botón Windows debe apuntar al asset del último Release:
 
 ```html
-<a href="https://github.com/Redsauce/firulai-windows-agent/releases/latest/download/RSAgentSetup.exe">
+<a href="https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe">
   Descargar agente Windows
 </a>
 ```
