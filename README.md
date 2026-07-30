@@ -96,7 +96,7 @@ El agente no despierta el equipo. Cuando pierde la ejecución de las `03:00`, re
 
 ## Qué información recopila
 
-El agente genera un inventario JSON con cuatro bloques principales.
+El agente genera un inventario JSON con cinco bloques principales.
 
 ### `system`
 
@@ -117,45 +117,61 @@ Información de hardware necesaria para correlación técnica:
 - Modelo de CPU.
 - Discos detectados mediante WMI, incluyendo dispositivo y modelo.
 
-### `packages`
+### `components`
 
-Software instalado detectado desde varias fuentes:
+Librerías y componentes instalados detectados desde varias fuentes:
 
 | Manager | Fuente |
 | --- | --- |
-| `registry` | Registro de Windows, claves `Uninstall` de 64 y 32 bits |
-| `winget` | Resultado de `winget list` |
-| `choco` | Paquetes locales de Chocolatey |
-| `pip` | Paquetes Python detectados con `pip` o `pip3` |
-| `npm` | Paquetes globales de Node.js detectados con `npm` |
+| `registry` | Componentes internos detectados en las claves `Uninstall` globales y de usuario |
+| `file` | DLL con versión ubicadas bajo la raíz concreta de una aplicación descubierta |
+| `appx` | Frameworks y recursos AppX/MSIX obtenidos con PowerShell nativo |
 
-Cada paquete incluye nombre, versión y origen.
+Cada componente incluye nombre, versión y origen. Cuando Windows ofrece
+evidencias suficientes para reconocer el software padre, también incluye
+`source_package`, `source_version` y `upstream_version`. Firulai usa esos campos
+para enlazar el Componente con su Paquete mediante la propiedad RSM `1866`.
 
-### `core_software`
+El agente considera evidencias nativas `ParentKeyName`, `ParentDisplayName`,
+`SystemComponent`, `ProductName`, `Publisher`, la instalación registrada y
+expresiones explícitas como `installed by`. Además, una vez identificada la
+raíz concreta de una aplicación, recorre sus DLL, conserva el nombre de archivo
+y la versión nativa y las enlaza a ese paquete. La misma librería puede aparecer
+varias veces si pertenece a aplicaciones diferentes.
 
-Versiones de componentes relevantes para análisis de vulnerabilidades:
+### `packages`
 
-- IIS
-- Apache/httpd
-- nginx
-- MySQL
-- SQL Server
-- PostgreSQL
-- PHP
-- Node.js
-- Python
-- Java
-- Docker
-- Git
-- OpenSSH
-- OpenSSL
-- PowerShell
-- .NET runtimes
-- .NET SDKs
+Software principal instalado. Se obtiene mediante fuentes incluidas en Windows:
+Registro global y de usuarios, `Program Files`, `Program Files (x86)`, App Paths,
+servicios, accesos directos y AppX/MSIX. También se siguen esas evidencias hacia
+rutas de usuario o ubicaciones personalizadas. Cada Paquete contiene `name` y
+`version`, obtenidos del registro o de los recursos de versión del ejecutable.
+Los identificadores técnicos se presentan con espacios y palabras separadas:
+`Microsoft.YourPhone` se guarda como `Microsoft Your Phone`, sin mantener un
+catálogo de fabricantes o productos.
 
-Cuando un componente no está instalado o no está disponible en el `PATH`, simplemente no se incluye en el inventario.
+Ejemplo simplificado:
 
----
+```json
+{
+  "components": [
+    {
+      "name": "Bitvise SSH Client - FlowSshNet (x64)",
+      "version": "9.63.0.0",
+      "manager": "registry",
+      "source_package": "Bitvise SSH Client",
+      "source_version": "9.63",
+      "upstream_version": "9.63"
+    }
+  ],
+  "packages": [
+    {
+      "name": "Bitvise SSH Client",
+      "version": "9.63"
+    }
+  ]
+}
+```
 
 ## Archivos y rutas
 
@@ -331,13 +347,14 @@ Después de corregir el problema, vuelve a ejecutar la desinstalación.
 
 ### El inventario no contiene algunos paquetes
 
-El agente solo puede listar herramientas disponibles en el equipo. Por ejemplo, los paquetes de `winget`, `choco`, `pip` o `npm` solo se incluyen si esas herramientas están instaladas y accesibles desde el entorno del servicio.
+La recopilación no requiere Winget, Chocolatey, pip, npm ni software adicional.
+Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicación.
 
 ---
 
 ## Versión actual
 
-Versión del agente: `0.1.3`
+Versión del agente: `0.2.1`
 
 Nombre del instalador publicado:
 

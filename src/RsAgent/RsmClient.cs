@@ -33,8 +33,12 @@ namespace RsAgent
             using (var form = new MultipartFormDataContent())
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
                 form.Add(new StringContent("newServerData"), "RStrigger");
-                form.Add(new StringContent(inventoryJson), "RSdata");
+                // Linux uses curl --form "RSdata=<file;type=application/json": the
+                // JSON is a regular multipart field (PHP $_POST), not a file
+                // upload (PHP $_FILES). Do not add a filename here.
+                form.Add(new StringContent(inventoryJson, Encoding.UTF8, "application/json"), "RSdata");
                 form.Add(new StringContent(config.Token), "RStoken");
 
                 var response = await client.PostAsync(config.ApiUrl, form).ConfigureAwait(false);
