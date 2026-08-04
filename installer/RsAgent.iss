@@ -1400,9 +1400,106 @@ begin
   if (PageID = ConfigPage.ID) and IsSilentWithConfig() then Result := True;
 end;
 
+function LocalizedWindowTitle(): string;
+begin
+  if AgentLocale = 'ca_ES' then
+    Result := 'Instal·lació - {#MyAppDisplayName} versió {#MyAppVersion}'
+  else if AgentLocale = 'eu_ES' then
+    Result := 'Instalazioa - {#MyAppDisplayName} {#MyAppVersion} bertsioa'
+  else if AgentLocale = 'gl_ES' then
+    Result := 'Instalacion - {#MyAppDisplayName} version {#MyAppVersion}'
+  else if AgentLocale = 'fr_FR' then
+    Result := 'Installer - {#MyAppDisplayName} version {#MyAppVersion}'
+  else if AgentLocale = 'de_DE' then
+    Result := 'Installieren - {#MyAppDisplayName} Version {#MyAppVersion}'
+  else if AgentLocale = 'it_IT' then
+    Result := 'Installa - {#MyAppDisplayName} versione {#MyAppVersion}'
+  else if AgentLocale = 'ja_JP' then
+    Result := 'インストール - {#MyAppDisplayName} バージョン {#MyAppVersion}'
+  else if AgentLocale = 'zh_CN' then
+    Result := '安装 - {#MyAppDisplayName} 版本 {#MyAppVersion}'
+  else if AgentLocale = 'es_ES' then
+    Result := 'Instalar - {#MyAppDisplayName} versión {#MyAppVersion}'
+  else
+    Result := 'Install - {#MyAppDisplayName} version {#MyAppVersion}';
+end;
+
+procedure ApplyLocalizedWizardChrome();
+begin
+  WizardForm.Caption := LocalizedWindowTitle();
+end;
+
+function LocalizedExitMessage(): string;
+begin
+  if AgentLocale = 'ca_ES' then
+    Result := 'La instal·lació no s''ha completat. Si surts ara, el programa no s''instal·larà.' + #13#10#13#10 +
+      'Podràs tornar a executar el programa d''instal·lació més endavant per completar-la.' + #13#10#13#10 +
+      'Vols sortir de la instal·lació?'
+  else if AgentLocale = 'eu_ES' then
+    Result := 'Instalazioa ez da oraindik osatu. Orain bertan behera uzten baduzu, programa ez da instalatuko.' + #13#10#13#10 +
+      'Instalazio programa berriro exekutatu ahal izango duzu beste une batean osatzeko.' + #13#10#13#10 +
+      'Instalaziotik irten nahi duzu?'
+  else if AgentLocale = 'gl_ES' then
+    Result := 'A instalacion ainda non se completou. Se cancelas agora, o programa non se instalara.' + #13#10#13#10 +
+      'Poderas executar novamente o programa de instalacion noutra ocasion para completala.' + #13#10#13#10 +
+      'Sair da instalacion?'
+  else if AgentLocale = 'fr_FR' then
+    Result := 'L''installation n''est pas encore terminee. Si vous annulez maintenant, le programme ne sera pas installe.' + #13#10#13#10 +
+      'Vous pourrez relancer le programme d''installation plus tard pour la terminer.' + #13#10#13#10 +
+      'Quitter l''installation ?'
+  else if AgentLocale = 'de_DE' then
+    Result := 'Die Installation ist noch nicht abgeschlossen. Wenn Sie jetzt abbrechen, wird das Programm nicht installiert.' + #13#10#13#10 +
+      'Sie koennen das Installationsprogramm spaeter erneut ausfuehren, um die Installation abzuschliessen.' + #13#10#13#10 +
+      'Installation beenden?'
+  else if AgentLocale = 'it_IT' then
+    Result := 'L''installazione non e ancora stata completata. Se annulli ora, il programma non verra installato.' + #13#10#13#10 +
+      'Potrai eseguire di nuovo il programma di installazione in un altro momento per completarla.' + #13#10#13#10 +
+      'Uscire dall''installazione?'
+  else if AgentLocale = 'ja_JP' then
+    Result := 'インストールはまだ完了していません。今キャンセルすると、プログラムはインストールされません。' + #13#10#13#10 +
+      'あとでインストーラーを再実行して完了できます。' + #13#10#13#10 +
+      'インストールを終了しますか?'
+  else if AgentLocale = 'zh_CN' then
+    Result := '安装尚未完成。如果现在取消，程序将不会安装。' + #13#10#13#10 +
+      '你可以稍后重新运行安装程序以完成安装。' + #13#10#13#10 +
+      '要退出安装吗？'
+  else if AgentLocale = 'es_ES' then
+    Result := 'La instalacion no se ha completado aun. Si cancelas ahora, el programa no se instalara.' + #13#10#13#10 +
+      'Puedes ejecutar nuevamente el programa de instalacion en otra ocasion para completarla.' + #13#10#13#10 +
+      'Salir de la instalacion?'
+  else
+    Result := 'Setup has not completed yet. If you cancel now, the program will not be installed.' + #13#10#13#10 +
+      'You can run Setup again later to complete the installation.' + #13#10#13#10 +
+      'Exit Setup?';
+end;
+
+function LocalizedYesButton(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'Sí'
+  else if AgentLocale = 'eu_ES' then Result := 'Bai'
+  else if AgentLocale = 'fr_FR' then Result := 'Oui'
+  else if AgentLocale = 'de_DE' then Result := 'Ja'
+  else if AgentLocale = 'ja_JP' then Result := 'はい'
+  else if AgentLocale = 'zh_CN' then Result := '是'
+  else if AgentLocale = 'es_ES' then Result := 'Sí'
+  else Result := 'Yes';
+end;
+
+function LocalizedNoButton(): string;
+begin
+  if AgentLocale = 'eu_ES' then Result := 'Ez'
+  else if AgentLocale = 'gl_ES' then Result := 'Non'
+  else if AgentLocale = 'fr_FR' then Result := 'Non'
+  else if AgentLocale = 'de_DE' then Result := 'Nein'
+  else if AgentLocale = 'ja_JP' then Result := 'いいえ'
+  else if AgentLocale = 'zh_CN' then Result := '否'
+  else Result := 'No';
+end;
+
 procedure InitializeWizard();
 begin
   ResolveAgentLocale(CmdParam('TOKEN'));
+  ApplyLocalizedWizardChrome();
   ConfigPage := CreateInputQueryPage(
     wpSelectDir,
     T('configTitle'),
@@ -1417,6 +1514,24 @@ begin
   ConfigPage.Values[0] := CmdParam('UUID');
   ConfigPage.Values[1] := CmdParam('ALIAS');
   ConfigPage.Values[2] := CmdParam('TOKEN');
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  ApplyLocalizedWizardChrome();
+end;
+
+procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
+var
+  ButtonLabels: TArrayOfString;
+begin
+  if CurPageID = wpFinished then Exit;
+
+  Confirm := False;
+  SetArrayLength(ButtonLabels, 2);
+  ButtonLabels[0] := LocalizedYesButton();
+  ButtonLabels[1] := LocalizedNoButton();
+  Cancel := TaskDialogMsgBox('', LocalizedExitMessage(), mbConfirmation, MB_YESNO, ButtonLabels, 0) = IDYES;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
