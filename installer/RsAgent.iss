@@ -148,6 +148,16 @@ chinesesimplified.ConfirmUninstall=%1 将被卸载。%n%n此操作只会删除�
 
 [Files]
 Source: "..\src\RsAgent\bin\Release\RsAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE-ca.txt"; Flags: dontcopy
+Source: "LICENSE-de.txt"; Flags: dontcopy
+Source: "LICENSE-en.txt"; Flags: dontcopy
+Source: "LICENSE-es.txt"; Flags: dontcopy
+Source: "LICENSE-eu.txt"; Flags: dontcopy
+Source: "LICENSE-fr.txt"; Flags: dontcopy
+Source: "LICENSE-gl.txt"; Flags: dontcopy
+Source: "LICENSE-it.txt"; Flags: dontcopy
+Source: "LICENSE-ja.txt"; Flags: dontcopy
+Source: "LICENSE-zh-CN.txt"; Flags: dontcopy
 
 [Dirs]
 Name: "{commonappdata}\RSAgent"; Permissions: admins-full system-full
@@ -1496,6 +1506,107 @@ begin
   else Result := 'No';
 end;
 
+function RuntimeLicenseFileName(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'LICENSE-ca.txt'
+  else if AgentLocale = 'eu_ES' then Result := 'LICENSE-eu.txt'
+  else if AgentLocale = 'gl_ES' then Result := 'LICENSE-gl.txt'
+  else if AgentLocale = 'fr_FR' then Result := 'LICENSE-fr.txt'
+  else if AgentLocale = 'de_DE' then Result := 'LICENSE-de.txt'
+  else if AgentLocale = 'it_IT' then Result := 'LICENSE-it.txt'
+  else if AgentLocale = 'ja_JP' then Result := 'LICENSE-ja.txt'
+  else if AgentLocale = 'zh_CN' then Result := 'LICENSE-zh-CN.txt'
+  else if AgentLocale = 'es_ES' then Result := 'LICENSE-es.txt'
+  else Result := 'LICENSE-en.txt';
+end;
+
+function LocalizedLicenseTitle(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'Acord de llicència'
+  else if AgentLocale = 'eu_ES' then Result := 'Lizentzia-akordioa'
+  else if AgentLocale = 'gl_ES' then Result := 'Acordo de licenza'
+  else if AgentLocale = 'fr_FR' then Result := 'Contrat de licence'
+  else if AgentLocale = 'de_DE' then Result := 'Lizenzvereinbarung'
+  else if AgentLocale = 'it_IT' then Result := 'Contratto di licenza'
+  else if AgentLocale = 'ja_JP' then Result := 'ライセンス契約'
+  else if AgentLocale = 'zh_CN' then Result := '许可协议'
+  else if AgentLocale = 'es_ES' then Result := 'Acuerdo de licencia'
+  else Result := 'License Agreement';
+end;
+
+function LocalizedLicenseDescription(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'És important que llegeixis la informació següent abans de continuar.'
+  else if AgentLocale = 'eu_ES' then Result := 'Jarraitu aurretik informazio hau irakurtzea garrantzitsua da.'
+  else if AgentLocale = 'gl_ES' then Result := 'É importante que leas a seguinte información antes de continuar.'
+  else if AgentLocale = 'fr_FR' then Result := 'Veuillez lire les informations suivantes avant de continuer.'
+  else if AgentLocale = 'de_DE' then Result := 'Bitte lesen Sie die folgenden Informationen, bevor Sie fortfahren.'
+  else if AgentLocale = 'it_IT' then Result := 'Leggi le seguenti informazioni prima di continuare.'
+  else if AgentLocale = 'ja_JP' then Result := '続行する前に、次の情報をお読みください。'
+  else if AgentLocale = 'zh_CN' then Result := '继续之前，请阅读以下信息。'
+  else if AgentLocale = 'es_ES' then Result := 'Es importante que lea la siguiente información antes de continuar.'
+  else Result := 'Please read the following important information before continuing.';
+end;
+
+function LocalizedLicenseInstruction(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'Llegeix l''acord de llicència següent. Has d''acceptar-ne les clàusules abans de continuar amb la instal·lació.'
+  else if AgentLocale = 'eu_ES' then Result := 'Irakurri lizentzia-akordio hau. Instalazioarekin jarraitu aurretik akordioaren baldintzak onartu behar dituzu.'
+  else if AgentLocale = 'gl_ES' then Result := 'Le o seguinte acordo de licenza. Debes aceptar as súas cláusulas antes de continuar coa instalación.'
+  else if AgentLocale = 'fr_FR' then Result := 'Veuillez lire le contrat de licence suivant. Vous devez accepter ses clauses avant de poursuivre l''installation.'
+  else if AgentLocale = 'de_DE' then Result := 'Bitte lesen Sie die folgende Lizenzvereinbarung. Sie muessen die Bedingungen akzeptieren, bevor Sie mit der Installation fortfahren.'
+  else if AgentLocale = 'it_IT' then Result := 'Leggi il seguente contratto di licenza. Devi accettarne le clausole prima di continuare l''installazione.'
+  else if AgentLocale = 'ja_JP' then Result := '次のライセンス契約をお読みください。インストールを続行する前に、契約条項に同意する必要があります。'
+  else if AgentLocale = 'zh_CN' then Result := '请阅读以下许可协议。继续安装前，你必须接受该协议的条款。'
+  else if AgentLocale = 'es_ES' then Result := 'Por favor, lea el siguiente acuerdo de licencia. Debe aceptar las cláusulas de este acuerdo antes de continuar con la instalación.'
+  else Result := 'Please read the following license agreement. You must accept its terms before continuing with the installation.';
+end;
+
+function LocalizedAcceptLicense(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'Accepto l''acord'
+  else if AgentLocale = 'eu_ES' then Result := 'Akordioa onartzen dut'
+  else if AgentLocale = 'gl_ES' then Result := 'Acepto o acordo'
+  else if AgentLocale = 'fr_FR' then Result := 'J''accepte le contrat'
+  else if AgentLocale = 'de_DE' then Result := 'Ich akzeptiere die Vereinbarung'
+  else if AgentLocale = 'it_IT' then Result := 'Accetto il contratto'
+  else if AgentLocale = 'ja_JP' then Result := '契約に同意します'
+  else if AgentLocale = 'zh_CN' then Result := '我接受协议'
+  else if AgentLocale = 'es_ES' then Result := 'Acepto el acuerdo'
+  else Result := 'I accept the agreement';
+end;
+
+function LocalizedRejectLicense(): string;
+begin
+  if AgentLocale = 'ca_ES' then Result := 'No accepto l''acord'
+  else if AgentLocale = 'eu_ES' then Result := 'Ez dut akordioa onartzen'
+  else if AgentLocale = 'gl_ES' then Result := 'Non acepto o acordo'
+  else if AgentLocale = 'fr_FR' then Result := 'Je n''accepte pas le contrat'
+  else if AgentLocale = 'de_DE' then Result := 'Ich akzeptiere die Vereinbarung nicht'
+  else if AgentLocale = 'it_IT' then Result := 'Non accetto il contratto'
+  else if AgentLocale = 'ja_JP' then Result := '契約に同意しません'
+  else if AgentLocale = 'zh_CN' then Result := '我不接受协议'
+  else if AgentLocale = 'es_ES' then Result := 'No acepto el acuerdo'
+  else Result := 'I do not accept the agreement';
+end;
+
+procedure ApplyLocalizedLicensePage();
+var
+  LicenseText: AnsiString;
+  LicenseFileName: string;
+begin
+  LicenseFileName := RuntimeLicenseFileName();
+  ExtractTemporaryFile(LicenseFileName);
+  if LoadStringFromFile(ExpandConstant('{tmp}\' + LicenseFileName), LicenseText) then
+    WizardForm.LicenseMemo.Text := LicenseText;
+
+  WizardForm.PageNameLabel.Caption := LocalizedLicenseTitle();
+  WizardForm.PageDescriptionLabel.Caption := LocalizedLicenseDescription();
+  WizardForm.LicenseLabel1.Caption := LocalizedLicenseInstruction();
+  WizardForm.LicenseAcceptedRadio.Caption := LocalizedAcceptLicense();
+  WizardForm.LicenseNotAcceptedRadio.Caption := LocalizedRejectLicense();
+end;
+
 procedure InitializeWizard();
 begin
   ResolveAgentLocale(CmdParam('TOKEN'));
@@ -1519,6 +1630,7 @@ end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
   ApplyLocalizedWizardChrome();
+  if CurPageID = wpLicense then ApplyLocalizedLicensePage();
 end;
 
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
