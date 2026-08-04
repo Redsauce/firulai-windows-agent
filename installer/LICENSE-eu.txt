@@ -1,0 +1,132 @@
+FIRULAI INVENTORY AGENT WINDOWSERAKO
+
+Akordioaren bertsioa: 2026ko uztailaren 20a
+
+Irakurri dokumentu hau arretaz softwarea instalatu edo erabili aurretik.
+
+Lizentzia-akordio eta erabilera-ohar honek ("Akordioa") Firulai Inventory Agent
+Windowserako ("Agentea") instalazioa eta erabilera arautzen ditu. Redsauce-k
+argitaratzen du Firulai plataformarekin erabiltzeko.
+
+Akordio hau onartu eta instalazioarekin jarraitzean, baldintza hauek irakurri
+eta onartzen dituzula baieztatzen duzu, eta Agentea dagokion ekipoan eta
+erakundean instalatu eta exekutatzeko baimen nahikoa duzula. Baldintza guztiak
+onartzen ez badituzu, ez instalatu eta ez erabili Agentea.
+
+1. HELBURUA
+
+Agentea inbentario teknikorako eta ahultasunen kudeaketari laguntzeko tresna
+da. Windows zerbitzu gisa instalatzen da, ekipoaren informazio teknikoa aldizka
+biltzen du eta HTTPS bidez Firulai-ra bidaltzen du, inbentarioa mantendu eta
+ezagunak diren ahultasunekin lotzeko.
+
+Agenteak ez du ordezkatzen segurtasun-auditoria, analisi profesionala,
+prebentzioa, eguneraketak, babeskopiak edo intzidenteen erantzuna.
+
+2. LIZENTZIA
+
+Redsauce-k lizentzia mugatua, ez-esklusiboa, besterenezina eta ezeztagarria
+ematen dizu Agentea soilik zureak diren, administratzen dituzun edo berariaz
+gainbegiratzeko baimena dituzun sistemetan instalatu eta exekutatzeko, eta
+baimendutako Firulai kontu edo zerbitzu batekin soilik.
+
+Ez duzu Agentea edo Firulai-ren jabetzarik eskuratzen. Ezin duzu saldu,
+alokatu, azpilizentziatu, banatu, sarbide-kontrolak saihestu, hirugarrenen
+sistemetara baimenik gabe sartzeko erabili edo legez kanpoko xedeetarako
+erabili. Alderantzizko ingeniaritza lege derrigorrezkoak baimentzen duen neurrian
+bakarrik dago baimenduta.
+
+3. BAIMENA ETA ERANTZUKIZUNA
+
+Instalazioak administratzaile-pribilegioak behar ditu. Windows zerbitzu
+automatiko bat instalatzeko, deskribatutako inbentario teknikoa bildu eta
+bidaltzeko eta dagokion Firulai kontuari lotutako UUIDa, aliasa eta Agent tokena
+erabiltzeko baimena duzula baieztatzen duzu.
+
+Zure ardura da barneko, laneko, kontratuko edo bestelako baimenak lortzea
+Agentea hedatu aurretik. Instaladorea, UUIDa eta Agent tokena babestu behar
+dituzu eta sarbidea baimendutako langileetara mugatu.
+
+4. BILDUTAKO INFORMAZIOA
+
+Agenteak honakoak bildu eta Firulai-ra bidal ditzake: ekipoaren izena, FQDN,
+esleitutako UUIDa, Windows bertsioa, edizioa, builda eta arkitektura, ordu-zona,
+bilketa-data, Agentearen bertsioa, hardware-informazioa, detektatutako diskoak,
+instalatutako software eta paketeen izenak eta bertsioak, pakete-kudeatzaileak,
+sistemaren osagai nagusien bertsioak, metadatu operatiboak, erroreak eta
+erregistro teknikoak.
+
+Agenteak UUIDa erabiltzen du sistema identifikatzeko eta Agent tokena Firulai-rekin
+komunikazioak baimentzeko. Tokena lokalean gordetzen da konfigurazio-fitxategi
+batean, SYSTEM eta Administrators erabiltzaileetara mugatuta.
+
+Agentea ez dago diseinatuta pasahitzak, gako pribatuak edo erabiltzailearen
+dokumentuen edukia nahita biltzeko. Hala ere, metadatu teknikoak datu pertsonal
+edo informazio konfidentzial izan daitezke ingurunearen arabera. Egoera hori
+ebaluatu eta behar diren babesak eta oinarri juridikoak aplikatu behar dituzu.
+
+5. ATZEKO PLANEKO FUNTZIONAMENDUA
+
+Instalatu ondoren, Agentea Windows zerbitzu automatiko gisa exekutatzen da,
+lehen inbentarioa egiten du, egunero eguneratzen saiatzen da, huts egindako
+bidalketak berriro saiatu ditzake eta konfigurazioa, egoera, inbentarioa eta
+erregistro teknikoak lokalean gordetzen ditu. Firulai-rako HTTPS konexioa behar
+du.
+
+Desinstalazioak tokiko zerbitzua eta fitxategiak kentzen ditu, baina ez du
+automatikoki ezabatzen Firulai-n gordetako inbentarioa. Sistema deskonektatu edo
+inaktibo gisa marka daiteke eta urruneko datuak Firulai-tik kudeatu behar dira.
+
+6. SEGURTASUNA ETA BAIMENDUTAKO ERABILERA
+
+Ez duzu Agentea erabili behar baimenik gabeko ekipoak gainbegiratu,
+inbentariatu edo atzitzeko. Mantendu Windows eta babes-mekanismoak eguneratuta,
+kontrolatu administratzaile-kontuak eta jakinarazi Agent tokenaren esposizio
+edo baimenik gabeko erabilera susmo oro.
+
+Inbentario eta ahultasun emaitzek erroreak, hutsuneak, positibo faltsuak,
+atzerapenak edo ekipoaren egoera errealarekiko aldeak izan ditzakete. Egiaztatu
+emaitzak erabilgarritasunari, osotasunari edo segurtasunari eragiten dieten
+erabakiak hartu aurretik.
+
+7. HIRUGARRENEN SOFTWAREA ETA ZERBITZUAK
+
+Agenteak ekipoan dauden tresnak kontsulta ditzake eta Firulai-k erabiltzen
+dituen zerbitzu edo informazio-iturriekin komunikatu. Osagai horiek beren
+lizentzia, baldintza eta politiken menpe egon daitezke. Redsauce-k ez du
+hirugarrenen produktuen gaineko eskubiderik ematen.
+
+8. EGUNERAKETAK, BERMEA ETA ERANTZUKIZUNA
+
+Redsauce-k segurtasuna, bateragarritasuna edo funtzionamendua bermatzeko
+beharrezko zuzenketak, bertsio berriak edo aldaketak argitaratu ditzake. Legeak
+baimentzen duen neurrian, Agentea "bere horretan" eta erabilgarritasunaren
+arabera ematen da, funtzionamendu etenik gabea, detekzio osoa, hirugarrenen
+datu oso edo eguneratuak edo segurtasun-intzidenteen prebentzioa bermatu gabe.
+
+Legeak baimentzen duen neurrian, Redsauce ez da erantzule zeharkako kalteengatik,
+etekin-galerengatik, datu-galerengatik, jarduera eteteagatik edo Agentearen
+emaitzetan soilik oinarritutako erabakiengatik. Aplikagarri den Firulai
+kontratuaren mugak ere aplikatuko dira.
+
+9. INDARRALDIA, AMAIERA ETA KONTAKTUA
+
+Akordio honek indarrean jarraitzen du Agentea instalatuta edo erabileran dagoen
+bitartean. Lizentzia amaituko da baldintzak urratzen badituzu edo Firulai
+erabiltzeko baimena galtzen baduzu. Orduan Agentea erabiltzeari utzi eta
+desinstalatu beharko duzu. Amaierak ez ditu berez ezabatzen Firulai-n gordetako
+datuak.
+
+Akordio hau Firulai kontuari dagozkion kontratuak, zerbitzu-baldintzek eta
+pribatutasun-informazioak osatzen dute. Enpresaren informazioa eta kontaktua:
+
+https://redsauce.net
+
+ONARPENA
+
+Jarraitzean, deskribatutako funtzionamendua ulertzen duzula, inbentario
+teknikoa biltzea eta transmititzea onartzen duzula eta Agentea instalatzeko
+baimena duzula baieztatzen duzu.
+
+Baldintza hauek osorik onartzen ez badituzu, hautatu Utzi eta ez instalatu edo
+erabili Agentea.

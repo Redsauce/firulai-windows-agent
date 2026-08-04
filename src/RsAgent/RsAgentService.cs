@@ -19,7 +19,7 @@ namespace RsAgent
         private Timer _timer;
         private volatile bool _stopping;
         private DateTime _nextRunAtLocal;
-        private string _nextRunTrigger = "ninguno";
+        private string _nextRunTrigger = AgentText.T("service.triggerNone");
 
         public RsAgentService()
         {
@@ -32,20 +32,24 @@ namespace RsAgent
 
         protected override void OnStart(string[] args)
         {
+            AgentText.SetLocale(AgentConfig.LoadLocaleOrDefault());
+            _nextRunTrigger = AgentText.T("service.triggerNone");
             _stopping = false;
             Logger.EventInfo(
                 1000,
-                "Servicio iniciado. Version=" + AgentConfig.AgentVersion +
-                ", equipo=" + Environment.MachineName +
-                ", horaLocal=" + DateTimeOffset.Now.ToString("o") +
-                ", zonaHoraria=" + TimeZoneInfo.Local.Id +
-                ", log=" + Logger.LogPath + ".");
+                AgentText.T(
+                    "service.started",
+                    AgentConfig.AgentVersion,
+                    Environment.MachineName,
+                    DateTimeOffset.Now.ToString("o"),
+                    TimeZoneInfo.Local.Id,
+                    Logger.LogPath));
 
             Task.Run(async () =>
             {
                 var now = DateTime.Now;
                 var dailyRunDue = IsDailyRunDue(now);
-                var trigger = dailyRunDue ? "recuperación-arranque" : "inicio-servicio";
+                var trigger = dailyRunDue ? AgentText.T("service.triggerStartupRecovery") : AgentText.T("service.triggerServiceStart");
                 var requiredAfter = dailyRunDue ? GetScheduledTimeForDay(now.Date) : now;
                 await ExecuteManagedRunAsync(trigger, requiredAfter).ConfigureAwait(false);
             });
@@ -53,12 +57,12 @@ namespace RsAgent
 
         protected override void OnStop()
         {
-            StopService("Servicio detenido.");
+            StopService(AgentText.T("service.stopped"));
         }
 
         protected override void OnShutdown()
         {
-            StopService("Windows se está apagando; servicio detenido.");
+            StopService(AgentText.T("service.shutdown"));
             base.OnShutdown();
         }
 
@@ -72,11 +76,12 @@ namespace RsAgent
                 nextRunTrigger = _nextRunTrigger;
             }
 
-            Logger.Info(
-                "Evento de energía recibido. Estado=" + powerStatus +
-                ", horaLocal=" + DateTimeOffset.Now.ToString("o") +
-                ", próximaEjecución=" + FormatDate(nextRunAt) +
-                ", tipo=" + nextRunTrigger + ".");
+            Logger.Info(AgentText.T(
+                "service.powerEvent",
+                powerStatus,
+                DateTimeOffset.Now.ToString("o"),
+                FormatDate(nextRunAt),
+                nextRunTrigger));
 
             if (powerStatus == PowerBroadcastStatus.ResumeAutomatic ||
                 powerStatus == PowerBroadcastStatus.ResumeSuspend)
@@ -87,14 +92,12 @@ namespace RsAgent
                     var scheduledToday = GetScheduledTimeForDay(now.Date);
                     Logger.EventWarning(
                         1200,
-                        "Windows se reanudó después de perder la ejecución de las 03:00. " +
-                        "Se iniciará una ejecución de recuperación. Prevista=" + FormatDate(scheduledToday) +
-                        ", reanudación=" + FormatDate(now) + ".");
-                    Task.Run(() => ExecuteManagedRunAsync("recuperación-reanudación", scheduledToday));
+                        AgentText.T("service.resumeMissedRun", FormatDate(scheduledToday), FormatDate(now)));
+                    Task.Run(() => ExecuteManagedRunAsync(AgentText.T("service.triggerResumeRecovery"), scheduledToday));
                 }
                 else
                 {
-                    Logger.Info("No hay una ejecución diaria pendiente después de la reanudación.");
+                    Logger.Info(AgentText.T("service.noDailyPendingAfterResume"));
                 }
             }
 
@@ -108,48 +111,43 @@ namespace RsAgent
 
         private static async Task RunInventoryOnceAsync(string trigger)
         {
+            AgentText.SetLocale(AgentConfig.LoadLocaleOrDefault());
             var executionId = Guid.NewGuid().ToString("N").Substring(0, 8);
             var stopwatch = Stopwatch.StartNew();
-            var phase = "preparación";
-            Logger.EventInfo(1100, "Ejecución iniciada. Id=" + executionId + ", origen=" + trigger + ".");
+            var phase = AgentText.T("service.phasePreparation");
+            Logger.EventInfo(1100, AgentText.T("service.executionStarted", executionId, trigger));
 
             try
             {
                 Directory.CreateDirectory(AgentConfig.DataDir);
                 Directory.CreateDirectory(AgentConfig.LogDir);
 
-                phase = "carga-configuración";
+                phase = AgentText.T("service.phaseConfigLoad");
                 var config = AgentConfig.Load();
-                Logger.Info("Configuración cargada. Id=" + executionId + ", uuid=" + config.Uuid + ", api=" + GetSafeDestination(config.ApiUrl) + ".");
+                Logger.Info(AgentText.T("service.configLoaded", executionId, config.Uuid, GetSafeDestination(config.ApiUrl), config.Locale));
 
-                phase = "recopilación-inventario";
-                Logger.Info("Recopilando inventario. Id=" + executionId + ".");
+                phase = AgentText.T("service.phaseInventoryCollection");
+                Logger.Info(AgentText.T("service.collectingInventory", executionId));
                 var inventoryJson = InventoryCollector.Collect(config);
                 var outputPath = Path.Combine(AgentConfig.DataDir, "inventory.json");
                 File.WriteAllText(outputPath, inventoryJson);
-                Logger.Info("Inventario recopilado. Id=" + executionId + ", caracteres=" + inventoryJson.Length + ", fichero=" + outputPath + ".");
+                Logger.Info(AgentText.T("service.inventoryCollected", executionId, inventoryJson.Length, outputPath));
 
-                phase = "envío-http";
+                phase = AgentText.T("service.phaseHttpSend");
                 await RsmClient.SendAsync(config, inventoryJson).ConfigureAwait(false);
 
-                phase = "guardado-estado";
+                phase = AgentText.T("service.phaseStateSave");
                 var completedAtUtc = DateTime.UtcNow;
                 AgentState.RecordSuccess(completedAtUtc);
                 Logger.EventInfo(
                     1101,
-                    "Ejecución completada correctamente. Id=" + executionId +
-                    ", origen=" + trigger +
-                    ", duraciónMs=" + stopwatch.ElapsedMilliseconds +
-                    ", estado=" + AgentConfig.StatePath + ".");
+                    AgentText.T("service.executionCompleted", executionId, trigger, stopwatch.ElapsedMilliseconds, AgentConfig.StatePath));
             }
             catch (Exception ex)
             {
                 Logger.EventError(
                     1102,
-                    "Ejecución fallida. Id=" + executionId +
-                    ", origen=" + trigger +
-                    ", fase=" + phase +
-                    ", duraciónMs=" + stopwatch.ElapsedMilliseconds + ".",
+                    AgentText.T("service.executionFailed", executionId, trigger, phase, stopwatch.ElapsedMilliseconds),
                     ex);
                 throw;
             }
@@ -162,7 +160,7 @@ namespace RsAgent
             {
                 if (_stopping)
                 {
-                    Logger.Info("Ejecución omitida porque el servicio se está deteniendo. Origen=" + trigger + ".");
+                    Logger.Info(AgentText.T("service.skippedStopping", trigger));
                     return;
                 }
 
@@ -170,10 +168,7 @@ namespace RsAgent
                 var lastSuccessLocal = GetLastSuccessLocal();
                 if (lastSuccessLocal != DateTime.MinValue && lastSuccessLocal >= requiredAfterLocal)
                 {
-                    Logger.Info(
-                        "Ejecución omitida porque la solicitud ya está satisfecha. Origen=" + trigger +
-                        ", requeridaDesde=" + FormatDate(requiredAfterLocal) +
-                        ", últimaCorrecta=" + FormatDate(lastSuccessLocal) + ".");
+                    Logger.Info(AgentText.T("service.skippedSatisfied", trigger, FormatDate(requiredAfterLocal), FormatDate(lastSuccessLocal)));
                     ScheduleNextRun();
                     return;
                 }
@@ -198,13 +193,13 @@ namespace RsAgent
         {
             if (_stopping) return;
             var nextRun = GetNextScheduledTime(DateTime.Now);
-            ScheduleAt(nextRun, "programada-diaria", nextRun, true);
+            ScheduleAt(nextRun, AgentText.T("service.triggerDailyScheduled"), nextRun, true);
         }
 
         private void ScheduleRetry(DateTime requiredAfterLocal)
         {
             if (_stopping) return;
-            ScheduleAt(DateTime.Now.Add(RetryDelay), "reintento", requiredAfterLocal, true);
+            ScheduleAt(DateTime.Now.Add(RetryDelay), AgentText.T("service.triggerRetry"), requiredAfterLocal, true);
         }
 
         private void ScheduleAt(DateTime targetLocal, string trigger, DateTime requiredAfterLocal, bool announce)
@@ -235,10 +230,7 @@ namespace RsAgent
 
             if (announce)
             {
-                Logger.Info(
-                    "Ejecución programada. Tipo=" + trigger +
-                    ", prevista=" + FormatDate(targetLocal) +
-                    ", comprobaciónMáxima=" + MaximumTimerSlice + ".");
+                Logger.Info(AgentText.T("service.scheduled", trigger, FormatDate(targetLocal), MaximumTimerSlice));
             }
         }
 
@@ -262,11 +254,7 @@ namespace RsAgent
                 return;
             }
 
-            Logger.Info(
-                "Temporizador vencido. Tipo=" + trigger +
-                ", previsto=" + FormatDate(targetLocal) +
-                ", real=" + FormatDate(now) +
-                ", retraso=" + (now - targetLocal) + ".");
+            Logger.Info(AgentText.T("service.timerElapsed", trigger, FormatDate(targetLocal), FormatDate(now), now - targetLocal));
             await ExecuteManagedRunAsync(trigger, requiredAfterLocal).ConfigureAwait(false);
         }
 
@@ -315,7 +303,7 @@ namespace RsAgent
 
         private static string FormatDate(DateTime value)
         {
-            return value == DateTime.MinValue ? "no-disponible" : value.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            return value == DateTime.MinValue ? AgentText.T("service.unavailable") : value.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
 
         private static string GetSafeDestination(string url)
@@ -323,7 +311,7 @@ namespace RsAgent
             Uri uri;
             return Uri.TryCreate(url, UriKind.Absolute, out uri)
                 ? uri.Scheme + "://" + uri.Authority + uri.AbsolutePath
-                : "URL no válida";
+                : AgentText.T("rsm.invalidUrl");
         }
     }
 }

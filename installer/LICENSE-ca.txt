@@ -1,0 +1,133 @@
+FIRULAI INVENTORY AGENT PER A WINDOWS
+
+Versio de l'acord: 20 de juliol de 2026
+
+Llegiu atentament aquest document abans d'instal.lar o utilitzar el programari.
+
+Aquest Acord de Llicencia i Avis d'Us ("Acord") regula la instal.lacio i l'us
+de Firulai Inventory Agent per a Windows ("Agent"), publicat per Redsauce per
+utilitzar-lo amb la plataforma Firulai.
+
+En acceptar aquest Acord i continuar la instal.lacio, confirmeu que heu llegit
+i accepteu aquestes condicions, i que teniu autoritzacio suficient per
+instal.lar i executar l'Agent a l'equip i a l'organitzacio corresponents. Si no
+accepteu totes les condicions, no instal.leu ni utilitzeu l'Agent.
+
+1. FINALITAT
+
+L'Agent es una eina d'inventari tecnic i de suport a la gestio de
+vulnerabilitats. S'instal.la com a servei de Windows, recopila periodicament
+informacio tecnica de l'equip i l'envia a Firulai mitjancant HTTPS per mantenir
+l'inventari i correlacionar-lo amb vulnerabilitats conegudes.
+
+L'Agent no substitueix una auditoria de seguretat, una analisi professional ni
+les mesures de prevencio, actualitzacio, copia de seguretat o resposta davant
+incidents.
+
+2. LLICENCIA
+
+Redsauce concedeix una llicencia limitada, no exclusiva, no transferible i
+revocable per instal.lar i executar l'Agent nomes en sistemes que posseiu,
+administreu o esteu expressament autoritzats a supervisar, i nomes amb un
+compte o servei autoritzat de Firulai.
+
+No adquiriu la propietat de l'Agent ni de Firulai. No podeu vendre, llogar,
+sublicenciar, distribuir, eludir controls d'acces, utilitzar l'Agent per
+accedir sense autoritzacio a sistemes de tercers ni emprar-lo amb finalitats
+il.licites. L'enginyeria inversa nomes es permet quan una norma imperativa ho
+autoritzi.
+
+3. AUTORITZACIO I RESPONSABILITAT
+
+La instal.lacio requereix privilegis d'administrador. Confirmeu que esteu
+autoritzats a instal.lar un servei automatic de Windows, recopilar i enviar
+l'inventari tecnic descrit, i utilitzar l'UUID, l'alias i l'Agent token
+associats al compte de Firulai corresponent.
+
+Sou responsables d'obtenir les autoritzacions internes, laborals, contractuals
+o d'una altra naturalesa necessaries abans de desplegar l'Agent. Tambe heu de
+protegir l'instal.lador, l'UUID i l'Agent token i limitar-ne l'acces al personal
+autoritzat.
+
+4. INFORMACIO RECOPILADA
+
+L'Agent pot recopilar i enviar a Firulai: nom de l'equip, FQDN, UUID assignat,
+versio, edicio, compilacio i arquitectura de Windows, zona horaria, data de
+recopilacio, versio de l'Agent, informacio de maquinari, discos detectats,
+noms i versions de programari i paquets instal.lats, gestors de paquets,
+versions de components essencials, metadades operatives, errors i registres
+tecnics.
+
+L'Agent utilitza l'UUID per identificar el sistema i l'Agent token per
+autoritzar les comunicacions amb Firulai. El token es desa localment en un fitxer
+de configuracio restringit a SYSTEM i Administrators.
+
+L'Agent no esta dissenyat per recopilar deliberadament contrasenyes, claus
+privades ni contingut de documents d'usuari. Tot i aixo, les metadades
+tecniques poden ser dades personals o informacio confidencial segons l'entorn.
+Heu d'avaluar-ho i aplicar les garanties i bases juridiques necessaries.
+
+5. FUNCIONAMENT EN SEGON PLA
+
+Despres de la instal.lacio, l'Agent s'executa com a servei automatic de
+Windows, fa un primer inventari, intenta actualitzar-lo diariament, pot
+reintentar enviaments fallits i conserva configuracio, estat, inventari i
+registres tecnics locals. Necessita connectivitat HTTPS amb Firulai.
+
+La desinstal.lacio elimina el servei i els fitxers locals, pero no elimina
+automaticament l'inventari ja desat a Firulai. El sistema pot quedar marcat com
+a desconnectat o inactiu i les dades remotes s'han de gestionar des de Firulai.
+
+6. SEGURETAT I US AUTORITZAT
+
+No heu d'utilitzar l'Agent per supervisar, inventariar o accedir a equips sense
+permis. Manteniu Windows i els mecanismes de proteccio actualitzats, controleu
+els comptes administratius i comuniqueu qualsevol sospita d'exposicio de
+l'Agent token o d'us no autoritzat.
+
+Els resultats d'inventari i vulnerabilitats poden contenir errors, omissions,
+falsos positius, retards o diferencies respecte de l'estat real de l'equip.
+Verifiqueu els resultats abans de prendre decisions que afectin la
+disponibilitat, integritat o seguretat.
+
+7. PROGRAMARI I SERVEIS DE TERCERS
+
+L'Agent pot consultar eines presents a l'equip i comunicar-se amb serveis o
+fonts d'informacio utilitzats per Firulai. Aquests components poden estar
+subjectes a les seves llicencies, condicions i politiques. Redsauce no concedeix
+drets sobre productes de tercers.
+
+8. ACTUALITZACIONS, GARANTIA I RESPONSABILITAT
+
+Redsauce pot publicar correccions, noves versions o canvis necessaris per a la
+seguretat, compatibilitat o funcionament. En la mesura permesa per la llei,
+l'Agent es proporciona "tal qual" i segons disponibilitat, sense garantir
+funcionament ininterromput, deteccio completa de vulnerabilitats, dades de
+tercers completes o actuals, ni prevencio d'incidents de seguretat.
+
+En la mesura permesa per la llei, Redsauce no respon per danys indirectes,
+perdua de beneficis, perdua de dades, interrupcio d'activitat ni decisions
+adoptades nomes a partir dels resultats de l'Agent. Tambe s'apliquen les
+limitacions del contracte del servei Firulai, si existeix.
+
+9. VIGENCIA, EXTINCIO I CONTACTE
+
+Aquest Acord es vigent mentre l'Agent romangui instal.lat o en us. La llicencia
+s'extingeix si incompliu les condicions o perdeu l'autoritzacio per utilitzar
+Firulai. En aquest cas, heu de deixar d'utilitzar i desinstal.lar l'Agent.
+L'extincio no elimina per si sola les dades ja desades a Firulai.
+
+Aquest Acord es complementa amb el contracte, les condicions del servei i la
+informacio de privacitat aplicables al compte Firulai. La informacio corporativa
+i els canals de contacte son a:
+
+https://redsauce.net
+
+ACCEPTACIO
+
+En continuar, reconeixeu que enteneu el funcionament descrit, accepteu la
+recopilacio i transmissio de l'inventari tecnic i confirmeu que teniu
+autoritzacio per instal.lar l'Agent.
+
+Si no accepteu integrament aquestes condicions, seleccioneu Cancel.lar i no
+instal.leu ni utilitzeu l'Agent.

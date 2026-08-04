@@ -8,16 +8,18 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.2.1";
+        public const string AgentVersion = "0.13.0";
         public const string DefaultApiUrl = "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php";
 
         public string token { get; set; }
         public string uuid { get; set; }
         public string api_url { get; set; }
+        public string locale { get; set; }
 
         public string Token { get { return token ?? ""; } }
         public string Uuid { get { return uuid ?? ""; } }
         public string ApiUrl { get { return string.IsNullOrWhiteSpace(api_url) ? DefaultApiUrl : api_url; } }
+        public string Locale { get { return AgentText.NormalizeLocale(locale); } }
 
         public static string DataDir
         {
@@ -43,7 +45,7 @@ namespace RsAgent
         {
             if (!File.Exists(ConfigPath))
             {
-                throw new FileNotFoundException("No existe config.json", ConfigPath);
+                throw new FileNotFoundException(AgentText.T("config.missing"), ConfigPath);
             }
 
             var serializer = new JavaScriptSerializer();
@@ -52,22 +54,43 @@ namespace RsAgent
             {
                 token = GetString(raw, "token"),
                 uuid = GetString(raw, "uuid"),
-                api_url = GetString(raw, "api_url")
+                api_url = GetString(raw, "api_url"),
+                locale = GetString(raw, "locale")
             };
+            AgentText.SetLocale(config.Locale);
             config.Validate();
             return config;
+        }
+
+        public static string LoadLocaleOrDefault()
+        {
+            try
+            {
+                if (!File.Exists(ConfigPath))
+                {
+                    return AgentText.DefaultLocale;
+                }
+
+                var serializer = new JavaScriptSerializer();
+                var raw = serializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(ConfigPath));
+                return AgentText.NormalizeLocale(GetString(raw, "locale"));
+            }
+            catch
+            {
+                return AgentText.DefaultLocale;
+            }
         }
 
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(Token))
             {
-                throw new InvalidOperationException("Agent token no configurado en el agente.");
+                throw new InvalidOperationException(AgentText.T("config.tokenMissing"));
             }
 
             if (!Regex.IsMatch(Uuid, "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
             {
-                throw new InvalidOperationException("UUID no válido en config.json.");
+                throw new InvalidOperationException(AgentText.T("config.uuidInvalid"));
             }
         }
 

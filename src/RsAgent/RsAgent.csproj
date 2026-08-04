@@ -39,6 +39,7 @@
   <ItemGroup>
     <Compile Include="AgentConfig.cs" />
     <Compile Include="AgentState.cs" />
+    <Compile Include="AgentText.cs" />
     <Compile Include="InventoryCollector.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />

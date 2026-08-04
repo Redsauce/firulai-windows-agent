@@ -1,0 +1,138 @@
+FIRULAI INVENTORY AGENT POUR WINDOWS
+
+Version de l'accord : 20 juillet 2026
+
+Veuillez lire attentivement ce document avant d'installer ou d'utiliser le
+logiciel.
+
+Cet Accord de licence et avis d'utilisation ("Accord") regit l'installation et
+l'utilisation de Firulai Inventory Agent pour Windows ("Agent"), publie par
+Redsauce pour une utilisation avec la plateforme Firulai.
+
+En acceptant cet Accord et en poursuivant l'installation, vous confirmez avoir
+lu et accepte ces conditions, et disposer de l'autorisation suffisante pour
+installer et executer l'Agent sur l'ordinateur et dans l'organisation concernes.
+Si vous n'acceptez pas toutes les conditions, n'installez pas et n'utilisez pas
+l'Agent.
+
+1. OBJET
+
+L'Agent est un outil d'inventaire technique et d'aide a la gestion des
+vulnerabilites. Il s'installe comme service Windows, collecte periodiquement des
+informations techniques sur l'ordinateur et les envoie a Firulai par HTTPS afin
+de maintenir l'inventaire et de le correler avec des vulnerabilites connues.
+
+L'Agent ne remplace pas un audit de securite, une analyse professionnelle, ni
+les mesures de prevention, mise a jour, sauvegarde ou reponse aux incidents.
+
+2. LICENCE
+
+Redsauce vous accorde une licence limitee, non exclusive, non transferable et
+revocable pour installer et executer l'Agent uniquement sur des systemes que
+vous possedez, administrez ou etes expressement autorise a superviser, et
+uniquement avec un compte ou service Firulai autorise.
+
+Vous n'acquerez aucune propriete sur l'Agent ou Firulai. Vous ne pouvez pas
+vendre, louer, sous-licencier, distribuer, contourner les controles d'acces,
+utiliser l'Agent pour acceder sans autorisation a des systemes tiers, ni
+l'utiliser a des fins illicites. L'ingenierie inverse n'est autorisee que dans
+la mesure imposee par la loi.
+
+3. AUTORISATION ET RESPONSABILITE
+
+L'installation exige des privileges administrateur. Vous confirmez etre
+autorise a installer un service Windows automatique, a collecter et transmettre
+l'inventaire technique decrit, et a utiliser l'UUID, l'alias et l'Agent token
+associes au compte Firulai correspondant.
+
+Vous etes responsable d'obtenir les autorisations internes, professionnelles,
+contractuelles ou autres necessaires avant le deploiement. Vous devez proteger
+l'installateur, l'UUID et l'Agent token et en limiter l'acces au personnel
+autorise.
+
+4. INFORMATIONS COLLECTEES
+
+L'Agent peut collecter et envoyer a Firulai : nom de machine, FQDN, UUID
+assigne, version, edition, build et architecture de Windows, fuseau horaire,
+date de collecte, version de l'Agent, informations materiel, disques detectes,
+noms et versions des logiciels et paquets installes, gestionnaires de paquets,
+versions de composants essentiels, metadonnees operationnelles, erreurs et
+journaux techniques.
+
+L'Agent utilise l'UUID pour identifier le systeme et l'Agent token pour
+autoriser les communications avec Firulai. Le token est stocke localement dans
+un fichier de configuration reserve a SYSTEM et Administrators.
+
+L'Agent n'est pas concu pour collecter deliberement des mots de passe, des cles
+privees ou le contenu de documents utilisateur. Toutefois, des metadonnees
+techniques peuvent constituer des donnees personnelles ou confidentielles selon
+l'environnement. Vous devez l'evaluer et appliquer les garanties et bases
+juridiques necessaires.
+
+5. FONCTIONNEMENT EN ARRIERE-PLAN
+
+Apres installation, l'Agent fonctionne comme service Windows automatique,
+effectue un premier inventaire, tente de le mettre a jour chaque jour, peut
+reessayer les envois echoues et conserve localement configuration, etat,
+inventaire et journaux techniques. Il a besoin d'une connectivite HTTPS vers
+Firulai.
+
+La desinstallation supprime le service et les fichiers locaux, mais ne supprime
+pas automatiquement l'inventaire deja stocke dans Firulai. Le systeme peut etre
+marque comme deconnecte ou inactif et les donnees distantes doivent etre gerees
+depuis Firulai.
+
+6. SECURITE ET UTILISATION AUTORISEE
+
+Vous ne devez pas utiliser l'Agent pour surveiller, inventorier ou acceder a
+des ordinateurs sans autorisation. Maintenez Windows et les protections a jour,
+controlez les comptes administratifs et signalez toute suspicion d'exposition
+de l'Agent token ou d'utilisation non autorisee.
+
+Les resultats d'inventaire et de vulnerabilites peuvent contenir erreurs,
+omissions, faux positifs, retards ou differences avec l'etat reel de
+l'ordinateur. Verifiez les resultats avant toute decision touchant la
+disponibilite, l'integrite ou la securite.
+
+7. LOGICIELS ET SERVICES TIERS
+
+L'Agent peut interroger des outils presents sur l'ordinateur et communiquer avec
+des services ou sources d'information utilises par Firulai. Ces composants
+peuvent etre soumis a leurs propres licences, conditions et politiques.
+Redsauce n'accorde aucun droit sur des produits tiers.
+
+8. MISES A JOUR, GARANTIE ET RESPONSABILITE
+
+Redsauce peut publier des correctifs, nouvelles versions ou changements
+necessaires a la securite, compatibilite ou exploitation. Dans la mesure permise
+par la loi, l'Agent est fourni "tel quel" et selon disponibilite, sans garantie
+de fonctionnement ininterrompu, de detection complete, de donnees tierces
+completes ou actuelles, ni de prevention d'incidents.
+
+Dans la mesure permise par la loi, Redsauce n'est pas responsable des dommages
+indirects, pertes de benefices, pertes de donnees, interruption d'activite ou
+decisions fondees uniquement sur les resultats de l'Agent. Les limitations du
+contrat Firulai applicable s'appliquent egalement.
+
+9. DUREE, RESILIATION ET CONTACT
+
+Cet Accord reste en vigueur tant que l'Agent est installe ou utilise. La licence
+prend fin en cas de violation des conditions ou de perte d'autorisation
+d'utiliser Firulai. Vous devez alors cesser d'utiliser et desinstaller l'Agent.
+La resiliation ne supprime pas a elle seule les donnees deja stockees dans
+Firulai.
+
+Cet Accord est complete par le contrat, les conditions de service et les
+informations de confidentialite applicables au compte Firulai. Informations
+d'entreprise et contact :
+
+https://redsauce.net
+
+ACCEPTATION
+
+En continuant, vous reconnaissez comprendre le fonctionnement decrit, accepter
+la collecte et la transmission de l'inventaire technique et confirmer votre
+autorisation d'installer l'Agent.
+
+Si vous n'acceptez pas integralement ces conditions, selectionnez Annuler et
+n'installez pas ou n'utilisez pas l'Agent.

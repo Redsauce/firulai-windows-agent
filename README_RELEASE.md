@@ -34,19 +34,27 @@ Estos directorios estan ignorados en `.gitignore`.
 El usuario final no descarga el repo. Descarga el instalador publicado como asset de GitHub Releases:
 
 ```text
-RSAgentSetup.exe
+FirulaiAgent.exe
 ```
+
+Firulai no descarga directamente este asset desde el navegador. La aplicacion sirve el mismo binario desde el endpoint autenticado:
+
+```text
+/api/agents/windows/installer
+```
+
+Ese endpoint lee el idioma guardado en las preferencias del App user (`preferences.locale`) y cambia solo el nombre de descarga, por ejemplo `FirulaiAgent-ca.exe` o `FirulaiAgent-en.exe`. El instalador detecta ese sufijo al arrancar y selecciona el idioma antes de mostrar el asistente. No se generan instaladores distintos por idioma.
 
 Enlace estable para la aplicación:
 
 ```text
-https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe
 ```
 
 Enlace a una versión concreta:
 
 ```text
-https://github.com/OWNER/REPO/releases/download/v0.2.1/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/download/v0.13.0/FirulaiAgent.exe
 ```
 
 ---
@@ -92,10 +100,10 @@ if (-not $iscc) {
 Resultado:
 
 ```text
-agent/windows/Output/RSAgentSetup.exe
+agent/windows/Output/FirulaiAgent.exe
 ```
 
-El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador.
+El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador. Para desplegar la descarga desde Firulai, publica primero este `Output/FirulaiAgent.exe` como asset de la release Windows; si `apps/rsm-firulai/agents/windows/Output/FirulaiAgent.exe` no existe en el build de la app, `scripts/build-app-dist.mjs` lo descarga desde la release estable y lo incluye en el zip de prod.
 
 ---
 
@@ -200,27 +208,27 @@ La clave del origen se conserva al desinstalar para que Windows pueda seguir mos
    - `AgentConfig.AgentVersion` en `src/RsAgent/AgentConfig.cs`.
    - `MyAppVersion` en `installer/RsAgent.iss`.
 3. Compilar el agente.
-4. Generar `Output/RSAgentSetup.exe`.
+4. Generar `Output/FirulaiAgent.exe`.
 5. Probar instalación en una máquina Windows limpia.
 6. Probar que una segunda instalación sobre el mismo equipo se cancela y pide desinstalar primero.
 7. Probar instalación con UUID inexistente o ya asignado y comprobar que se cancela antes de crear archivos.
 8. Probar desinstalación y comprobar en Firulai que el System asociado al UUID queda con `Hostnamestatus` (`1751`) = `Disconnected`.
-9. Crear tag en GitHub, por ejemplo `v0.2.1`.
+9. Crear tag en GitHub, por ejemplo `v0.13.0`.
 10. Crear GitHub Release para ese tag.
-11. Adjuntar `RSAgentSetup.exe` como asset.
+11. Adjuntar `FirulaiAgent.exe` como asset.
 12. Comprobar que descarga desde:
 
 ```text
-https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe
+https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe
 ```
 
-Para esta versión, los endpoints de Firulai del instalador Windows apuntan a `https://rsm1.redsauce.net/AppController/commands_RSM/api/...`. Como cambia la URL configurada en el instalador y en el `config.json` generado, hay que compilar de nuevo `RsAgent.exe` y generar un nuevo `RSAgentSetup.exe`.
+Para esta versión, los endpoints de Firulai del instalador Windows apuntan a `https://rsm1.redsauce.net/AppController/commands_RSM/api/...`. Como cambia la URL configurada en el instalador y en el `config.json` generado, hay que compilar de nuevo `RsAgent.exe` y generar un nuevo `FirulaiAgent.exe`.
 
 ---
 
 ## Cuando hay que generar otro EXE
 
-Generar un nuevo `RSAgentSetup.exe` si cambia cualquier cosa que deba llegar a los usuarios:
+Generar un nuevo `FirulaiAgent.exe` si cambia cualquier cosa que deba llegar a los usuarios:
 
 - Codigo C# del agente.
 - Validación o almacenamiento del Agent token.
@@ -243,7 +251,7 @@ No hace falta generar otro EXE si solo cambia:
 En la aplicación, el botón Windows debe apuntar al asset del último Release:
 
 ```html
-<a href="https://github.com/OWNER/REPO/releases/latest/download/RSAgentSetup.exe">
+<a href="https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe">
   Descargar agente Windows
 </a>
 ```
@@ -251,7 +259,7 @@ En la aplicación, el botón Windows debe apuntar al asset del último Release:
 Flujo para el usuario:
 
 1. Pulsa el boton Windows.
-2. Descarga `RSAgentSetup.exe`.
+2. Descarga `FirulaiAgent.exe`.
 3. Ejecuta el instalador como Administrador.
 4. Introduce el UUID, el token facilitado en Firulai y un alias para el sistema.
 5. Si ya existe un agente instalado, el instalador cancela y pide desinstalar primero.

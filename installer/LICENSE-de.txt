@@ -1,0 +1,140 @@
+FIRULAI INVENTORY AGENT FUER WINDOWS
+
+Version der Vereinbarung: 20. Juli 2026
+
+Bitte lesen Sie dieses Dokument sorgfaeltig, bevor Sie die Software
+installieren oder verwenden.
+
+Diese Lizenzvereinbarung und Nutzungshinweise ("Vereinbarung") regeln die
+Installation und Nutzung des Firulai Inventory Agent fuer Windows ("Agent"),
+veroeffentlicht von Redsauce zur Verwendung mit der Firulai-Plattform.
+
+Wenn Sie diese Vereinbarung akzeptieren und mit der Installation fortfahren,
+bestaetigen Sie, dass Sie diese Bedingungen gelesen haben und akzeptieren und
+dass Sie ausreichend berechtigt sind, den Agent auf dem betreffenden Computer
+und in der betreffenden Organisation zu installieren und auszufuehren. Wenn Sie
+nicht allen Bedingungen zustimmen, installieren oder verwenden Sie den Agent
+nicht.
+
+1. ZWECK
+
+Der Agent ist ein Werkzeug fuer technisches Inventar und zur Unterstuetzung des
+Schwachstellenmanagements. Er wird als Windows-Dienst installiert, sammelt
+regelmaessig technische Informationen des Computers und sendet sie per HTTPS an
+Firulai, damit das Inventar gepflegt und mit bekannten Schwachstellen korreliert
+werden kann.
+
+Der Agent ersetzt keine Sicherheitspruefung, professionelle Analyse,
+Praevention, Aktualisierung, Sicherung oder Reaktion auf Sicherheitsvorfaelle.
+
+2. LIZENZ
+
+Redsauce gewaehrt eine beschraenkte, nicht ausschliessliche, nicht
+uebertragbare und widerrufliche Lizenz, den Agent nur auf Systemen zu
+installieren und auszufuehren, die Sie besitzen, verwalten oder ausdruecklich
+ueberwachen duerfen, und nur mit einem autorisierten Firulai-Konto oder Dienst.
+
+Sie erwerben kein Eigentum am Agent oder an Firulai. Sie duerfen den Agent nicht
+verkaufen, vermieten, unterlizenzieren, verteilen, Zugriffskontrollen umgehen,
+fuer unbefugten Zugriff auf Drittsysteme nutzen oder fuer rechtswidrige Zwecke
+verwenden. Reverse Engineering ist nur erlaubt, soweit zwingendes Recht dies
+gestattet.
+
+3. BERECHTIGUNG UND VERANTWORTUNG
+
+Die Installation erfordert Administratorrechte. Sie bestaetigen, dass Sie
+berechtigt sind, einen automatischen Windows-Dienst zu installieren, das
+beschriebene technische Inventar zu sammeln und zu uebermitteln und die UUID,
+den Alias und das Agent token des entsprechenden Firulai-Kontos zu verwenden.
+
+Sie sind verantwortlich, alle internen, arbeitsrechtlichen, vertraglichen oder
+sonstigen Genehmigungen vor der Bereitstellung einzuholen. Sie muessen
+Installationsdatei, UUID und Agent token schuetzen und den Zugriff auf
+berechtigtes Personal beschraenken.
+
+4. ERHOBENE INFORMATIONEN
+
+Der Agent kann an Firulai senden: Hostname, FQDN, zugewiesene UUID, Windows-
+Version, Edition, Build, Architektur, Zeitzone, Erhebungsdatum, Agent-Version,
+Hardwareinformationen, erkannte Datentraeger, Namen und Versionen installierter
+Software und Pakete, Paketmanager, Versionen wesentlicher Systemkomponenten,
+Betriebsmetadaten, Fehlermeldungen und technische Protokolle.
+
+Der Agent verwendet die UUID zur Identifizierung des Systems und das Agent token
+zur Autorisierung der Kommunikation mit Firulai. Das Token wird lokal in einer
+Konfigurationsdatei gespeichert, deren Zugriff auf SYSTEM und Administrators
+beschraenkt ist.
+
+Der Agent ist nicht dazu bestimmt, absichtlich Passwoerter, private Schluessel
+oder Inhalte von Benutzerdokumenten zu erfassen. Technische Metadaten koennen je
+nach Umgebung personenbezogene oder vertrauliche Informationen sein. Sie muessen
+dies bewerten und die erforderlichen Schutzmassnahmen und Rechtsgrundlagen
+anwenden.
+
+5. HINTERGRUNDBETRIEB
+
+Nach der Installation laeuft der Agent als automatischer Windows-Dienst, fuehrt
+ein erstes Inventar aus, versucht taegliche Aktualisierungen, kann fehlgeschlagene
+Uebermittlungen wiederholen und speichert lokale Konfiguration, Zustand,
+Inventar und technische Protokolle. Er benoetigt HTTPS-Verbindung zu Firulai.
+
+Die Deinstallation entfernt den lokalen Dienst und die Dateien, loescht aber
+nicht automatisch bereits in Firulai gespeicherte Inventardaten. Das System kann
+als getrennt oder inaktiv markiert werden; entfernte Daten sind in Firulai zu
+verwalten.
+
+6. SICHERHEIT UND AUTORISIERTE NUTZUNG
+
+Sie duerfen den Agent nicht verwenden, um Computer ohne Erlaubnis zu
+ueberwachen, zu inventarisieren oder darauf zuzugreifen. Halten Sie Windows und
+Schutzmechanismen aktuell, kontrollieren Sie Administratorkonten und melden Sie
+jeden Verdacht auf Offenlegung des Agent token oder unbefugte Nutzung.
+
+Inventar- und Schwachstellenergebnisse koennen Fehler, Auslassungen, falsche
+Positive, Verzoegerungen oder Abweichungen vom tatsaechlichen Zustand enthalten.
+Pruefen Sie Ergebnisse, bevor Sie Entscheidungen zur Verfuegbarkeit, Integritaet
+oder Sicherheit treffen.
+
+7. DRITTSOFTWARE UND DIENSTE
+
+Der Agent kann auf dem Computer vorhandene Werkzeuge abfragen und mit Diensten
+oder Informationsquellen kommunizieren, die Firulai verwendet. Diese Komponenten
+koennen eigenen Lizenzen, Bedingungen und Richtlinien unterliegen. Redsauce
+gewaehrt keine Rechte an Drittprodukten.
+
+8. AKTUALISIERUNGEN, GEWAEHRLEISTUNG UND HAFTUNG
+
+Redsauce kann Korrekturen, neue Versionen oder Aenderungen veroeffentlichen,
+die fuer Sicherheit, Kompatibilitaet oder Betrieb erforderlich sind. Soweit
+gesetzlich zulaessig, wird der Agent "wie besehen" und nach Verfuegbarkeit
+bereitgestellt, ohne Garantie fuer unterbrechungsfreien Betrieb, vollstaendige
+Erkennung, vollstaendige oder aktuelle Drittdaten oder Verhinderung von
+Sicherheitsvorfaellen.
+
+Soweit gesetzlich zulaessig, haftet Redsauce nicht fuer indirekte Schaeden,
+entgangenen Gewinn, Datenverlust, Betriebsunterbrechung oder Entscheidungen,
+die ausschliesslich auf Ergebnissen des Agent beruhen. Haftungsbeschraenkungen
+aus dem Firulai-Vertrag gelten ebenfalls.
+
+9. LAUFZEIT, BEENDIGUNG UND KONTAKT
+
+Diese Vereinbarung gilt, solange der Agent installiert ist oder verwendet wird.
+Die Lizenz endet bei Verstoss gegen die Bedingungen oder Verlust der
+Berechtigung zur Nutzung von Firulai. Sie muessen dann die Nutzung beenden und
+den Agent deinstallieren. Die Beendigung loescht nicht automatisch bereits in
+Firulai gespeicherte Daten.
+
+Diese Vereinbarung wird durch Vertrag, Servicebedingungen und
+Datenschutzinformationen des Firulai-Kontos ergaenzt. Unternehmensinformationen
+und Kontakt:
+
+https://redsauce.net
+
+ANNAHME
+
+Durch Fortfahren bestaetigen Sie, dass Sie den beschriebenen Betrieb verstehen,
+die Erhebung und Uebermittlung des technischen Inventars akzeptieren und zur
+Installation des Agent berechtigt sind.
+
+Wenn Sie diese Bedingungen nicht vollstaendig akzeptieren, waehlen Sie
+Abbrechen und installieren oder verwenden Sie den Agent nicht.

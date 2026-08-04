@@ -27,7 +27,7 @@ namespace RsAgent
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var stopwatch = Stopwatch.StartNew();
-            Logger.Info("Envío HTTP iniciado. Destino=" + GetSafeDestination(config.ApiUrl) + ", timeout=30s, payloadBytes=" + Encoding.UTF8.GetByteCount(inventoryJson) + ".");
+            Logger.Info(AgentText.T("rsm.httpStarted", GetSafeDestination(config.ApiUrl), Encoding.UTF8.GetByteCount(inventoryJson)));
 
             using (var client = new HttpClient())
             using (var form = new MultipartFormDataContent())
@@ -35,18 +35,22 @@ namespace RsAgent
                 client.Timeout = TimeSpan.FromSeconds(30);
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
                 form.Add(new StringContent("newServerData"), "RStrigger");
-                // Linux uses curl --form "RSdata=<file;type=application/json": the
-                // JSON is a regular multipart field (PHP $_POST), not a file
-                // upload (PHP $_FILES). Do not add a filename here.
+                // Linux sends RSdata as a regular multipart field (PHP $_POST),
+                // not as a file upload (PHP $_FILES).
                 form.Add(new StringContent(inventoryJson, Encoding.UTF8, "application/json"), "RSdata");
                 form.Add(new StringContent(config.Token), "RStoken");
 
                 var response = await client.PostAsync(config.ApiUrl, form).ConfigureAwait(false);
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Logger.Info("Respuesta HTTP recibida. Estado=" + (int)response.StatusCode + " " + response.ReasonPhrase + ", duraciónMs=" + stopwatch.ElapsedMilliseconds + ", respuestaCaracteres=" + body.Length + ".");
+                Logger.Info(AgentText.T(
+                    "rsm.httpResponse",
+                    (int)response.StatusCode,
+                    response.ReasonPhrase,
+                    stopwatch.ElapsedMilliseconds,
+                    body.Length));
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new InvalidOperationException("Firulai respondio " + (int)response.StatusCode + ": " + body);
+                    throw new InvalidOperationException(AgentText.T("rsm.httpFailed", (int)response.StatusCode, body));
                 }
             }
         }
@@ -56,7 +60,7 @@ namespace RsAgent
             Uri uri;
             return Uri.TryCreate(url, UriKind.Absolute, out uri)
                 ? uri.Scheme + "://" + uri.Authority + uri.AbsolutePath
-                : "URL no válida";
+                : AgentText.T("rsm.invalidUrl");
         }
 
         public static async Task<UninstallStatusUpdateResult> MarkSystemDisconnectedOnUninstallAsync(AgentConfig config)
@@ -67,7 +71,7 @@ namespace RsAgent
                 return new UninstallStatusUpdateResult
                 {
                     SystemFound = false,
-                    Message = "No existe ningún System en Firulai para el UUID " + config.Uuid + ". Se omite la actualización remota y se permite la desinstalación local."
+                    Message = AgentText.T("rsm.noSystemForUuid", config.Uuid)
                 };
             }
 
@@ -103,7 +107,7 @@ namespace RsAgent
             var httpType = Type.GetTypeFromProgID("WinHttp.WinHttpRequest.5.1");
             if (httpType == null)
             {
-                throw new InvalidOperationException("No se pudo inicializar WinHTTP para consultar Firulai.");
+                throw new InvalidOperationException(AgentText.T("rsm.winHttpInitFailed"));
             }
 
             dynamic http = Activator.CreateInstance(httpType);
@@ -117,7 +121,7 @@ namespace RsAgent
             string body = Convert.ToString(http.ResponseText);
             if (status != 200 && status != 201)
             {
-                throw new InvalidOperationException("Firulai respondio " + status + " al buscar el UUID: " + body);
+                throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", status, body));
             }
 
             if (body.IndexOf(config.Uuid, StringComparison.OrdinalIgnoreCase) < 0)
@@ -154,7 +158,7 @@ namespace RsAgent
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new InvalidOperationException("Firulai respondio " + (int)response.StatusCode + " al actualizar el estado del sistema: " + body);
+                    throw new InvalidOperationException(AgentText.T("rsm.statusUpdateFailed", (int)response.StatusCode, body));
                 }
 
                 return body;

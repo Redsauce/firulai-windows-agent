@@ -31,9 +31,10 @@ namespace RsAgent
 
                 if (Environment.UserInteractive)
                 {
+                    AgentText.SetLocale(AgentConfig.LoadLocaleOrDefault());
                     Console.WriteLine("RSAgent Windows " + AgentConfig.AgentVersion);
-                    Console.WriteLine("Uso: RsAgent.exe --run-once");
-                    Console.WriteLine("Como servicio, instálalo con el instalador Inno Setup o sc.exe.");
+                    Console.WriteLine(AgentText.T("program.usageRunOnce"));
+                    Console.WriteLine(AgentText.T("program.usageService"));
                     return 0;
                 }
 
@@ -42,7 +43,7 @@ namespace RsAgent
             }
             catch (Exception ex)
             {
-                Logger.Error("Fallo fatal", ex);
+                Logger.Error(AgentText.T("program.fatal"), ex);
                 if (Environment.UserInteractive) Console.Error.WriteLine(ex);
                 return 1;
             }
@@ -55,13 +56,13 @@ namespace RsAgent
             var result = await RsmClient.MarkSystemDisconnectedOnUninstallAsync(config).ConfigureAwait(false);
             if (!result.SystemFound)
             {
-                Logger.Info("Desinstalacion: no existe ningun System en Firulai para UUID " + config.Uuid + ". Se permite la desinstalacion local.");
-                if (Environment.UserInteractive) Console.WriteLine("No hay ningun System enlazado en Firulai para UUID " + config.Uuid + ". La desinstalacion local continuara.");
+                Logger.Info(AgentText.T("program.uninstallNoSystemLog", config.Uuid));
+                if (Environment.UserInteractive) Console.WriteLine(AgentText.T("program.uninstallNoSystemConsole", config.Uuid));
                 return isLegacyUninstallRequest ? 0 : 2;
             }
 
-            Logger.Info("Desinstalacion: System marcado como Disconnected en Firulai para UUID " + config.Uuid + ". Respuesta Firulai: " + result.Message);
-            if (Environment.UserInteractive) Console.WriteLine("Sistema marcado como inactivo en Firulai para UUID " + config.Uuid + ".");
+            Logger.Info(AgentText.T("program.uninstallDisconnectedLog", config.Uuid, result.Message));
+            if (Environment.UserInteractive) Console.WriteLine(AgentText.T("program.uninstallDisconnectedConsole", config.Uuid));
             return 0;
         }
     }

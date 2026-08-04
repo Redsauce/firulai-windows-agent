@@ -1,0 +1,130 @@
+FIRULAI INVENTORY AGENT PARA WINDOWS
+
+Version do acordo: 20 de xullo de 2026
+
+Lea atentamente este documento antes de instalar ou utilizar o software.
+
+Este Acordo de licenza e aviso de uso ("Acordo") regula a instalacion e o uso
+de Firulai Inventory Agent para Windows ("Axente"), publicado por Redsauce para
+o seu uso coa plataforma Firulai.
+
+Ao aceptar este Acordo e continuar coa instalacion, confirma que leu e acepta
+estas condicions, e que conta con autorizacion suficiente para instalar e
+executar o Axente no equipo e na organizacion correspondentes. Se non acepta
+todas as condicions, non instale nin utilice o Axente.
+
+1. FINALIDADE
+
+O Axente e unha ferramenta de inventario tecnico e apoio a xestion de
+vulnerabilidades. Instala como servizo de Windows, recolle periodicamente
+informacion tecnica do equipo e enviaa a Firulai mediante HTTPS para manter o
+inventario e correlacionalo con vulnerabilidades coñecidas.
+
+O Axente non substitue unha auditoria de seguridade, unha analise profesional
+nin as medidas de prevencion, actualizacion, copia de seguridade ou resposta a
+incidentes.
+
+2. LICENZA
+
+Redsauce concede unha licenza limitada, non exclusiva, non transferible e
+revogable para instalar e executar o Axente unicamente en sistemas que posua,
+administre ou estea expresamente autorizado a supervisar, e so cunha conta ou
+servizo Firulai autorizado.
+
+Non adquire a propiedade do Axente nin de Firulai. Non pode vender, alugar,
+sublicenciar, distribuír, eludir controis de acceso, usar o Axente para acceder
+sen autorizacion a sistemas de terceiros nin empregalo con fins ilicitos. A
+enxeñaria inversa so se permite cando unha norma imperativa o autorice.
+
+3. AUTORIZACION E RESPONSABILIDADE
+
+A instalacion require privilexios de administrador. Confirma que esta
+autorizado para instalar un servizo automatico de Windows, recoller e enviar o
+inventario tecnico descrito e usar o UUID, alias e Agent token asociados a conta
+Firulai correspondente.
+
+E responsable de obter as autorizacions internas, laborais, contractuais ou
+doutra natureza necesarias antes do despregamento. Debe protexer o instalador,
+o UUID e o Agent token e limitar o seu acceso ao persoal autorizado.
+
+4. INFORMACION RECOLLIDA
+
+O Axente pode recoller e enviar a Firulai: nome do equipo, FQDN, UUID asignado,
+version, edicion, compilacion e arquitectura de Windows, zona horaria, data de
+recollida, version do Axente, informacion de hardware, discos detectados, nomes
+e versions de software e paquetes instalados, xestores de paquetes, versions de
+componentes esenciais, metadatos operativos, erros e rexistros tecnicos.
+
+O Axente usa o UUID para identificar o sistema e o Agent token para autorizar as
+comunicacions con Firulai. O token gardase localmente nun ficheiro de
+configuracion restrinxido a SYSTEM e Administrators.
+
+O Axente non esta deseñado para recoller deliberadamente contrasinais, chaves
+privadas nin contido de documentos de usuario. Poren, metadatos tecnicos poden
+ser datos persoais ou informacion confidencial segundo o contorno. Debe avaliar
+esta circunstancia e aplicar as garantias e bases xuridicas necesarias.
+
+5. FUNCIONAMENTO EN SEGUNDO PLANO
+
+Despois da instalacion, o Axente executase como servizo automatico de Windows,
+realiza un primeiro inventario, tenta actualizalo diariamente, pode repetir
+envios fallidos e conserva configuracion, estado, inventario e rexistros
+tecnicos locais. Precisa conectividade HTTPS con Firulai.
+
+A desinstalacion elimina o servizo e os ficheiros locais, pero non elimina
+automaticamente o inventario xa gardado en Firulai. O sistema pode marcarse
+como desconectado ou inactivo e os datos remotos deben xestionarse desde
+Firulai.
+
+6. SEGURIDADE E USO AUTORIZADO
+
+Non debe usar o Axente para supervisar, inventariar ou acceder a equipos sen
+permiso. Manteña Windows e os mecanismos de proteccion actualizados, controle
+as contas administrativas e comunique calquera sospeita de exposicion do Agent
+token ou uso non autorizado.
+
+Os resultados de inventario e vulnerabilidades poden conter erros, omisions,
+falsos positivos, atrasos ou diferenzas respecto do estado real do equipo.
+Verifique os resultados antes de tomar decisions que afecten a dispoñibilidade,
+integridade ou seguridade.
+
+7. SOFTWARE E SERVIZOS DE TERCEIROS
+
+O Axente pode consultar ferramentas presentes no equipo e comunicarse con
+servizos ou fontes de informacion empregados por Firulai. Estes compoñentes
+poden estar suxeitos as suas propias licenzas, condicions e politicas.
+Redsauce non concede dereitos sobre produtos de terceiros.
+
+8. ACTUALIZACIONS, GARANTIA E RESPONSABILIDADE
+
+Redsauce pode publicar correccions, novas versions ou cambios necesarios para a
+seguridade, compatibilidade ou funcionamento. Na medida permitida pola lei, o
+Axente proporcionase "tal cal" e segundo dispoñibilidade, sen garantir
+funcionamento ininterrompido, deteccion completa, datos de terceiros completos
+ou actuais nin prevencion de incidentes de seguridade.
+
+Na medida permitida pola lei, Redsauce non responde por danos indirectos,
+perda de beneficios, perda de datos, interrupcion de actividade nin decisions
+baseadas unicamente nos resultados do Axente. Aplicanse tamen as limitacions do
+contrato Firulai correspondente.
+
+9. VIXENCIA, EXTINCION E CONTACTO
+
+Este Acordo permanece vixente mentres o Axente estea instalado ou en uso. A
+licenza extinguirase se incumpre as condicions ou perde autorizacion para usar
+Firulai. Debera deixar de usar e desinstalar o Axente. A extincion non elimina
+por si soa os datos xa gardados en Firulai.
+
+Este Acordo completase co contrato, condicions do servizo e informacion de
+privacidade aplicables a conta Firulai. Informacion corporativa e contacto:
+
+https://redsauce.net
+
+ACEPTACION
+
+Ao continuar, recoñece que comprende o funcionamento descrito, acepta a
+recollida e transmision do inventario tecnico e confirma que ten autorizacion
+para instalar o Axente.
+
+Se non acepta integramente estas condicions, seleccione Cancelar e non instale
+nin utilice o Axente.

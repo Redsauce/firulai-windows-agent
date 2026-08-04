@@ -1,0 +1,134 @@
+FIRULAI INVENTORY AGENT PER WINDOWS
+
+Versione dell'accordo: 20 luglio 2026
+
+Leggere attentamente questo documento prima di installare o utilizzare il
+software.
+
+Il presente Accordo di licenza e avviso d'uso ("Accordo") regola
+l'installazione e l'uso di Firulai Inventory Agent per Windows ("Agent"),
+pubblicato da Redsauce per l'utilizzo con la piattaforma Firulai.
+
+Accettando questo Accordo e continuando l'installazione, confermi di aver letto
+e accettato le condizioni e di disporre dell'autorizzazione sufficiente per
+installare ed eseguire l'Agent sul computer e nell'organizzazione interessati.
+Se non accetti tutte le condizioni, non installare ne utilizzare l'Agent.
+
+1. SCOPO
+
+L'Agent e uno strumento di inventario tecnico e supporto alla gestione delle
+vulnerabilita. Viene installato come servizio Windows, raccoglie periodicamente
+informazioni tecniche dal computer e le invia a Firulai tramite HTTPS per
+mantenere l'inventario e correlarlo con vulnerabilita note.
+
+L'Agent non sostituisce audit di sicurezza, analisi professionali, misure di
+prevenzione, aggiornamento, backup o risposta agli incidenti.
+
+2. LICENZA
+
+Redsauce concede una licenza limitata, non esclusiva, non trasferibile e
+revocabile per installare ed eseguire l'Agent solo su sistemi che possiedi,
+amministri o sei espressamente autorizzato a monitorare, e solo con un account o
+servizio Firulai autorizzato.
+
+Non acquisisci la proprieta dell'Agent o di Firulai. Non puoi vendere,
+noleggiare, concedere in sublicenza, distribuire, aggirare controlli di accesso,
+usare l'Agent per accedere senza autorizzazione a sistemi di terzi o usarlo per
+scopi illeciti. Il reverse engineering e consentito solo quando previsto da una
+norma imperativa.
+
+3. AUTORIZZAZIONE E RESPONSABILITA
+
+L'installazione richiede privilegi di amministratore. Confermi di essere
+autorizzato a installare un servizio Windows automatico, raccogliere e inviare
+l'inventario tecnico descritto e usare UUID, alias e Agent token associati al
+relativo account Firulai.
+
+Sei responsabile di ottenere tutte le autorizzazioni interne, lavorative,
+contrattuali o di altra natura necessarie prima della distribuzione. Devi
+proteggere installer, UUID e Agent token e limitarne l'accesso al personale
+autorizzato.
+
+4. INFORMAZIONI RACCOLTE
+
+L'Agent puo raccogliere e inviare a Firulai: nome host, FQDN, UUID assegnato,
+versione, edizione, build e architettura di Windows, fuso orario, data di
+raccolta, versione dell'Agent, informazioni hardware, dischi rilevati, nomi e
+versioni di software e pacchetti installati, gestori di pacchetti, versioni di
+componenti essenziali, metadati operativi, errori e log tecnici.
+
+L'Agent usa l'UUID per identificare il sistema e l'Agent token per autorizzare
+le comunicazioni con Firulai. Il token viene salvato localmente in un file di
+configurazione limitato a SYSTEM e Administrators.
+
+L'Agent non e progettato per raccogliere deliberatamente password, chiavi
+private o contenuti di documenti utente. Tuttavia, metadati tecnici possono
+costituire dati personali o informazioni riservate a seconda dell'ambiente. Devi
+valutare tale circostanza e applicare garanzie e basi giuridiche necessarie.
+
+5. FUNZIONAMENTO IN BACKGROUND
+
+Dopo l'installazione, l'Agent viene eseguito come servizio Windows automatico,
+effettua un primo inventario, tenta aggiornamenti giornalieri, puo ritentare
+invii falliti e conserva configurazione, stato, inventario e log tecnici locali.
+Richiede connettivita HTTPS verso Firulai.
+
+La disinstallazione rimuove servizio e file locali, ma non elimina
+automaticamente l'inventario gia salvato in Firulai. Il sistema puo essere
+marcato come disconnesso o inattivo e i dati remoti devono essere gestiti da
+Firulai.
+
+6. SICUREZZA E USO AUTORIZZATO
+
+Non devi usare l'Agent per monitorare, inventariare o accedere a computer senza
+permesso. Mantieni Windows e le protezioni aggiornati, controlla gli account
+amministrativi e segnala qualsiasi sospetta esposizione dell'Agent token o uso
+non autorizzato.
+
+I risultati di inventario e vulnerabilita possono contenere errori, omissioni,
+falsi positivi, ritardi o differenze rispetto allo stato reale del computer.
+Verifica i risultati prima di decisioni che incidano su disponibilita,
+integrita o sicurezza.
+
+7. SOFTWARE E SERVIZI DI TERZI
+
+L'Agent puo interrogare strumenti presenti sul computer e comunicare con servizi
+o fonti informative usati da Firulai. Tali componenti possono essere soggetti a
+licenze, condizioni e politiche proprie. Redsauce non concede diritti su prodotti
+di terzi.
+
+8. AGGIORNAMENTI, GARANZIA E RESPONSABILITA
+
+Redsauce puo pubblicare correzioni, nuove versioni o modifiche necessarie per
+sicurezza, compatibilita o funzionamento. Nei limiti consentiti dalla legge,
+l'Agent e fornito "cosi com'e" e secondo disponibilita, senza garanzia di
+funzionamento ininterrotto, rilevamento completo, dati di terzi completi o
+aggiornati, o prevenzione di incidenti di sicurezza.
+
+Nei limiti consentiti dalla legge, Redsauce non risponde di danni indiretti,
+perdita di profitti, perdita di dati, interruzione di attivita o decisioni prese
+esclusivamente dai risultati dell'Agent. Si applicano anche le limitazioni del
+contratto Firulai applicabile.
+
+9. DURATA, CESSAZIONE E CONTATTO
+
+Questo Accordo rimane valido finche l'Agent e installato o utilizzato. La
+licenza termina in caso di violazione delle condizioni o perdita
+dell'autorizzazione a usare Firulai. Dovrai cessare l'uso e disinstallare
+l'Agent. La cessazione non elimina automaticamente i dati gia salvati in
+Firulai.
+
+Questo Accordo e integrato da contratto, condizioni di servizio e informazioni
+sulla privacy applicabili all'account Firulai. Informazioni aziendali e
+contatto:
+
+https://redsauce.net
+
+ACCETTAZIONE
+
+Continuando, riconosci di comprendere il funzionamento descritto, accetti la
+raccolta e trasmissione dell'inventario tecnico e confermi di essere autorizzato
+a installare l'Agent.
+
+Se non accetti integralmente queste condizioni, seleziona Annulla e non
+installare ne utilizzare l'Agent.

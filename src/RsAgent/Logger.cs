@@ -87,7 +87,7 @@ namespace RsAgent
             }
             catch (Exception ex)
             {
-                Write("WARN", "No se pudo escribir el evento " + eventId + " en el registro Aplicación de Windows: " + ex.Message);
+                Write("WARN", AgentText.T("logger.eventWriteFailed", eventId, ex.Message));
             }
         }
 

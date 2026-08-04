@@ -1,0 +1,129 @@
+FIRULAI INVENTORY AGENT FOR WINDOWS
+
+Agreement version: 20 July 2026
+
+Please read this document carefully before installing or using the software.
+
+This License Agreement and Usage Notice ("Agreement") governs the installation
+and use of Firulai Inventory Agent for Windows ("Agent"), published by Redsauce
+for use with the Firulai platform.
+
+By accepting this Agreement and continuing with the installation, you confirm
+that you have read and accept these terms, and that you have sufficient
+authorization to install and run the Agent on the relevant computer and within
+the relevant organization. If you do not accept all terms, do not install or use
+the Agent.
+
+1. PURPOSE
+
+The Agent is a technical inventory and vulnerability-management support tool. It
+is installed as a Windows service, periodically collects technical information
+from the computer, and sends it to Firulai over HTTPS so that the inventory can
+be maintained and correlated with known vulnerabilities.
+
+The Agent does not replace a security audit, professional analysis, prevention,
+patching, backup, or incident-response measures.
+
+2. LICENSE
+
+Redsauce grants a limited, non-exclusive, non-transferable, revocable license to
+install and run the Agent only on systems that you own, administer, or are
+expressly authorized to monitor, and only with an authorized Firulai account or
+service.
+
+You do not acquire ownership of the Agent or Firulai. You may not sell, rent,
+sublicense, distribute, bypass access controls, use the Agent to access third
+party systems without authorization, or use it for unlawful purposes. Reverse
+engineering is allowed only where mandatory law permits it.
+
+3. AUTHORIZATION AND RESPONSIBILITY
+
+Installation requires administrator privileges. You confirm that you are
+authorized to install an automatic Windows service, collect and send the
+technical inventory described here, and use the UUID, alias, and Agent token
+associated with the corresponding Firulai account.
+
+You are responsible for obtaining any internal, employment, contractual, or
+other authorizations required before deploying the Agent. You must protect the
+installer, UUID, and Agent token and restrict access to authorized personnel.
+
+4. INFORMATION COLLECTED
+
+The Agent may collect and send to Firulai: host name, FQDN, assigned UUID,
+Windows version, edition, build, architecture, time zone, collection date,
+Agent version, hardware information, detected disks, installed software and
+package names and versions, package managers, essential system component
+versions, operational metadata, error messages, and technical logs.
+
+The Agent uses the UUID to identify the system and the Agent token to authorize
+communications with Firulai. The token is stored locally in a configuration file
+restricted to SYSTEM and Administrators.
+
+The Agent is not designed to deliberately collect passwords, private keys, or
+the contents of user documents. However, technical metadata may be personal data
+or confidential information depending on the environment. You must assess this
+and apply the necessary safeguards and legal bases.
+
+5. BACKGROUND OPERATION
+
+After installation, the Agent runs as an automatic Windows service, performs an
+initial inventory, attempts to update the inventory daily, may retry failed
+submissions, and stores local configuration, state, inventory, and technical
+logs. It requires HTTPS connectivity to Firulai.
+
+Uninstalling removes the local service and files, but does not automatically
+delete inventory already stored in Firulai. The system may be marked as
+disconnected or inactive and remote data must be managed from Firulai.
+
+6. SECURITY AND AUTHORIZED USE
+
+You must not use the Agent to monitor, inventory, or access computers without
+permission. Keep Windows and protection mechanisms updated, control
+administrative accounts, and report any suspected exposure of the Agent token or
+unauthorized use.
+
+Inventory and vulnerability results may contain errors, omissions, false
+positives, delays, or differences from the real state of the computer. Verify
+results before making availability, integrity, or security decisions.
+
+7. THIRD-PARTY SOFTWARE AND SERVICES
+
+The Agent may query tools present on the computer and communicate with services
+or information sources used by Firulai. Those components may be subject to their
+own licenses, terms, and policies. Redsauce grants no rights over third-party
+products.
+
+8. UPDATES, WARRANTY, AND LIABILITY
+
+Redsauce may publish fixes, new versions, or changes required for security,
+compatibility, or operation. To the extent permitted by law, the Agent is
+provided "as is" and as available, without guaranteeing uninterrupted operation,
+complete vulnerability detection, complete or current third-party data, or the
+prevention of security incidents.
+
+To the extent permitted by law, Redsauce is not liable for indirect damages,
+loss of profit, loss of data, business interruption, or decisions made solely
+from Agent results. Any liability limits in the applicable Firulai service
+contract also apply.
+
+9. TERM, TERMINATION, AND CONTACT
+
+This Agreement remains in force while the Agent is installed or used. The
+license ends if you breach its terms or lose authorization to use Firulai. You
+must then stop using and uninstall the Agent. Termination does not by itself
+delete data already stored in Firulai.
+
+This Agreement is supplemented by the contract, service terms, and privacy
+information applicable to the Firulai account. Corporate information and contact
+channels are available at:
+
+https://redsauce.net
+
+ACCEPTANCE
+
+By continuing, you acknowledge that you understand the described operation,
+accept the collection and transmission of technical inventory, and confirm that
+you are authorized to install the Agent.
+
+If you do not fully accept these terms, select Cancel and do not install or use
+the Agent.

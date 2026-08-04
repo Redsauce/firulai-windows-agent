@@ -32,7 +32,7 @@ namespace RsAgent
                         string.IsNullOrWhiteSpace(state.last_success_utc) ||
                         !DateTime.TryParse(state.last_success_utc, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out parsed))
                     {
-                        Logger.Warn("state.json no contiene una fecha de última ejecución válida. Se considerará que la ejecución está pendiente.");
+                        Logger.Warn(AgentText.T("state.invalidLastSuccess"));
                         return DateTime.MinValue;
                     }
 
@@ -40,7 +40,7 @@ namespace RsAgent
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("No se pudo leer state.json. Se considerará que la ejecución está pendiente", ex);
+                    Logger.Error(AgentText.T("state.readFailed"), ex);
                     return DateTime.MinValue;
                 }
             }
