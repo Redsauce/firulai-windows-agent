@@ -1439,6 +1439,268 @@ begin
   WizardForm.Caption := LocalizedWindowTitle();
 end;
 
+procedure ApplyLocalizedLicensePage(); forward;
+
+// AgentLocale is the only source of truth for visible wizard text; Inno can
+// still fall back to another ActiveLanguage depending on how the EXE is opened.
+function LocalizedInstallerText(Key: string): string;
+begin
+  if AgentLocale = 'ca_ES' then
+  begin
+    if Key = 'buttonBack' then Result := 'Enrere'
+    else if Key = 'buttonNext' then Result := 'Següent'
+    else if Key = 'buttonInstall' then Result := 'Instal·la'
+    else if Key = 'buttonCancel' then Result := 'Cancel·la'
+    else if Key = 'buttonFinish' then Result := 'Finalitza'
+    else if Key = 'welcomeTitle' then Result := 'Benvingut a l''assistent d''instal·lació de {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Aquest agent recollirà l''inventari d''aquest equip i enviarà les dades a Firulai. Un cop instal·lat, enviarà les dades inicials a Firulai i repetirà l''enviament automàticament cada nit.'
+    else if Key = 'readyTitle' then Result := 'A punt per instal·lar'
+    else if Key = 'readyDescription' then Result := 'El programa ja està a punt per iniciar la instal·lació de {#MyAppDisplayName} al sistema.'
+    else if Key = 'readyInstruction' then Result := 'Fes clic a Instal·la per continuar.'
+    else if Key = 'installingTitle' then Result := 'Instal·lant'
+    else if Key = 'installingDescription' then Result := 'Espera mentre s''instal·la {#MyAppDisplayName} al sistema.'
+    else if Key = 'installingStatus' then Result := 'Instal·lant...'
+    else if Key = 'finishedTitle' then Result := 'Instal·lació completada'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} s''ha instal·lat correctament al sistema.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'eu_ES' then
+  begin
+    if Key = 'buttonBack' then Result := 'Atzera'
+    else if Key = 'buttonNext' then Result := 'Hurrengoa'
+    else if Key = 'buttonInstall' then Result := 'Instalatu'
+    else if Key = 'buttonCancel' then Result := 'Utzi'
+    else if Key = 'buttonFinish' then Result := 'Amaitu'
+    else if Key = 'welcomeTitle' then Result := 'Ongi etorri {#MyAppDisplayName} instalatzeko morroira'
+    else if Key = 'welcomeDescription' then Result := 'Agente honek ordenagailu honen inbentarioa bildu eta datuak Firulaira bidaliko ditu. Instalatu ondoren, hasierako datuak Firulaira bidaliko ditu eta bidalketa automatikoki errepikatuko du gauero.'
+    else if Key = 'readyTitle' then Result := 'Instalatzeko prest'
+    else if Key = 'readyDescription' then Result := 'Programa prest dago {#MyAppDisplayName} sisteman instalatzen hasteko.'
+    else if Key = 'readyInstruction' then Result := 'Egin klik Instalatu botoian jarraitzeko.'
+    else if Key = 'installingTitle' then Result := 'Instalatzen'
+    else if Key = 'installingDescription' then Result := 'Itxaron {#MyAppDisplayName} sisteman instalatzen den bitartean.'
+    else if Key = 'installingStatus' then Result := 'Instalatzen...'
+    else if Key = 'finishedTitle' then Result := 'Instalazioa osatu da'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} behar bezala instalatu da sisteman.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'gl_ES' then
+  begin
+    if Key = 'buttonBack' then Result := 'Atrás'
+    else if Key = 'buttonNext' then Result := 'Seguinte'
+    else if Key = 'buttonInstall' then Result := 'Instalar'
+    else if Key = 'buttonCancel' then Result := 'Cancelar'
+    else if Key = 'buttonFinish' then Result := 'Finalizar'
+    else if Key = 'welcomeTitle' then Result := 'Benvido ao asistente de instalación de {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Este axente recollerá o inventario deste equipo e enviará os datos a Firulai. Unha vez instalado, enviará os datos iniciais a Firulai e repetirá o envío automaticamente cada noite.'
+    else if Key = 'readyTitle' then Result := 'Listo para instalar'
+    else if Key = 'readyDescription' then Result := 'O programa está listo para iniciar a instalación de {#MyAppDisplayName} no sistema.'
+    else if Key = 'readyInstruction' then Result := 'Fai clic en Instalar para continuar.'
+    else if Key = 'installingTitle' then Result := 'Instalando'
+    else if Key = 'installingDescription' then Result := 'Agarda mentres se instala {#MyAppDisplayName} no sistema.'
+    else if Key = 'installingStatus' then Result := 'Instalando...'
+    else if Key = 'finishedTitle' then Result := 'Instalación completada'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} instalouse correctamente no sistema.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'fr_FR' then
+  begin
+    if Key = 'buttonBack' then Result := 'Retour'
+    else if Key = 'buttonNext' then Result := 'Suivant'
+    else if Key = 'buttonInstall' then Result := 'Installer'
+    else if Key = 'buttonCancel' then Result := 'Annuler'
+    else if Key = 'buttonFinish' then Result := 'Terminer'
+    else if Key = 'welcomeTitle' then Result := 'Bienvenue dans l''assistant d''installation de {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Cet agent collectera l''inventaire de cet ordinateur et enverra les donnees a Firulai. Une fois installe, il enverra les donnees initiales a Firulai et repetera l''envoi automatiquement chaque nuit.'
+    else if Key = 'readyTitle' then Result := 'Prêt à installer'
+    else if Key = 'readyDescription' then Result := 'Le programme est prêt à commencer l''installation de {#MyAppDisplayName} sur le système.'
+    else if Key = 'readyInstruction' then Result := 'Cliquez sur Installer pour continuer.'
+    else if Key = 'installingTitle' then Result := 'Installation'
+    else if Key = 'installingDescription' then Result := 'Veuillez patienter pendant l''installation de {#MyAppDisplayName} sur le système.'
+    else if Key = 'installingStatus' then Result := 'Installation...'
+    else if Key = 'finishedTitle' then Result := 'Installation terminée'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} a été installé correctement sur le système.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'de_DE' then
+  begin
+    if Key = 'buttonBack' then Result := 'Zurück'
+    else if Key = 'buttonNext' then Result := 'Weiter'
+    else if Key = 'buttonInstall' then Result := 'Installieren'
+    else if Key = 'buttonCancel' then Result := 'Abbrechen'
+    else if Key = 'buttonFinish' then Result := 'Fertigstellen'
+    else if Key = 'welcomeTitle' then Result := 'Willkommen beim Installationsassistenten von {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Dieser Agent erfasst das Inventar dieses Computers und sendet die Daten an Firulai. Nach der Installation sendet er die ersten Daten an Firulai und wiederholt das Senden jede Nacht automatisch.'
+    else if Key = 'readyTitle' then Result := 'Bereit zur Installation'
+    else if Key = 'readyDescription' then Result := 'Das Programm ist bereit, {#MyAppDisplayName} auf dem System zu installieren.'
+    else if Key = 'readyInstruction' then Result := 'Klicken Sie auf Installieren, um fortzufahren.'
+    else if Key = 'installingTitle' then Result := 'Installation läuft'
+    else if Key = 'installingDescription' then Result := 'Bitte warten Sie, während {#MyAppDisplayName} auf dem System installiert wird.'
+    else if Key = 'installingStatus' then Result := 'Installation läuft...'
+    else if Key = 'finishedTitle' then Result := 'Installation abgeschlossen'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} wurde erfolgreich auf dem System installiert.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'it_IT' then
+  begin
+    if Key = 'buttonBack' then Result := 'Indietro'
+    else if Key = 'buttonNext' then Result := 'Avanti'
+    else if Key = 'buttonInstall' then Result := 'Installa'
+    else if Key = 'buttonCancel' then Result := 'Annulla'
+    else if Key = 'buttonFinish' then Result := 'Fine'
+    else if Key = 'welcomeTitle' then Result := 'Benvenuto nella procedura guidata di installazione di {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Questo agente raccogliera l''inventario di questo computer e inviera i dati a Firulai. Una volta installato, inviera i dati iniziali a Firulai e ripetera l''invio automaticamente ogni notte.'
+    else if Key = 'readyTitle' then Result := 'Pronto per l''installazione'
+    else if Key = 'readyDescription' then Result := 'Il programma è pronto per avviare l''installazione di {#MyAppDisplayName} nel sistema.'
+    else if Key = 'readyInstruction' then Result := 'Fai clic su Installa per continuare.'
+    else if Key = 'installingTitle' then Result := 'Installazione'
+    else if Key = 'installingDescription' then Result := 'Attendi mentre {#MyAppDisplayName} viene installato nel sistema.'
+    else if Key = 'installingStatus' then Result := 'Installazione...'
+    else if Key = 'finishedTitle' then Result := 'Installazione completata'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} è stato installato correttamente nel sistema.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'ja_JP' then
+  begin
+    if Key = 'buttonBack' then Result := '戻る'
+    else if Key = 'buttonNext' then Result := '次へ'
+    else if Key = 'buttonInstall' then Result := 'インストール'
+    else if Key = 'buttonCancel' then Result := 'キャンセル'
+    else if Key = 'buttonFinish' then Result := '完了'
+    else if Key = 'welcomeTitle' then Result := '{#MyAppDisplayName} セットアップ ウィザードへようこそ'
+    else if Key = 'welcomeDescription' then Result := 'このエージェントは、このコンピューターのインベントリを収集して Firulai に送信します。インストール後、初回データを Firulai に送信し、その後は毎晩自動的に送信します。'
+    else if Key = 'readyTitle' then Result := 'インストールの準備完了'
+    else if Key = 'readyDescription' then Result := '{#MyAppDisplayName} をこのシステムにインストールする準備ができました。'
+    else if Key = 'readyInstruction' then Result := '続行するには、インストールをクリックしてください。'
+    else if Key = 'installingTitle' then Result := 'インストール中'
+    else if Key = 'installingDescription' then Result := '{#MyAppDisplayName} をシステムにインストールしています。しばらくお待ちください。'
+    else if Key = 'installingStatus' then Result := 'インストール中...'
+    else if Key = 'finishedTitle' then Result := 'インストール完了'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} はシステムに正常にインストールされました。'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'zh_CN' then
+  begin
+    if Key = 'buttonBack' then Result := '上一步'
+    else if Key = 'buttonNext' then Result := '下一步'
+    else if Key = 'buttonInstall' then Result := '安装'
+    else if Key = 'buttonCancel' then Result := '取消'
+    else if Key = 'buttonFinish' then Result := '完成'
+    else if Key = 'welcomeTitle' then Result := '欢迎使用 {#MyAppDisplayName} 安装向导'
+    else if Key = 'welcomeDescription' then Result := '此代理将收集此计算机的清单并将数据发送到 Firulai。安装后，它会向 Firulai 发送初始数据，并在之后每晚自动重复发送。'
+    else if Key = 'readyTitle' then Result := '准备安装'
+    else if Key = 'readyDescription' then Result := '程序已准备好开始在系统中安装 {#MyAppDisplayName}。'
+    else if Key = 'readyInstruction' then Result := '单击“安装”继续。'
+    else if Key = 'installingTitle' then Result := '正在安装'
+    else if Key = 'installingDescription' then Result := '请稍候，正在系统中安装 {#MyAppDisplayName}。'
+    else if Key = 'installingStatus' then Result := '正在安装...'
+    else if Key = 'finishedTitle' then Result := '安装完成'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} 已成功安装到系统中。'
+    else Result := Key;
+    Exit;
+  end;
+
+  if AgentLocale = 'es_ES' then
+  begin
+    if Key = 'buttonBack' then Result := 'Atrás'
+    else if Key = 'buttonNext' then Result := 'Siguiente'
+    else if Key = 'buttonInstall' then Result := 'Instalar'
+    else if Key = 'buttonCancel' then Result := 'Cancelar'
+    else if Key = 'buttonFinish' then Result := 'Finalizar'
+    else if Key = 'welcomeTitle' then Result := 'Bienvenido al asistente de instalación de {#MyAppDisplayName}'
+    else if Key = 'welcomeDescription' then Result := 'Este agente recopilará el inventario de este equipo y enviará los datos a Firulai. Una vez instalado, enviará los datos iniciales a Firulai y repetirá el envío automáticamente cada noche.'
+    else if Key = 'readyTitle' then Result := 'Listo para instalar'
+    else if Key = 'readyDescription' then Result := 'El programa está listo para iniciar la instalación de {#MyAppDisplayName} en el sistema.'
+    else if Key = 'readyInstruction' then Result := 'Haz clic en Instalar para continuar.'
+    else if Key = 'installingTitle' then Result := 'Instalando'
+    else if Key = 'installingDescription' then Result := 'Espera mientras se instala {#MyAppDisplayName} en el sistema.'
+    else if Key = 'installingStatus' then Result := 'Instalando...'
+    else if Key = 'finishedTitle' then Result := 'Instalación completada'
+    else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} se ha instalado correctamente en el sistema.'
+    else Result := Key;
+    Exit;
+  end;
+
+  if Key = 'buttonBack' then Result := 'Back'
+  else if Key = 'buttonNext' then Result := 'Next'
+  else if Key = 'buttonInstall' then Result := 'Install'
+  else if Key = 'buttonCancel' then Result := 'Cancel'
+  else if Key = 'buttonFinish' then Result := 'Finish'
+  else if Key = 'welcomeTitle' then Result := 'Welcome to the {#MyAppDisplayName} Setup Wizard'
+  else if Key = 'welcomeDescription' then Result := 'This agent will collect this computer inventory and send the data to Firulai. Once installed, it will send the initial data to Firulai and repeat the send automatically every night.'
+  else if Key = 'readyTitle' then Result := 'Ready to Install'
+  else if Key = 'readyDescription' then Result := 'Setup is ready to begin installing {#MyAppDisplayName} on your system.'
+  else if Key = 'readyInstruction' then Result := 'Click Install to continue.'
+  else if Key = 'installingTitle' then Result := 'Installing'
+  else if Key = 'installingDescription' then Result := 'Please wait while {#MyAppDisplayName} is installed on your system.'
+  else if Key = 'installingStatus' then Result := 'Installing...'
+  else if Key = 'finishedTitle' then Result := 'Installation Complete'
+  else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} has been installed successfully on your system.'
+  else Result := Key;
+end;
+
+procedure ApplyLocalizedButtons(CurPageID: Integer);
+begin
+  WizardForm.BackButton.Caption := LocalizedInstallerText('buttonBack');
+  WizardForm.CancelButton.Caption := LocalizedInstallerText('buttonCancel');
+
+  if CurPageID = wpReady then
+    WizardForm.NextButton.Caption := LocalizedInstallerText('buttonInstall')
+  else if CurPageID = wpFinished then
+    WizardForm.NextButton.Caption := LocalizedInstallerText('buttonFinish')
+  else
+    WizardForm.NextButton.Caption := LocalizedInstallerText('buttonNext');
+end;
+
+procedure ApplyLocalizedStandardPage(CurPageID: Integer);
+begin
+  ApplyLocalizedWizardChrome();
+  ApplyLocalizedButtons(CurPageID);
+
+  if CurPageID = wpWelcome then
+  begin
+    WizardForm.WelcomeLabel1.Caption := LocalizedInstallerText('welcomeTitle');
+    WizardForm.WelcomeLabel2.Caption := LocalizedInstallerText('welcomeDescription');
+  end
+  else if CurPageID = wpLicense then
+    ApplyLocalizedLicensePage()
+  else if CurPageID = ConfigPage.ID then
+  begin
+    WizardForm.PageNameLabel.Caption := T('configTitle');
+    WizardForm.PageDescriptionLabel.Caption := T('configDescription');
+  end
+  else if CurPageID = wpReady then
+  begin
+    WizardForm.PageNameLabel.Caption := LocalizedInstallerText('readyTitle');
+    WizardForm.PageDescriptionLabel.Caption := LocalizedInstallerText('readyDescription');
+    WizardForm.ReadyLabel.Caption := LocalizedInstallerText('readyInstruction');
+  end
+  else if CurPageID = wpInstalling then
+  begin
+    WizardForm.PageNameLabel.Caption := LocalizedInstallerText('installingTitle');
+    WizardForm.PageDescriptionLabel.Caption := LocalizedInstallerText('installingDescription');
+    WizardForm.StatusLabel.Caption := LocalizedInstallerText('installingStatus');
+  end
+  else if CurPageID = wpFinished then
+  begin
+    WizardForm.FinishedHeadingLabel.Caption := LocalizedInstallerText('finishedTitle');
+    WizardForm.FinishedLabel.Caption := LocalizedInstallerText('finishedDescription');
+  end;
+end;
+
 function LocalizedExitMessage(): string;
 begin
   if AgentLocale = 'ca_ES' then
@@ -1629,8 +1891,7 @@ end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  ApplyLocalizedWizardChrome();
-  if CurPageID = wpLicense then ApplyLocalizedLicensePage();
+  ApplyLocalizedStandardPage(CurPageID);
 end;
 
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
