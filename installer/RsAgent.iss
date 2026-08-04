@@ -60,11 +60,11 @@ english.NameAndVersion=%1 version %2
 spanish.RegisteringService=Registrando servicio...
 spanish.StartingService=Arrancando servicio...
 spanish.ServiceDescription=Recopila el inventario de software del sistema y lo envia a Firulai
-spanish.NameAndVersion=%1 version %2
+spanish.NameAndVersion=%1 versión %2
 catalan.RegisteringService=Registrant servei...
 catalan.StartingService=Arrencant servei...
 catalan.ServiceDescription=Recull l'inventari de programari del sistema i l'envia a Firulai
-catalan.NameAndVersion=%1 versio %2
+catalan.NameAndVersion=%1 versió %2
 basque.RegisteringService=Zerbitzua erregistratzen...
 basque.StartingService=Zerbitzua abiarazten...
 basque.ServiceDescription=Sistemaren software inbentarioa bildu eta Firulaira bidaltzen du
@@ -105,8 +105,8 @@ spanish.SetupWindowTitle=Instalar - %1
 spanish.WelcomeLabel1=Bienvenido al asistente de instalacion de [name]
 spanish.WelcomeLabel2=Este agente se instalara para recopilar el inventario de este equipo y mandar los datos a Firulai. Una vez instalado, enviara los datos iniciales a Firulai y repetira el envio automaticamente cada noche.
 spanish.ConfirmUninstall=Se va a desinstalar %1.%n%nEsta accion solo eliminara los archivos locales del agente junto al instalador. No se borraran los datos de Firulai.%n%nEl sistema quedara como inactivo en Firulai. Desde Firulai podras eliminar definitivamente sus datos o volver a instalar el agente mas adelante enlazandolo al System y al inventario ya guardados.%n%nQuieres continuar?
-catalan.SetupAppTitle=Instal.lacio
-catalan.SetupWindowTitle=Instal.lacio - %1
+catalan.SetupAppTitle=Instal·lació
+catalan.SetupWindowTitle=Instal·lació - %1
 catalan.WelcomeLabel1=Benvingut a l'assistent d'instal.lacio de [name]
 catalan.WelcomeLabel2=Aquest agent recollira l'inventari d'aquest equip i enviara les dades a Firulai. Un cop instal.lat, enviara les dades inicials a Firulai i repetira l'enviament automaticament cada nit.
 catalan.ConfirmUninstall=Es desinstal.lara %1.%n%nAquesta accio nomes eliminara els fitxers locals de l'agent i l'instal.lador. Les dades de Firulai no s'eliminaran.%n%nEl sistema es marcara com a inactiu a Firulai. Des de Firulai podras eliminar definitivament les dades o reinstal.lar l'agent mes endavant enllacant-lo al System i a l'inventari ja desats.%n%nVols continuar?
@@ -280,7 +280,7 @@ end;
 
 function RelaunchParameters(Language: string): string;
 begin
-  Result := '/LANG=' + Language + QuotedParam('LOCALE', AgentLocale);
+  Result := '/LANG=' + Language + ' /LANGRELAUNCHED=yes' + QuotedParam('LOCALE', AgentLocale);
   Result := Result + QuotedParam('UUID', CmdParam('UUID'));
   Result := Result + QuotedParam('ALIAS', CmdParam('ALIAS'));
   Result := Result + QuotedParam('TOKEN', CmdParam('TOKEN'));
@@ -293,6 +293,7 @@ var
   ResultCode: Integer;
 begin
   Result := False;
+  if CompareText(Trim(CmdParam('LANGRELAUNCHED')), 'yes') = 0 then Exit;
   DesiredLanguage := InnoLanguageForLocale(AgentLocale);
   if CompareText(ActiveLanguage(), DesiredLanguage) = 0 then Exit;
 
@@ -868,7 +869,7 @@ begin
   Result := True;
   ResolveAgentLocale(CmdParam('TOKEN'));
 
-  if (not WizardSilent()) and ((CmdParam('TOKEN') <> '') or (CmdParam('LOCALE') <> '') or (CmdParam('AGENTLOCALE') <> '')) then
+  if not WizardSilent() then
   begin
     if RelaunchWithResolvedLanguageIfNeeded() then
     begin
