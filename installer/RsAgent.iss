@@ -1,20 +1,9 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.13.0"
+#define MyAppVersion "0.14.0"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define DefaultApiUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php"
-#define RsmItemsGetUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/v2/items/get.php"
-#define RsmItemsUpdateUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/v2/items/update.php"
-#define RsmSystemHostnamePropertyId "1749"
-#define RsmSystemFqdnPropertyId "1750"
-#define RsmSystemUuidPropertyId "1780"
-#define RsmSystemAliasPropertyId "1827"
-#define RsmSystemHostnameStatusPropertyId "1751"
-#define RsmSystemHostnameStatusActiveValue "Activo"
-#define RsmAccountAgentTokenPropertyId "1790"
-#define RsmAppUserAccountPropertyId "516"
-#define RsmAppUserLocalePropertyId "1824"
 
 [Setup]
 AppId={{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}
@@ -180,7 +169,6 @@ Filename: "{sys}\sc.exe"; Parameters: "delete RSAgent"; Flags: runhidden waitunt
 [Code]
 var
   ConfigPage: TInputQueryWizardPage;
-  RsmSystemItemId: string;
   AgentLocale: string;
 
 function IsUuid(Value: string): Boolean;
@@ -215,6 +203,10 @@ begin
   Result := Value;
   StringChangeEx(Result, '\', '\\', True);
   StringChangeEx(Result, '"', '\"', True);
+  StringChangeEx(Result, #13#10, '\n', True);
+  StringChangeEx(Result, #13, '\n', True);
+  StringChangeEx(Result, #10, '\n', True);
+  StringChangeEx(Result, #9, '\t', True);
 end;
 
 function CmdParam(Name: string): string;
@@ -292,7 +284,6 @@ function RelaunchParameters(Language: string): string;
 begin
   Result := '/LANG=' + Language + ' /LANGRELAUNCHED=yes' + QuotedParam('LOCALE', AgentLocale);
   Result := Result + QuotedParam('UUID', CmdParam('UUID'));
-  Result := Result + QuotedParam('ALIAS', CmdParam('ALIAS'));
   Result := Result + QuotedParam('TOKEN', CmdParam('TOKEN'));
   Result := Result + QuotedParam('ACCEPTLICENSE', CmdParam('ACCEPTLICENSE'));
 end;
@@ -339,14 +330,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Para realizar una instalacion silenciosa debes leer y aceptar el Acuerdo de licencia y aviso de uso incluido con el instalador.' + #13#10#13#10 + 'Si lo aceptas, vuelve a ejecutar el instalador anadiendo /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'Configuracion de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce los datos facilitados por Firulai'
-    else if Key = 'configDescription' then Result := 'Copia el UUID y el token que se te han facilitado en Firulai. Despues escribe un alias para identificar este equipo. El alias se guardara en Firulai y podras modificarlo mas adelante.'
-    else if Key = 'aliasLabel' then Result := 'Alias del sistema:'
+    else if Key = 'configDescription' then Result := 'Copia el UUID y el token que se te han facilitado en Firulai.'
     else if Key = 'invalidUuid' then Result := 'Introduce un UUID valido con formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
-    else if Key = 'aliasRequired' then Result := 'Introduce un alias para el sistema. Este campo es obligatorio para terminar la instalacion y podras modificarlo mas adelante en Firulai.'
     else if Key = 'tokenRequired' then Result := 'Introduce el Agent token facilitado junto al UUID. Es obligatorio para enlazar este agente con Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obligatorio o no valido. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o rellena los campos del asistente.'
-    else if Key = 'missingAliasCli' then Result := 'Alias obligatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o rellena los campos del asistente. Podras modificarlo mas adelante en Firulai.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token obligatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o rellena los campos del asistente.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obligatorio o no valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o rellena los campos del asistente.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token obligatorio. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o rellena los campos del asistente.'
     else if Key = 'replaceConfigFailed' then Result := 'No se pudo reemplazar '
     else if Key = 'replaceConfigAdvice' then Result := '. Cierra el instalador, ejecutalo como Administrador o elimina el archivo manualmente.'
     else if Key = 'writeConfigFailed' then Result := 'No se pudo escribir '
@@ -363,17 +351,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'No se puede instalar el agente con un UUID que no haya sido generado desde Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'No se pudo localizar el sistema de Firulai asociado al UUID.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Por seguridad, la instalacion no continuara sin poder guardar el alias.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Este sistema ya tiene un agente instalado en Firulai con este UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'No se puede realizar una nueva instalacion con el mismo UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Sistema en Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Equipo local:'
     else if Key = 'uuidBelongsOther' then Result := 'Este UUID ya pertenece a otro sistema en Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'No se puede instalar este agente en el equipo local con ese UUID.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'No se pudo guardar el alias en Firulai porque no se encontro el sistema asociado al UUID.'
-    else if Key = 'aliasSaveFailed' then Result := 'No se pudo guardar el alias en Firulai. Comprueba la conexion y el token. La instalacion no continuara sin confirmar el alias.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai no permitio guardar el alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado. La instalacion no continuara sin confirmar el alias.'
     else if Key = 'statusUpdateNoSystem' then Result := 'No se pudo actualizar el estado en Firulai porque no se encontro el sistema asociado al UUID.'
     else if Key = 'statusUpdateFailed' then Result := 'No se pudo actualizar el estado en Firulai. Comprueba la conexion y el token. La instalacion no continuara sin activar el sistema.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai no permitio actualizar el estado'
@@ -390,14 +373,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Per fer una instal.lacio silenciosa has de llegir i acceptar acord de llicencia i avis dus inclosos amb instal.lador.' + #13#10#13#10 + 'Si ho acceptes, torna a executar instal.lador afegint /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'Configuracio de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introdueix les dades facilitades per Firulai'
-    else if Key = 'configDescription' then Result := 'Copia UUID i token facilitats per Firulai. Despres escriu un alias per identificar aquest equip. Alias es desara a Firulai i el podras modificar mes endavant.'
-    else if Key = 'aliasLabel' then Result := 'Alias del sistema:'
+    else if Key = 'configDescription' then Result := 'Copia UUID i token facilitats per Firulai.'
     else if Key = 'invalidUuid' then Result := 'Introdueix un UUID valid amb format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
-    else if Key = 'aliasRequired' then Result := 'Introdueix un alias per al sistema. Aquest camp es obligatori per acabar la instal.lacio i el podras modificar mes endavant a Firulai.'
     else if Key = 'tokenRequired' then Result := 'Introdueix Agent token facilitat amb UUID. Es obligatori per enllacar aquest agent amb Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obligatori o no valid. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o omple els camps de assistent.'
-    else if Key = 'missingAliasCli' then Result := 'Alias obligatori. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o omple els camps de assistent. El podras modificar mes endavant a Firulai.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token obligatori. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o omple els camps de assistent.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obligatori o no valid. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o omple els camps de assistent.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token obligatori. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o omple els camps de assistent.'
     else if Key = 'replaceConfigFailed' then Result := 'No es pot substituir '
     else if Key = 'replaceConfigAdvice' then Result := '. Tanca instal.lador, executa com a Administrador o elimina el fitxer manualment.'
     else if Key = 'writeConfigFailed' then Result := 'No es pot escriure '
@@ -414,17 +394,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'No es pot instal.lar agent amb un UUID que no hagi estat generat des de Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'No es pot localitzar sistema de Firulai associat a UUID.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Per seguretat, la instal.lacio no continuara sense poder desar alias.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Aquest sistema ja te un agent instal.lat a Firulai amb aquest UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'No es pot fer una nova instal.lacio amb el mateix UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Sistema a Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Equip local:'
     else if Key = 'uuidBelongsOther' then Result := 'Aquest UUID ja pertany a un altre sistema a Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'No es pot instal.lar aquest agent en equip local amb aquest UUID.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'No es pot desar alias a Firulai perque no s ha trobat sistema associat a UUID.'
-    else if Key = 'aliasSaveFailed' then Result := 'No es pot desar alias a Firulai. Comprova la connexio i el token. La instal.lacio no continuara sense confirmar alias.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai no ha permes desar alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Comprova que el token correspon a UUID facilitat. La instal.lacio no continuara sense confirmar alias.'
     else if Key = 'statusUpdateNoSystem' then Result := 'No es pot actualitzar estat a Firulai perque no s ha trobat sistema associat a UUID.'
     else if Key = 'statusUpdateFailed' then Result := 'No es pot actualitzar estat a Firulai. Comprova la connexio i el token. La instal.lacio no continuara sense activar el sistema.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai no ha permes actualitzar estat'
@@ -441,14 +416,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Instalazio isila egiteko, instalatzailearekin datorren lizentzia-akordioa eta erabilera-oharra irakurri eta onartu behar dituzu.' + #13#10#13#10 + 'Onartzen baduzu, exekutatu berriro instalatzailea /ACCEPTLICENSE=yes gehituta.'
     else if Key = 'configTitle' then Result := 'RSAgent konfigurazioa'
     else if Key = 'configSubtitle' then Result := 'Sartu Firulaik emandako datuak'
-    else if Key = 'configDescription' then Result := 'Kopiatu Firulaik emandako UUIDa eta tokena. Ondoren idatzi ekipo hau identifikatzeko aliasa. Aliasa Firulain gordeko da eta gero aldatu ahal izango duzu.'
-    else if Key = 'aliasLabel' then Result := 'Sistemaren aliasa:'
+    else if Key = 'configDescription' then Result := 'Kopiatu Firulaik emandako UUIDa eta tokena.'
     else if Key = 'invalidUuid' then Result := 'Sartu UUID balioduna xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx formatuarekin.'
-    else if Key = 'aliasRequired' then Result := 'Sartu sistemaren aliasa. Eremu hau derrigorrezkoa da instalazioa amaitzeko eta gero Firulain aldatu ahal izango duzu.'
     else if Key = 'tokenRequired' then Result := 'Sartu UUIDarekin batera emandako Agent tokena. Derrigorrezkoa da agente hau Firulairekin lotzeko.'
-    else if Key = 'missingUuidCli' then Result := 'UUIDa derrigorrezkoa da edo ez da baliozkoa. Erabili setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> edo bete morroiaren eremuak.'
-    else if Key = 'missingAliasCli' then Result := 'Aliasa derrigorrezkoa da. Erabili setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> edo bete morroiaren eremuak. Gero Firulain aldatu ahal izango duzu.'
-    else if Key = 'missingTokenCli' then Result := 'Agent tokena derrigorrezkoa da. Erabili setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> edo bete morroiaren eremuak.'
+    else if Key = 'missingUuidCli' then Result := 'UUIDa derrigorrezkoa da edo ez da baliozkoa. Erabili setup.exe /UUID=<UUID> /TOKEN=<TOKEN> edo bete morroiaren eremuak.'
+    else if Key = 'missingTokenCli' then Result := 'Agent tokena derrigorrezkoa da. Erabili setup.exe /UUID=<UUID> /TOKEN=<TOKEN> edo bete morroiaren eremuak.'
     else if Key = 'replaceConfigFailed' then Result := 'Ezin izan da ordezkatu '
     else if Key = 'replaceConfigAdvice' then Result := '. Itxi instalatzailea, exekutatu Administratzaile gisa edo ezabatu fitxategia eskuz.'
     else if Key = 'writeConfigFailed' then Result := 'Ezin izan da idatzi '
@@ -465,17 +437,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Ezin da agentea instalatu Firulaitik sortu ez den UUID batekin.'
     else if Key = 'uuidLabel' then Result := 'UUIDa: '
     else if Key = 'systemLookupFailed' then Result := 'Ezin izan da UUIDari lotutako Firulai sistema aurkitu.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Segurtasunagatik, instalazioak ez du jarraituko aliasa gorde ezin bada.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Sistema honek dagoeneko agente bat dauka Firulain UUID honekin.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'Ezin da instalazio berri bat egin UUID berarekin.'
     else if Key = 'firulaiSystemLabel' then Result := 'Firulaiko sistema:'
     else if Key = 'localComputerLabel' then Result := 'Ekipo lokala:'
     else if Key = 'uuidBelongsOther' then Result := 'UUID hau Firulaiko beste sistema batena da dagoeneko.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'Ezin da agente hau ekipo lokalean instalatu UUID horrekin.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'Ezin izan da aliasa Firulain gorde, ez delako UUIDari lotutako sistema aurkitu.'
-    else if Key = 'aliasSaveFailed' then Result := 'Ezin izan da aliasa Firulain gorde. Egiaztatu konexioa eta tokena. Instalazioak ez du jarraituko aliasa baieztatu arte.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulaik ez du aliasa gordetzen utzi'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Egiaztatu tokena emandako UUIDari dagokiola. Instalazioak ez du jarraituko aliasa baieztatu arte.'
     else if Key = 'statusUpdateNoSystem' then Result := 'Ezin izan da egoera Firulain eguneratu, ez delako UUIDari lotutako sistema aurkitu.'
     else if Key = 'statusUpdateFailed' then Result := 'Ezin izan da egoera Firulain eguneratu. Egiaztatu konexioa eta tokena. Instalazioak ez du jarraituko sistema aktibatu arte.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulaik ez du egoera eguneratzen utzi'
@@ -492,14 +459,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Para realizar unha instalacion silenciosa debes ler e aceptar o acordo de licenza e aviso de uso incluido co instalador.' + #13#10#13#10 + 'Se o aceptas, executa de novo o instalador engadindo /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'Configuracion de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce os datos facilitados por Firulai'
-    else if Key = 'configDescription' then Result := 'Copia o UUID e o token facilitados por Firulai. Despois escribe un alias para identificar este equipo. O alias gardarase en Firulai e poderas modificalo mais adiante.'
-    else if Key = 'aliasLabel' then Result := 'Alias do sistema:'
+    else if Key = 'configDescription' then Result := 'Copia o UUID e o token facilitados por Firulai.'
     else if Key = 'invalidUuid' then Result := 'Introduce un UUID valido con formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
-    else if Key = 'aliasRequired' then Result := 'Introduce un alias para o sistema. Este campo e obrigatorio para rematar a instalacion e poderas modificalo mais adiante en Firulai.'
     else if Key = 'tokenRequired' then Result := 'Introduce o Agent token facilitado xunto co UUID. E obrigatorio para enlazar este axente con Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obrigatorio ou non valido. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou cobre os campos do asistente.'
-    else if Key = 'missingAliasCli' then Result := 'Alias obrigatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou cobre os campos do asistente. Poderas modificalo mais adiante en Firulai.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token obrigatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou cobre os campos do asistente.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obrigatorio ou non valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou cobre os campos do asistente.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token obrigatorio. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou cobre os campos do asistente.'
     else if Key = 'replaceConfigFailed' then Result := 'Non se puido substituír '
     else if Key = 'replaceConfigAdvice' then Result := '. Pecha o instalador, executao como Administrador ou elimina o ficheiro manualmente.'
     else if Key = 'writeConfigFailed' then Result := 'Non se puido escribir '
@@ -516,17 +480,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Non se pode instalar o axente cun UUID que non fose xerado desde Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Non se puido localizar o sistema de Firulai asociado ao UUID.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Por seguridade, a instalacion non continuara sen poder gardar o alias.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Este sistema xa ten un axente instalado en Firulai con este UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'Non se pode realizar unha nova instalacion co mesmo UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Sistema en Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Equipo local:'
     else if Key = 'uuidBelongsOther' then Result := 'Este UUID xa pertence a outro sistema en Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'Non se pode instalar este axente no equipo local con ese UUID.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'Non se puido gardar o alias en Firulai porque non se atopou o sistema asociado ao UUID.'
-    else if Key = 'aliasSaveFailed' then Result := 'Non se puido gardar o alias en Firulai. Comproba a conexion e o token. A instalacion non continuara sen confirmar o alias.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai non permitiu gardar o alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Comproba que o token corresponde ao UUID facilitado. A instalacion non continuara sen confirmar o alias.'
     else if Key = 'statusUpdateNoSystem' then Result := 'Non se puido actualizar o estado en Firulai porque non se atopou o sistema asociado ao UUID.'
     else if Key = 'statusUpdateFailed' then Result := 'Non se puido actualizar o estado en Firulai. Comproba a conexion e o token. A instalacion non continuara sen activar o sistema.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai non permitiu actualizar o estado'
@@ -543,14 +502,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Pour une installation silencieuse, vous devez lire et accepter le contrat de licence et la notice utilisation inclus avec le programme.' + #13#10#13#10 + 'Si vous acceptez, relancez le programme avec /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'Configuration de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Saisissez les informations fournies par Firulai'
-    else if Key = 'configDescription' then Result := 'Copiez le UUID et le token fournis par Firulai. Saisissez ensuite un alias pour identifier cet ordinateur. Cet alias sera enregistre dans Firulai et pourra etre modifie plus tard.'
-    else if Key = 'aliasLabel' then Result := 'Alias du systeme:'
+    else if Key = 'configDescription' then Result := 'Copiez le UUID et le token fournis par Firulai.'
     else if Key = 'invalidUuid' then Result := 'Saisissez un UUID valide au format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
-    else if Key = 'aliasRequired' then Result := 'Saisissez un alias pour le systeme. Ce champ est obligatoire pour terminer installation et pourra etre modifie plus tard dans Firulai.'
     else if Key = 'tokenRequired' then Result := 'Saisissez le Agent token fourni avec le UUID. Il est obligatoire pour lier cet agent a Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obligatoire ou non valide. Utilisez setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou remplissez les champs de assistant.'
-    else if Key = 'missingAliasCli' then Result := 'Alias obligatoire. Utilisez setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou remplissez les champs de assistant. Vous pourrez le modifier plus tard dans Firulai.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token obligatoire. Utilisez setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> ou remplissez les champs de assistant.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obligatoire ou non valide. Utilisez setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou remplissez les champs de assistant.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token obligatoire. Utilisez setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou remplissez les champs de assistant.'
     else if Key = 'replaceConfigFailed' then Result := 'Impossible de remplacer '
     else if Key = 'replaceConfigAdvice' then Result := '. Fermez le programme, executez en tant que Administrateur ou supprimez le fichier manuellement.'
     else if Key = 'writeConfigFailed' then Result := 'Impossible decrire '
@@ -567,17 +523,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Impossible installer agent avec un UUID qui n a pas ete genere depuis Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID : '
     else if Key = 'systemLookupFailed' then Result := 'Impossible de localiser le systeme Firulai associe au UUID.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Par securite, installation ne continuera pas sans pouvoir enregistrer alias.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Ce systeme a deja un agent installe dans Firulai avec cet UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'Impossible effectuer une nouvelle installation avec le meme UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Systeme dans Firulai :'
     else if Key = 'localComputerLabel' then Result := 'Ordinateur local :'
     else if Key = 'uuidBelongsOther' then Result := 'Cet UUID appartient deja a un autre systeme dans Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'Impossible installer cet agent sur ordinateur local avec cet UUID.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'Impossible enregistrer alias dans Firulai car le systeme associe au UUID est introuvable.'
-    else if Key = 'aliasSaveFailed' then Result := 'Impossible enregistrer alias dans Firulai. Verifiez la connexion et le token. Installation ne continuera pas sans confirmer alias.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai a refuse enregistrer alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Verifiez que le token correspond au UUID fourni. Installation ne continuera pas sans confirmer alias.'
     else if Key = 'statusUpdateNoSystem' then Result := 'Impossible actualiser etat dans Firulai car le systeme associe au UUID est introuvable.'
     else if Key = 'statusUpdateFailed' then Result := 'Impossible actualiser etat dans Firulai. Verifiez la connexion et le token. Installation ne continuera pas sans activer le systeme.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai a refuse actualiser etat'
@@ -594,14 +545,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Fuer eine unbeaufsichtigte Installation muessen Sie die Lizenzvereinbarung und den Nutzungshinweis im Installer lesen und akzeptieren.' + #13#10#13#10 + 'Wenn Sie akzeptieren, starten Sie den Installer erneut mit /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'RSAgent-Konfiguration'
     else if Key = 'configSubtitle' then Result := 'Geben Sie die von Firulai bereitgestellten Daten ein'
-    else if Key = 'configDescription' then Result := 'Kopieren Sie UUID und Token von Firulai. Geben Sie danach einen Alias ein, um diesen Computer zu identifizieren. Der Alias wird in Firulai gespeichert und kann spaeter geaendert werden.'
-    else if Key = 'aliasLabel' then Result := 'Systemalias:'
+    else if Key = 'configDescription' then Result := 'Kopieren Sie UUID und Token von Firulai.'
     else if Key = 'invalidUuid' then Result := 'Geben Sie eine gueltige UUID im Format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ein.'
-    else if Key = 'aliasRequired' then Result := 'Geben Sie einen Systemalias ein. Dieses Feld ist erforderlich, um die Installation abzuschliessen, und kann spaeter in Firulai geaendert werden.'
     else if Key = 'tokenRequired' then Result := 'Geben Sie das mit der UUID bereitgestellte Agent token ein. Es ist erforderlich, um diesen Agenten mit Firulai zu verbinden.'
-    else if Key = 'missingUuidCli' then Result := 'UUID ist erforderlich oder ungueltig. Verwenden Sie setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus.'
-    else if Key = 'missingAliasCli' then Result := 'Alias ist erforderlich. Verwenden Sie setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus. Sie koennen ihn spaeter in Firulai aendern.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token ist erforderlich. Verwenden Sie setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus.'
+    else if Key = 'missingUuidCli' then Result := 'UUID ist erforderlich oder ungueltig. Verwenden Sie setup.exe /UUID=<UUID> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token ist erforderlich. Verwenden Sie setup.exe /UUID=<UUID> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus.'
     else if Key = 'replaceConfigFailed' then Result := 'Konnte nicht ersetzen: '
     else if Key = 'replaceConfigAdvice' then Result := '. Schliessen Sie den Installer, fuehren Sie ihn als Administrator aus oder loeschen Sie die Datei manuell.'
     else if Key = 'writeConfigFailed' then Result := 'Konnte nicht schreiben: '
@@ -618,17 +566,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Der Agent kann nicht mit einer UUID installiert werden, die nicht in Firulai erzeugt wurde.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Das mit der UUID verknuepfte Firulai-System konnte nicht gefunden werden.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Aus Sicherheitsgruenden wird die Installation nicht fortgesetzt, wenn der Alias nicht gespeichert werden kann.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Dieses System hat in Firulai bereits einen Agenten mit dieser UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'Eine neue Installation mit derselben UUID ist nicht moeglich.'
     else if Key = 'firulaiSystemLabel' then Result := 'System in Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Lokaler Computer:'
     else if Key = 'uuidBelongsOther' then Result := 'Diese UUID gehoert bereits zu einem anderen System in Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'Dieser Agent kann mit dieser UUID nicht auf dem lokalen Computer installiert werden.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'Der Alias konnte nicht in Firulai gespeichert werden, weil das mit der UUID verknuepfte System nicht gefunden wurde.'
-    else if Key = 'aliasSaveFailed' then Result := 'Der Alias konnte nicht in Firulai gespeichert werden. Pruefen Sie Verbindung und Token. Die Installation wird nicht fortgesetzt, bis der Alias bestaetigt ist.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai hat das Speichern des Alias verweigert'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Pruefen Sie, ob der Token zur bereitgestellten UUID gehoert. Die Installation wird nicht fortgesetzt, bis der Alias bestaetigt ist.'
     else if Key = 'statusUpdateNoSystem' then Result := 'Der Status konnte in Firulai nicht aktualisiert werden, weil das mit der UUID verknuepfte System nicht gefunden wurde.'
     else if Key = 'statusUpdateFailed' then Result := 'Der Status konnte in Firulai nicht aktualisiert werden. Pruefen Sie Verbindung und Token. Die Installation wird nicht fortgesetzt, bis das System aktiviert ist.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai hat die Statusaktualisierung verweigert'
@@ -645,14 +588,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'Per eseguire una installazione silenziosa devi leggere e accettare il contratto di licenza e avviso di utilizzo incluso nel programma.' + #13#10#13#10 + 'Se accetti, esegui di nuovo il programma aggiungendo /ACCEPTLICENSE=yes.'
     else if Key = 'configTitle' then Result := 'Configurazione di RSAgent'
     else if Key = 'configSubtitle' then Result := 'Inserisci i dati forniti da Firulai'
-    else if Key = 'configDescription' then Result := 'Copia UUID e token forniti da Firulai. Poi inserisci un alias per identificare questo computer. Alias verra salvato in Firulai e potrai modificarlo piu avanti.'
-    else if Key = 'aliasLabel' then Result := 'Alias del sistema:'
+    else if Key = 'configDescription' then Result := 'Copia UUID e token forniti da Firulai.'
     else if Key = 'invalidUuid' then Result := 'Inserisci un UUID valido nel formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
-    else if Key = 'aliasRequired' then Result := 'Inserisci un alias per il sistema. Questo campo e obbligatorio per completare installazione e potrai modificarlo piu avanti in Firulai.'
     else if Key = 'tokenRequired' then Result := 'Inserisci Agent token fornito con UUID. E obbligatorio per collegare questo agente a Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obbligatorio o non valido. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o compila i campi della procedura guidata.'
-    else if Key = 'missingAliasCli' then Result := 'Alias obbligatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o compila i campi della procedura guidata. Potrai modificarlo piu avanti in Firulai.'
-    else if Key = 'missingTokenCli' then Result := 'Agent token obbligatorio. Usa setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> o compila i campi della procedura guidata.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obbligatorio o non valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o compila i campi della procedura guidata.'
+    else if Key = 'missingTokenCli' then Result := 'Agent token obbligatorio. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o compila i campi della procedura guidata.'
     else if Key = 'replaceConfigFailed' then Result := 'Impossibile sostituire '
     else if Key = 'replaceConfigAdvice' then Result := '. Chiudi il programma, eseguilo come Amministratore o elimina il file manualmente.'
     else if Key = 'writeConfigFailed' then Result := 'Impossibile scrivere '
@@ -669,17 +609,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Non e possibile installare agente con un UUID non generato da Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Impossibile trovare il sistema Firulai associato a UUID.'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := 'Per sicurezza, installazione non continuera senza poter salvare alias.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Questo sistema ha gia un agente installato in Firulai con questo UUID.'
     else if Key = 'duplicateUuidInstallForbidden' then Result := 'Non e possibile eseguire una nuova installazione con lo stesso UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Sistema in Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Computer locale:'
     else if Key = 'uuidBelongsOther' then Result := 'Questo UUID appartiene gia a un altro sistema in Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'Non e possibile installare questo agente nel computer locale con questo UUID.'
-    else if Key = 'aliasSaveNoSystem' then Result := 'Impossibile salvare alias in Firulai perche il sistema associato a UUID non e stato trovato.'
-    else if Key = 'aliasSaveFailed' then Result := 'Impossibile salvare alias in Firulai. Controlla connessione e token. Installazione non continuera senza confermare alias.'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai non ha permesso di salvare alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'Controlla che il token corrisponda a UUID fornito. Installazione non continuera senza confermare alias.'
     else if Key = 'statusUpdateNoSystem' then Result := 'Impossibile aggiornare stato in Firulai perche il sistema associato a UUID non e stato trovato.'
     else if Key = 'statusUpdateFailed' then Result := 'Impossibile aggiornare stato in Firulai. Controlla connessione e token. Installazione non continuera senza attivare il sistema.'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai non ha permesso di aggiornare stato'
@@ -696,14 +631,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := 'サイレント インストールを実行するには、インストーラーに含まれるライセンス契約と使用上の注意を読み、同意する必要があります。' + #13#10#13#10 + '同意する場合は /ACCEPTLICENSE=yes を追加してインストーラーを再実行してください。'
     else if Key = 'configTitle' then Result := 'RSAgent の設定'
     else if Key = 'configSubtitle' then Result := 'Firulai から提供された情報を入力してください'
-    else if Key = 'configDescription' then Result := 'Firulai から提供された UUID と token をコピーしてください。その後、このコンピューターを識別する alias を入力してください。alias は Firulai に保存され、あとで変更できます。'
-    else if Key = 'aliasLabel' then Result := 'システム alias:'
+    else if Key = 'configDescription' then Result := 'Firulai から提供された UUID と token をコピーしてください。'
     else if Key = 'invalidUuid' then Result := 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 形式の有効な UUID を入力してください。'
-    else if Key = 'aliasRequired' then Result := 'システム alias を入力してください。この項目はインストール完了に必須で、あとで Firulai で変更できます。'
     else if Key = 'tokenRequired' then Result := 'UUID と一緒に提供された Agent token を入力してください。このエージェントを Firulai にリンクするために必要です。'
-    else if Key = 'missingUuidCli' then Result := 'UUID が必須または無効です。setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。'
-    else if Key = 'missingAliasCli' then Result := 'Alias が必須です。setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。あとで Firulai で変更できます。'
-    else if Key = 'missingTokenCli' then Result := 'Agent token が必須です。setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。'
+    else if Key = 'missingUuidCli' then Result := 'UUID が必須または無効です。setup.exe /UUID=<UUID> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。'
+    else if Key = 'missingTokenCli' then Result := 'Agent token が必須です。setup.exe /UUID=<UUID> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。'
     else if Key = 'replaceConfigFailed' then Result := '置換できませんでした: '
     else if Key = 'replaceConfigAdvice' then Result := '。インストーラーを閉じて管理者として実行するか、ファイルを手動で削除してください。'
     else if Key = 'writeConfigFailed' then Result := '書き込めませんでした: '
@@ -720,17 +652,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Firulai で生成されていない UUID ではエージェントをインストールできません。'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'UUID に関連付けられた Firulai のシステムを見つけられませんでした。'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := '安全のため、alias を保存できない場合はインストールを続行しません。'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'このシステムには、Firulai でこの UUID のエージェントがすでにインストールされています。'
     else if Key = 'duplicateUuidInstallForbidden' then Result := '同じ UUID で新しいインストールはできません。'
     else if Key = 'firulaiSystemLabel' then Result := 'Firulai のシステム:'
     else if Key = 'localComputerLabel' then Result := 'ローカル コンピューター:'
     else if Key = 'uuidBelongsOther' then Result := 'この UUID は Firulai の別のシステムにすでに属しています。'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'この UUID では、このエージェントをローカル コンピューターにインストールできません。'
-    else if Key = 'aliasSaveNoSystem' then Result := 'UUID に関連付けられたシステムが見つからないため、Firulai に alias を保存できませんでした。'
-    else if Key = 'aliasSaveFailed' then Result := 'Firulai に alias を保存できませんでした。接続と token を確認してください。alias を確認できるまで、インストールは続行されません。'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai が alias の保存を許可しませんでした'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := 'token が提供された UUID に対応していることを確認してください。alias を確認できるまで、インストールは続行されません。'
     else if Key = 'statusUpdateNoSystem' then Result := 'UUID に関連付けられたシステムが見つからないため、Firulai の状態を更新できませんでした。'
     else if Key = 'statusUpdateFailed' then Result := 'Firulai の状態を更新できませんでした。接続と token を確認してください。システムを有効化できるまで、インストールは続行されません。'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai が状態更新を許可しませんでした'
@@ -747,14 +674,11 @@ begin
     if Key = 'silentLicenseRequired' then Result := '要执行静默安装，必须阅读并接受安装程序包含的许可协议和使用说明。' + #13#10#13#10 + '如果接受，请添加 /ACCEPTLICENSE=yes 后重新运行安装程序。'
     else if Key = 'configTitle' then Result := 'RSAgent 配置'
     else if Key = 'configSubtitle' then Result := '输入 Firulai 提供的信息'
-    else if Key = 'configDescription' then Result := '复制 Firulai 提供的 UUID 和 token。然后输入用于识别此计算机的 alias。alias 将保存在 Firulai 中，以后可以修改。'
-    else if Key = 'aliasLabel' then Result := '系统 alias:'
+    else if Key = 'configDescription' then Result := '复制 Firulai 提供的 UUID 和 token。'
     else if Key = 'invalidUuid' then Result := '请输入格式为 xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 的有效 UUID。'
-    else if Key = 'aliasRequired' then Result := '请输入系统 alias。此字段是完成安装所必需的，以后可以在 Firulai 中修改。'
     else if Key = 'tokenRequired' then Result := '请输入与 UUID 一起提供的 Agent token。需要它来将此代理链接到 Firulai。'
-    else if Key = 'missingUuidCli' then Result := 'UUID 必填或无效。请使用 setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN>，或填写向导字段。'
-    else if Key = 'missingAliasCli' then Result := 'Alias 必填。请使用 setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN>，或填写向导字段。以后可以在 Firulai 中修改。'
-    else if Key = 'missingTokenCli' then Result := 'Agent token 必填。请使用 setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN>，或填写向导字段。'
+    else if Key = 'missingUuidCli' then Result := 'UUID 必填或无效。请使用 setup.exe /UUID=<UUID> /TOKEN=<TOKEN>，或填写向导字段。'
+    else if Key = 'missingTokenCli' then Result := 'Agent token 必填。请使用 setup.exe /UUID=<UUID> /TOKEN=<TOKEN>，或填写向导字段。'
     else if Key = 'replaceConfigFailed' then Result := '无法替换 '
     else if Key = 'replaceConfigAdvice' then Result := '。请关闭安装程序，以管理员身份运行，或手动删除该文件。'
     else if Key = 'writeConfigFailed' then Result := '无法写入 '
@@ -771,17 +695,12 @@ begin
     else if Key = 'uuidInvalidNoGenerated' then Result := '不能使用不是从 Firulai 生成的 UUID 安装代理。'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := '无法找到与 UUID 关联的 Firulai 系统。'
-    else if Key = 'systemLookupSaveAliasSafety' then Result := '出于安全原因，无法保存 alias 时安装不会继续。'
     else if Key = 'firulaiInstalledSameUuid' then Result := '此系统已在 Firulai 中安装使用此 UUID 的代理。'
     else if Key = 'duplicateUuidInstallForbidden' then Result := '不能使用同一 UUID 执行新的安装。'
     else if Key = 'firulaiSystemLabel' then Result := 'Firulai 中的系统:'
     else if Key = 'localComputerLabel' then Result := '本地计算机:'
     else if Key = 'uuidBelongsOther' then Result := '此 UUID 已属于 Firulai 中的另一个系统。'
     else if Key = 'uuidBelongsOtherLocal' then Result := '不能在本地计算机上使用该 UUID 安装此代理。'
-    else if Key = 'aliasSaveNoSystem' then Result := '无法在 Firulai 中保存 alias，因为未找到与 UUID 关联的系统。'
-    else if Key = 'aliasSaveFailed' then Result := '无法在 Firulai 中保存 alias。请检查连接和 token。未确认 alias 前，安装不会继续。'
-    else if Key = 'aliasSaveDenied' then Result := 'Firulai 不允许保存 alias'
-    else if Key = 'aliasSaveDeniedAdvice' then Result := '请确认 token 对应提供的 UUID。未确认 alias 前，安装不会继续。'
     else if Key = 'statusUpdateNoSystem' then Result := '无法在 Firulai 中更新状态，因为未找到与 UUID 关联的系统。'
     else if Key = 'statusUpdateFailed' then Result := '无法在 Firulai 中更新状态。请检查连接和 token。未激活系统前，安装不会继续。'
     else if Key = 'statusUpdateDenied' then Result := 'Firulai 不允许更新状态'
@@ -796,14 +715,11 @@ begin
   if Key = 'silentLicenseRequired' then Result := 'To run a silent installation, you must read and accept the license agreement and usage notice included with the installer.' + #13#10#13#10 + 'If you accept it, run the installer again adding /ACCEPTLICENSE=yes.'
   else if Key = 'configTitle' then Result := 'RSAgent configuration'
   else if Key = 'configSubtitle' then Result := 'Enter the details provided by Firulai'
-  else if Key = 'configDescription' then Result := 'Copy the UUID and token provided by Firulai. Then enter an alias to identify this computer. The alias will be saved in Firulai and can be changed later.'
-  else if Key = 'aliasLabel' then Result := 'System alias:'
+  else if Key = 'configDescription' then Result := 'Copy the UUID and token provided by Firulai.'
   else if Key = 'invalidUuid' then Result := 'Enter a valid UUID using the xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx format.'
-  else if Key = 'aliasRequired' then Result := 'Enter a system alias. This field is required to finish the installation and can be changed later in Firulai.'
   else if Key = 'tokenRequired' then Result := 'Enter the Agent token provided with the UUID. It is required to link this agent with Firulai.'
-  else if Key = 'missingUuidCli' then Result := 'UUID is required or invalid. Use setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> or fill in the wizard fields.'
-  else if Key = 'missingAliasCli' then Result := 'Alias is required. Use setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> or fill in the wizard fields. You can change it later in Firulai.'
-  else if Key = 'missingTokenCli' then Result := 'Agent token is required. Use setup.exe /UUID=<UUID> /ALIAS=<ALIAS> /TOKEN=<TOKEN> or fill in the wizard fields.'
+  else if Key = 'missingUuidCli' then Result := 'UUID is required or invalid. Use setup.exe /UUID=<UUID> /TOKEN=<TOKEN> or fill in the wizard fields.'
+  else if Key = 'missingTokenCli' then Result := 'Agent token is required. Use setup.exe /UUID=<UUID> /TOKEN=<TOKEN> or fill in the wizard fields.'
   else if Key = 'replaceConfigFailed' then Result := 'Could not replace '
   else if Key = 'replaceConfigAdvice' then Result := '. Close the installer, run it as Administrator, or delete the file manually.'
   else if Key = 'writeConfigFailed' then Result := 'Could not write '
@@ -820,17 +736,12 @@ begin
   else if Key = 'uuidInvalidNoGenerated' then Result := 'The agent cannot be installed with a UUID that was not generated from Firulai.'
   else if Key = 'uuidLabel' then Result := 'UUID: '
   else if Key = 'systemLookupFailed' then Result := 'Could not locate the Firulai system associated with the UUID.'
-  else if Key = 'systemLookupSaveAliasSafety' then Result := 'For safety, installation will not continue without being able to save the alias.'
   else if Key = 'firulaiInstalledSameUuid' then Result := 'This system already has an agent installed in Firulai with this UUID.'
   else if Key = 'duplicateUuidInstallForbidden' then Result := 'A new installation cannot be performed with the same UUID.'
   else if Key = 'firulaiSystemLabel' then Result := 'System in Firulai:'
   else if Key = 'localComputerLabel' then Result := 'Local computer:'
   else if Key = 'uuidBelongsOther' then Result := 'This UUID already belongs to another system in Firulai.'
   else if Key = 'uuidBelongsOtherLocal' then Result := 'This agent cannot be installed on the local computer with that UUID.'
-  else if Key = 'aliasSaveNoSystem' then Result := 'Could not save the alias in Firulai because the system associated with the UUID was not found.'
-  else if Key = 'aliasSaveFailed' then Result := 'Could not save the alias in Firulai. Check the connection and token. Installation will not continue until the alias is confirmed.'
-  else if Key = 'aliasSaveDenied' then Result := 'Firulai did not allow saving the alias'
-  else if Key = 'aliasSaveDeniedAdvice' then Result := 'Check that the token matches the provided UUID. Installation will not continue until the alias is confirmed.'
   else if Key = 'statusUpdateNoSystem' then Result := 'Could not update the status in Firulai because the system associated with the UUID was not found.'
   else if Key = 'statusUpdateFailed' then Result := 'Could not update the status in Firulai. Check the connection and token. Installation will not continue until the system is activated.'
   else if Key = 'statusUpdateDenied' then Result := 'Firulai did not allow updating the status'
@@ -848,23 +759,16 @@ begin
   Result := Trim(Result);
 end;
 
-function EffectiveAlias(): string;
-begin
-  Result := CmdParam('ALIAS');
-  if Result = '' then Result := ConfigPage.Values[1];
-  Result := Trim(Result);
-end;
-
 function EffectiveToken(): string;
 begin
   Result := CmdParam('TOKEN');
-  if Result = '' then Result := ConfigPage.Values[2];
+  if Result = '' then Result := ConfigPage.Values[1];
   Result := Trim(Result);
 end;
 
 function IsSilentWithConfig(): Boolean;
 begin
-  Result := (CmdParam('UUID') <> '') and (CmdParam('ALIAS') <> '') and (CmdParam('TOKEN') <> '');
+  Result := (CmdParam('UUID') <> '') and (CmdParam('TOKEN') <> '');
 end;
 
 function LicenseAcceptedFromCommandLine(): Boolean;
@@ -872,12 +776,12 @@ begin
   Result := CompareText(Trim(CmdParam('ACCEPTLICENSE')), 'yes') = 0;
 end;
 
-procedure ResolveAgentLocale(Token: string); forward;
+procedure ResolveAgentLocale(); forward;
 
 function InitializeSetup(): Boolean;
 begin
   Result := True;
-  ResolveAgentLocale(CmdParam('TOKEN'));
+  ResolveAgentLocale();
 
   if not WizardSilent() then
   begin
@@ -1158,248 +1062,122 @@ begin
   Result := Copy(Json, ValueStart, ValueEnd - ValueStart);
 end;
 
-function JsonExtractRsmProperty(Json: string; PropertyId: string): string;
-begin
-  Result := JsonExtractFirstStringKey(Json, PropertyId);
-  if Result = '' then
-  begin
-    Result := JsonExtractFirstStringKey(Json, PropertyId + 'trs');
-  end;
-end;
-
-function ResolveLocaleFromRsm(Token: string): string;
-var
-  Http: Variant;
-  Payload: string;
-  ResponseBody: string;
-  AccountId: string;
-begin
-  Result := '';
-  Token := Trim(Token);
-  if Token = '' then Exit;
-
-  try
-    Payload :=
-      '{"propertyIDs":["{#RsmAccountAgentTokenPropertyId}"],' +
-      '"translateIDs":true,' +
-      '"filterRules":[{"propertyID":"{#RsmAccountAgentTokenPropertyId}","value":"' + JsonEscape(Token) + '","operation":"="}]}';
-    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-    Http.Open('GET', '{#RsmItemsGetUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', Token);
-    Http.SetRequestHeader('Content-Type', 'application/json');
-    Http.Send(Payload);
-    if (Http.Status <> 200) and (Http.Status <> 201) then Exit;
-    ResponseBody := Http.ResponseText;
-    AccountId := JsonExtractFirstScalarKey(ResponseBody, 'ID');
-    if AccountId = '' then AccountId := JsonExtractFirstScalarKey(ResponseBody, 'id');
-    if AccountId = '' then Exit;
-
-    Payload :=
-      '{"propertyIDs":["{#RsmAppUserAccountPropertyId}","{#RsmAppUserLocalePropertyId}"],' +
-      '"translateIDs":true,' +
-      '"filterRules":[{"propertyID":"{#RsmAppUserAccountPropertyId}","value":"' + JsonEscape(AccountId) + '","operation":"="}]}';
-    Http.Open('GET', '{#RsmItemsGetUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', Token);
-    Http.SetRequestHeader('Content-Type', 'application/json');
-    Http.Send(Payload);
-    if (Http.Status <> 200) and (Http.Status <> 201) then Exit;
-    ResponseBody := Http.ResponseText;
-    Result := JsonExtractRsmProperty(ResponseBody, '{#RsmAppUserLocalePropertyId}');
-  except
-    Result := '';
-  end;
-end;
-
-procedure ResolveAgentLocale(Token: string);
+procedure ResolveAgentLocale();
 var
   Locale: string;
 begin
   Locale := Trim(CmdParam('LOCALE'));
   if Locale = '' then Locale := Trim(CmdParam('AGENTLOCALE'));
   if Locale = '' then Locale := LocaleFromInstallerFileName();
-  if Locale = '' then Locale := ResolveLocaleFromRsm(Token);
   if Locale = '' then Locale := ActiveLanguage();
   AgentLocale := NormalizeLocale(Locale);
 end;
 
-function IdentityMatchesLocalSystem(ExistingHostname: string; ExistingFqdn: string): Boolean;
+function SendAgentEvent(Trigger: string; Data: string; Token: string;
+  var StatusCode: Integer; var ResponseBody: string): Boolean;
 var
-  CurrentHostname: string;
-  CurrentFqdn: string;
+  Http: Variant;
+  Boundary: string;
+  Body: string;
 begin
-  CurrentHostname := LocalHostname();
-  CurrentFqdn := LocalFqdn();
+  Result := False;
+  StatusCode := 0;
+  ResponseBody := '';
+  Boundary := 'FirulaiAgentBoundary7MA4YWxkTrZu0gW';
+  Body :=
+    '--' + Boundary + #13#10 +
+    'Content-Disposition: form-data; name="RStrigger"' + #13#10#13#10 +
+    Trigger + #13#10 +
+    '--' + Boundary + #13#10 +
+    'Content-Disposition: form-data; name="RSdata"' + #13#10 +
+    'Content-Type: application/json; charset=utf-8' + #13#10#13#10 +
+    Data + #13#10 +
+    '--' + Boundary + #13#10 +
+    'Content-Disposition: form-data; name="RStoken"' + #13#10#13#10 +
+    Token + #13#10 +
+    '--' + Boundary + '--' + #13#10;
 
-  Result :=
-    ((ExistingHostname <> '') and (CompareText(ExistingHostname, CurrentHostname) = 0)) or
-    ((ExistingFqdn <> '') and (CompareText(ExistingFqdn, CurrentFqdn) = 0)) or
-    ((ExistingHostname <> '') and (CompareText(ExistingHostname, CurrentFqdn) = 0)) or
-    ((ExistingFqdn <> '') and (CompareText(ExistingFqdn, CurrentHostname) = 0));
+  try
+    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
+    Http.Open('POST', '{#DefaultApiUrl}', False);
+    Http.SetTimeouts(5000, 5000, 20000, 20000);
+    Http.SetRequestHeader('Authorization', Token);
+    Http.SetRequestHeader('Content-Type', 'multipart/form-data; boundary=' + Boundary);
+    Http.Send(Body);
+    StatusCode := Http.Status;
+    ResponseBody := Http.ResponseText;
+    Result := True;
+  except
+    Result := False;
+  end;
 end;
 
 function CheckUuidAvailable(): string;
 var
-  Http: Variant;
   Payload: string;
   ResponseBody: string;
-  ExistingHostname: string;
-  ExistingFqdn: string;
+  StatusCode: Integer;
 begin
   Result := '';
-  RsmSystemItemId := '';
   Payload :=
-    '{"propertyIDs":["{#RsmSystemHostnamePropertyId}","{#RsmSystemFqdnPropertyId}","{#RsmSystemUuidPropertyId}","{#RsmSystemAliasPropertyId}"],' +
-    '"translateIDs":true,' +
-    '"filterRules":[{"propertyID":"{#RsmSystemUuidPropertyId}","value":"' + JsonEscape(EffectiveUuid()) + '","operation":"="}]}';
+    '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
+    '"hostname":"' + JsonEscape(LocalHostname()) + '",' +
+    '"fqdn":"' + JsonEscape(LocalFqdn()) + '",' +
+    '"locale":"' + JsonEscape(AgentLocale) + '",' +
+    '"RStoken":"' + JsonEscape(EffectiveToken()) + '"}';
 
-  try
-    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-    Http.Open('GET', '{#RsmItemsGetUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', EffectiveToken());
-    Http.SetRequestHeader('Content-Type', 'application/json');
-    Http.Send(Payload);
-    ResponseBody := Http.ResponseText;
-  except
-    Result := T('uuidValidateFailed');
+  if not SendAgentEvent(
+    'validateSystemInstallation', Payload, EffectiveToken(), StatusCode, ResponseBody) then
+  begin
+    { Validation is advisory. A transport failure must not block installation. }
     Exit;
   end;
 
-  if (Http.Status <> 200) and (Http.Status <> 201) then
+  if (StatusCode < 200) or (StatusCode >= 300) then
   begin
-    Result := T('uuidValidateDenied') + ' (HTTP ' + IntToStr(Http.Status) + ').' + #13#10 +
-      T('uuidValidateDeniedAdvice') + #13#10 +
-      T('responseLabel') + ResponseBody;
+    { The receiver handles validation failures and user notification. }
     Exit;
-  end;
-
-  if Pos(EffectiveUuid(), ResponseBody) = 0 then
-  begin
-    Result := T('uuidInvalidNotFound') + #13#10 +
-      T('uuidInvalidNoGenerated') + #13#10#13#10 +
-      T('uuidLabel') + EffectiveUuid();
-    Exit;
-  end;
-
-  RsmSystemItemId := JsonExtractFirstScalarKey(ResponseBody, 'ID');
-  if RsmSystemItemId = '' then
-  begin
-    RsmSystemItemId := JsonExtractFirstScalarKey(ResponseBody, 'id');
-  end;
-
-  if RsmSystemItemId = '' then
-  begin
-    Result := T('systemLookupFailed') + #13#10 +
-      T('systemLookupSaveAliasSafety');
-    Exit;
-  end;
-
-  ExistingHostname := JsonExtractRsmProperty(ResponseBody, '{#RsmSystemHostnamePropertyId}');
-  ExistingFqdn := JsonExtractRsmProperty(ResponseBody, '{#RsmSystemFqdnPropertyId}');
-
-  if (ExistingHostname = '') and (ExistingFqdn = '') then
-  begin
-    Exit;
-  end;
-
-  if IdentityMatchesLocalSystem(ExistingHostname, ExistingFqdn) then
-  begin
-    Exit;
-  end;
-
-  if (RsmSystemItemId = '') and IdentityMatchesLocalSystem(ExistingHostname, ExistingFqdn) then
-  begin
-    Result := T('firulaiInstalledSameUuid') + #13#10 +
-      T('duplicateUuidInstallForbidden') + #13#10#13#10 +
-      T('uuidLabel') + EffectiveUuid() + #13#10 +
-      T('firulaiSystemLabel') + #13#10 +
-      '   - Hostname: ' + ExistingHostname + #13#10 +
-      '   - FQDN:     ' + ExistingFqdn + #13#10 +
-      T('localComputerLabel') + #13#10 +
-      '   - Hostname: ' + LocalHostname() + #13#10 +
-      '   - FQDN:     ' + LocalFqdn() + #13#10#13#10 +
-      T('reinstallAdvice');
-    Exit;
-  end;
-
-  Result := T('uuidBelongsOther') + #13#10 +
-    T('uuidBelongsOtherLocal');
-end;
-
-function SaveAliasInRsm(): string;
-var
-  Http: Variant;
-  Payload: string;
-  ResponseBody: string;
-begin
-  Result := '';
-
-  if RsmSystemItemId = '' then
-  begin
-    Result := T('aliasSaveNoSystem');
-    Exit;
-  end;
-
-  Payload :=
-    '[{"ID":"' + JsonEscape(RsmSystemItemId) + '","{#RsmSystemAliasPropertyId}":"' + JsonEscape(EffectiveAlias()) + '"}]';
-
-  try
-    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-    Http.Open('PATCH', '{#RsmItemsUpdateUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', EffectiveToken());
-    Http.SetRequestHeader('Content-Type', 'application/json');
-    Http.Send(Payload);
-    ResponseBody := Http.ResponseText;
-  except
-    Result := T('aliasSaveFailed');
-    Exit;
-  end;
-
-  if (Http.Status <> 200) and (Http.Status <> 201) then
-  begin
-    Result := T('aliasSaveDenied') + ' (HTTP ' + IntToStr(Http.Status) + ').' + #13#10 +
-      T('aliasSaveDeniedAdvice') + #13#10 +
-      T('responseLabel') + ResponseBody;
   end;
 end;
 
-function SaveHostnameStatusInRsm(Value: string): string;
+function ActivateSystemInRsm(): string;
 var
-  Http: Variant;
   Payload: string;
   ResponseBody: string;
+  Updated: string;
+  StatusCode: Integer;
 begin
   Result := '';
-
-  if RsmSystemItemId = '' then
-  begin
-    Result := T('statusUpdateNoSystem');
-    Exit;
-  end;
-
   Payload :=
-    '[{"ID":"' + JsonEscape(RsmSystemItemId) + '","{#RsmSystemHostnameStatusPropertyId}":"' + JsonEscape(Value) + '"}]';
+    '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
+    '"action":"activate",' +
+    '"RStoken":"' + JsonEscape(EffectiveToken()) + '"}';
 
-  try
-    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-    Http.Open('PATCH', '{#RsmItemsUpdateUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', EffectiveToken());
-    Http.SetRequestHeader('Content-Type', 'application/json');
-    Http.Send(Payload);
-    ResponseBody := Http.ResponseText;
-  except
+  if not SendAgentEvent(
+    'changeSystemStatus', Payload, EffectiveToken(), StatusCode, ResponseBody) then
+  begin
     Result := T('statusUpdateFailed');
     Exit;
   end;
 
-  if (Http.Status <> 200) and (Http.Status <> 201) then
+  if (StatusCode < 200) or (StatusCode >= 300) then
   begin
-    Result := T('statusUpdateDenied') + ' (HTTP ' + IntToStr(Http.Status) + ').' + #13#10 +
+    Result := T('statusUpdateDenied') + ' (HTTP ' + IntToStr(StatusCode) + ').' + #13#10 +
       T('statusUpdateDeniedAdvice') + #13#10 +
+      T('responseLabel') + ResponseBody;
+    Exit;
+  end;
+
+  { Events Handler may accept the event with HTTP 2xx and an empty body. }
+  if Trim(ResponseBody) = '' then
+  begin
+    Exit;
+  end;
+
+  Updated := Lowercase(Trim(JsonExtractFirstScalarKey(ResponseBody, 'updated')));
+  if Updated <> 'true' then
+  begin
+    Result := T('statusUpdateFailed') + #13#10 +
       T('responseLabel') + ResponseBody;
   end;
 end;
@@ -1871,7 +1649,7 @@ end;
 
 procedure InitializeWizard();
 begin
-  ResolveAgentLocale(CmdParam('TOKEN'));
+  ResolveAgentLocale();
   ApplyLocalizedWizardChrome();
   ConfigPage := CreateInputQueryPage(
     wpSelectDir,
@@ -1882,11 +1660,9 @@ begin
   ConfigPage.Caption := T('configTitle');
   ConfigPage.Description := T('configDescription');
   ConfigPage.Add('UUID:', False);
-  ConfigPage.Add(T('aliasLabel'), False);
   ConfigPage.Add('Agent token:', True);
   ConfigPage.Values[0] := CmdParam('UUID');
-  ConfigPage.Values[1] := CmdParam('ALIAS');
-  ConfigPage.Values[2] := CmdParam('TOKEN');
+  ConfigPage.Values[1] := CmdParam('TOKEN');
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
@@ -1912,7 +1688,7 @@ begin
   Result := True;
   if CurPageID = ConfigPage.ID then
   begin
-    ResolveAgentLocale(ConfigPage.Values[2]);
+    ResolveAgentLocale();
     if not IsUuid(ConfigPage.Values[0]) then
     begin
       MsgBox(T('invalidUuid'), mbError, MB_OK);
@@ -1921,13 +1697,6 @@ begin
     end;
 
     if Trim(ConfigPage.Values[1]) = '' then
-    begin
-      MsgBox(T('aliasRequired'), mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if Trim(ConfigPage.Values[2]) = '' then
     begin
       MsgBox(T('tokenRequired'), mbError, MB_OK);
       Result := False;
@@ -1946,17 +1715,11 @@ var
   ValidationError: string;
 begin
   Result := '';
-  ResolveAgentLocale(EffectiveToken());
+  ResolveAgentLocale();
 
   if not IsUuid(EffectiveUuid()) then
   begin
     Result := T('missingUuidCli');
-    Exit;
-  end;
-
-  if EffectiveAlias() = '' then
-  begin
-    Result := T('missingAliasCli');
     Exit;
   end;
 
@@ -1980,14 +1743,7 @@ begin
     Exit;
   end;
 
-  ValidationError := SaveAliasInRsm();
-  if ValidationError <> '' then
-  begin
-    Result := ValidationError;
-    Exit;
-  end;
-
-  ValidationError := SaveHostnameStatusInRsm('{#RsmSystemHostnameStatusActiveValue}');
+  ValidationError := ActivateSystemInRsm();
   if ValidationError <> '' then
   begin
     Result := ValidationError;

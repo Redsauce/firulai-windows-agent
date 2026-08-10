@@ -32,7 +32,6 @@ https://rsm1.redsauce.net
 ```
 
 - UUID y token facilitados en Firulai para identificar y autorizar el equipo.
-- Alias obligatorio para identificar el sistema. Se guarda en Firulai y se puede modificar posteriormente desde Firulai.
 
 ---
 
@@ -42,7 +41,7 @@ https://rsm1.redsauce.net
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
 4. Lee el Acuerdo de licencia y aviso de uso y marca la casilla de aceptación. No se puede continuar sin aceptarlo.
-5. Introduce el UUID y el token que se te han facilitado en Firulai, y escribe un alias para el sistema cuando el asistente lo solicite.
+5. Introduce el UUID y el token que se te han facilitado en Firulai.
 6. Finaliza la instalación.
 
 Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
@@ -57,10 +56,10 @@ El instalador `FirulaiAgent.exe` realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
 2. Muestra el Acuerdo de licencia y aviso de uso y exige su aceptación antes de solicitar credenciales.
-3. Valida el formato del UUID introducido y que el alias y el token no estén vacíos.
+3. Valida el formato del UUID introducido y que el token no esté vacío.
 4. Comprueba que no exista una instalación local previa.
 5. Valida en Firulai que el UUID existe y está disponible para este equipo.
-6. Guarda el alias en Firulai sobre el item System asociado al UUID.
+6. Solicita al receptor que active el System asociado al UUID.
 7. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
 8. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
 9. Genera `config.json` con la configuración local del agente, incluyendo el token facilitado por Firulai.
@@ -292,8 +291,8 @@ Si confirmas la operación, el desinstalador:
 
 1. Lee el UUID configurado para este equipo.
 2. Detiene el servicio `RSAgent`.
-3. Busca en Firulai el item System asociado al UUID.
-4. Actualiza la propiedad `Hostnamestatus` (`1751`) con el valor `Disconnected`.
+3. Envía `changeSystemStatus` con el UUID y `action=disconnect` al receptor de Firulai.
+4. El receptor localiza el System y aplica el estado desconectado mediante su configuración interna.
 5. Si Firulai confirma la actualización, informa de que los datos no se borrarán y elimina el servicio y los archivos locales del agente.
 6. Si el UUID ya no existe en Firulai, informa de que no hay ningún System enlazado y desinstala igualmente la aplicación local.
 
@@ -354,7 +353,7 @@ Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicaci
 
 ## Versión actual
 
-Versión del agente: `0.13.0`
+Versión del agente: `0.14.0`
 
 Nombre del instalador publicado:
 

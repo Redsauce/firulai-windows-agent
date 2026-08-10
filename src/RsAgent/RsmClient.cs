@@ -17,27 +17,88 @@ namespace RsAgent
 
     internal static class RsmClient
     {
-        private const string ItemsGetUrl = "https://rsm1.redsauce.net/AppController/commands_RSM/api/v2/items/get.php";
-        private const string ItemsUpdateUrl = "https://rsm1.redsauce.net/AppController/commands_RSM/api/v2/items/update.php";
-        private const string SystemUuidPropertyId = "1780";
-        private const string HostnameStatusPropertyId = "1751";
-        private const string DisconnectedStatus = "Disconnected";
-
         public static async Task SendAsync(AgentConfig config, string inventoryJson)
+        {
+            var serializer = new JavaScriptSerializer();
+            var inventory = serializer.Deserialize<Dictionary<string, object>>(inventoryJson);
+            inventory["RStoken"] = config.Token;
+            await SendEventAsync(config, "newServerData", serializer.Serialize(inventory)).ConfigureAwait(false);
+        }
+
+        private static string GetSafeDestination(string url)
+        {
+            Uri uri;
+            return Uri.TryCreate(url, UriKind.Absolute, out uri)
+                ? uri.Scheme + "://" + uri.Authority + uri.AbsolutePath
+                : AgentText.T("rsm.invalidUrl");
+        }
+
+        public static async Task<UninstallStatusUpdateResult> MarkSystemDisconnectedOnUninstallAsync(AgentConfig config)
+        {
+            var serializer = new JavaScriptSerializer();
+            var payload = serializer.Serialize(new Dictionary<string, string>
+            {
+                { "uuid", config.Uuid },
+                { "action", "disconnect" },
+                { "RStoken", config.Token }
+            });
+            var body = await SendEventAsync(config, "changeSystemStatus", payload).ConfigureAwait(false);
+
+            // Events Handler may accept and execute the event with HTTP 2xx
+            // without forwarding the script stdout to the caller.
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return new UninstallStatusUpdateResult
+                {
+                    SystemFound = true,
+                    Message = "changeSystemStatus accepted with an empty response body."
+                };
+            }
+
+            var response = serializer.Deserialize<Dictionary<string, object>>(body);
+            bool systemFound;
+            bool disconnected;
+
+            if (!TryGetBoolean(response, "systemFound", out systemFound) ||
+                !TryGetBoolean(response, "disconnected", out disconnected))
+            {
+                throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", body));
+            }
+
+            if (!systemFound && !disconnected)
+            {
+                return new UninstallStatusUpdateResult
+                {
+                    SystemFound = false,
+                    Message = AgentText.T("rsm.noSystemForUuid", config.Uuid)
+                };
+            }
+
+            if (!systemFound || !disconnected)
+            {
+                throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", body));
+            }
+
+            return new UninstallStatusUpdateResult
+            {
+                SystemFound = true,
+                Message = body
+            };
+        }
+
+        private static async Task<string> SendEventAsync(AgentConfig config, string trigger, string json)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var stopwatch = Stopwatch.StartNew();
-            Logger.Info(AgentText.T("rsm.httpStarted", GetSafeDestination(config.ApiUrl), Encoding.UTF8.GetByteCount(inventoryJson)));
+            Logger.Info(AgentText.T("rsm.httpStarted", GetSafeDestination(config.ApiUrl), Encoding.UTF8.GetByteCount(json)));
 
             using (var client = new HttpClient())
             using (var form = new MultipartFormDataContent())
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
-                form.Add(new StringContent("newServerData"), "RStrigger");
-                // Linux sends RSdata as a regular multipart field (PHP $_POST),
-                // not as a file upload (PHP $_FILES).
-                form.Add(new StringContent(inventoryJson, Encoding.UTF8, "application/json"), "RSdata");
+                form.Add(new StringContent(trigger), "RStrigger");
+                form.Add(new StringContent(json, Encoding.UTF8, "application/json"), "RSdata");
                 form.Add(new StringContent(config.Token), "RStoken");
 
                 var response = await client.PostAsync(config.ApiUrl, form).ConfigureAwait(false);
@@ -52,154 +113,27 @@ namespace RsAgent
                 {
                     throw new InvalidOperationException(AgentText.T("rsm.httpFailed", (int)response.StatusCode, body));
                 }
-            }
-        }
-
-        private static string GetSafeDestination(string url)
-        {
-            Uri uri;
-            return Uri.TryCreate(url, UriKind.Absolute, out uri)
-                ? uri.Scheme + "://" + uri.Authority + uri.AbsolutePath
-                : AgentText.T("rsm.invalidUrl");
-        }
-
-        public static async Task<UninstallStatusUpdateResult> MarkSystemDisconnectedOnUninstallAsync(AgentConfig config)
-        {
-            var systemItemId = await GetSystemItemIdByUuidAsync(config).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(systemItemId))
-            {
-                return new UninstallStatusUpdateResult
-                {
-                    SystemFound = false,
-                    Message = AgentText.T("rsm.noSystemForUuid", config.Uuid)
-                };
-            }
-
-            var response = await UpdateHostnameStatusAsync(config, systemItemId, DisconnectedStatus).ConfigureAwait(false);
-            return new UninstallStatusUpdateResult
-            {
-                SystemFound = true,
-                Message = response
-            };
-        }
-
-        private static Task<string> GetSystemItemIdByUuidAsync(AgentConfig config)
-        {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            var serializer = new JavaScriptSerializer();
-            var payload = serializer.Serialize(new Dictionary<string, object>
-            {
-                { "propertyIDs", new[] { "1749", "1750", SystemUuidPropertyId, "1827" } },
-                { "translateIDs", true },
-                { "filterRules", new[]
-                    {
-                        new Dictionary<string, string>
-                        {
-                            { "propertyID", SystemUuidPropertyId },
-                            { "value", config.Uuid },
-                            { "operation", "=" }
-                        }
-                    }
-                }
-            });
-
-            var httpType = Type.GetTypeFromProgID("WinHttp.WinHttpRequest.5.1");
-            if (httpType == null)
-            {
-                throw new InvalidOperationException(AgentText.T("rsm.winHttpInitFailed"));
-            }
-
-            dynamic http = Activator.CreateInstance(httpType);
-            http.Open("GET", ItemsGetUrl, false);
-            http.SetTimeouts(5000, 5000, 20000, 20000);
-            http.SetRequestHeader("Authorization", config.Token);
-            http.SetRequestHeader("Content-Type", "application/json");
-            http.Send(payload);
-
-            int status = Convert.ToInt32(http.Status);
-            string body = Convert.ToString(http.ResponseText);
-            if (status != 200 && status != 201)
-            {
-                throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", status, body));
-            }
-
-            if (body.IndexOf(config.Uuid, StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                return Task.FromResult("");
-            }
-
-            var parsed = serializer.DeserializeObject(body);
-            return Task.FromResult(FindFirstScalarValue(parsed, "ID") ?? FindFirstScalarValue(parsed, "id") ?? "");
-        }
-
-        private static async Task<string> UpdateHostnameStatusAsync(AgentConfig config, string systemItemId, string status)
-        {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            var serializer = new JavaScriptSerializer();
-            var payload = serializer.Serialize(new[]
-            {
-                new Dictionary<string, string>
-                {
-                    { "ID", systemItemId },
-                    { HostnameStatusPropertyId, status }
-                }
-            });
-
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage(new HttpMethod("PATCH"), ItemsUpdateUrl))
-            {
-                client.Timeout = TimeSpan.FromSeconds(30);
-                request.Headers.TryAddWithoutValidation("Authorization", config.Token);
-                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
-
-                var response = await client.SendAsync(request).ConfigureAwait(false);
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException(AgentText.T("rsm.statusUpdateFailed", (int)response.StatusCode, body));
-                }
 
                 return body;
             }
         }
 
-        private static string FindFirstScalarValue(object value, string key)
+        private static bool TryGetBoolean(Dictionary<string, object> values, string key, out bool result)
         {
-            var dict = value as Dictionary<string, object>;
-            if (dict != null)
+            result = false;
+            object value;
+            if (values == null || !values.TryGetValue(key, out value) || value == null)
             {
-                object direct;
-                if (dict.TryGetValue(key, out direct) && direct != null)
-                {
-                    return Convert.ToString(direct);
-                }
-
-                foreach (var child in dict.Values)
-                {
-                    var found = FindFirstScalarValue(child, key);
-                    if (!string.IsNullOrWhiteSpace(found))
-                    {
-                        return found;
-                    }
-                }
+                return false;
             }
 
-            var array = value as object[];
-            if (array != null)
+            if (value is bool)
             {
-                foreach (var child in array)
-                {
-                    var found = FindFirstScalarValue(child, key);
-                    if (!string.IsNullOrWhiteSpace(found))
-                    {
-                        return found;
-                    }
-                }
+                result = (bool)value;
+                return true;
             }
 
-            return "";
+            return bool.TryParse(Convert.ToString(value), out result);
         }
     }
 }

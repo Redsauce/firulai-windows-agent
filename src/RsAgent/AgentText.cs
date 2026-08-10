@@ -32,6 +32,7 @@ namespace RsAgent
             "rsm.winHttpInitFailed", "Could not initialize WinHTTP to query Firulai.",
             "rsm.uuidSearchFailed", "Firulai responded {0} while searching for the UUID: {1}",
             "rsm.statusUpdateFailed", "Firulai responded {0} while updating the system status: {1}",
+            "rsm.disconnectResponseInvalid", "Firulai returned an invalid disconnect response: {0}",
             "service.triggerNone", "none",
             "service.triggerStartupRecovery", "startup-recovery",
             "service.triggerServiceStart", "service-start",
