@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.14.0"
+#define MyAppVersion "0.16.0"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define DefaultApiUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php"

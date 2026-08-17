@@ -2,6 +2,43 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
+## Notas de la release v0.15.0
+
+### Cambios principales
+
+- El instalador envía UUID, hostname, FQDN, idioma y Agent Token mediante
+  `validateSystemInstallation` antes de crear el servicio.
+- Procesa los resultados síncronos `available`, `same_system`, `not_found` y
+  `different_system`; este último detiene la instalación antes de escribir
+  archivos cuando el receptor puede devolver el resultado directamente.
+- Mantiene compatibilidad con Events Handler asíncrono: una respuesta vacía no
+  se interpreta como un UUID válido y la decisión final sobre el inventario se
+  delega en las comprobaciones de Vulnwatcher.
+- Omite `changeSystemStatus` cuando el UUID no existe o la validación no devuelve
+  un resultado síncrono, evitando activar un System incorrecto.
+- Cuando el UUID pertenece a otro equipo o está duplicado, Vulnwatcher envía al
+  email de Cuenta detalles una notificación localizada en español o inglés,
+  utilizando el asunto y el HTML almacenados en la plantilla de RSM. El UUID,
+  hostname, FQDN y motivo se incorporan mediante placeholders seguros.
+- Los UUID inexistentes y los errores generales de procesamiento del inventario
+  no generan notificaciones por correo.
+- Actualiza la versión incluida en el inventario y en el instalador a `0.15.0`.
+
+### Despliegue
+
+- Sustituir el asset anterior de la release por `FirulaiAgent.exe`.
+- No requiere migrar la configuración local de instalaciones existentes.
+- Las validaciones completas requieren desplegar también los scripts receptores
+  correspondientes de Vulnwatcher.
+
+### Artefacto
+
+```text
+Archivo: FirulaiAgent.exe
+SHA-256: B8C9F8F0A50690860951C6DB4CB4421EF067E58544AD634A5FF687626E77C170
+Firma Authenticode: no firmada
+```
+
 ---
 
 ## Qué se sube al repositorio
@@ -54,7 +91,7 @@ https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe
 Enlace a una versión concreta:
 
 ```text
-https://github.com/OWNER/REPO/releases/download/v0.14.0/FirulaiAgent.exe
+https://github.com/OWNER/REPO/releases/download/v0.15.0/FirulaiAgent.exe
 ```
 
 ---
@@ -220,7 +257,7 @@ La clave del origen se conserva al desinstalar para que Windows pueda seguir mos
 6. Probar que una segunda instalación sobre el mismo equipo se cancela y pide desinstalar primero.
 7. Probar instalación con UUID inexistente o ya asignado y comprobar que se cancela antes de crear archivos.
 8. Probar desinstalación y comprobar en Firulai que el receptor deja el System asociado al UUID como desconectado.
-9. Crear tag en GitHub, por ejemplo `v0.14.0`.
+9. Crear tag en GitHub, por ejemplo `v0.15.0`.
 10. Crear GitHub Release para ese tag.
 11. Adjuntar `FirulaiAgent.exe` como asset.
 12. Comprobar que descarga desde:

@@ -8,7 +8,7 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.14.0";
+        public const string AgentVersion = "0.16.0";
         public const string DefaultApiUrl = "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php";
 
         public string token { get; set; }
