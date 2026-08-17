@@ -170,6 +170,7 @@ Filename: "{sys}\sc.exe"; Parameters: "delete RSAgent"; Flags: runhidden waitunt
 var
   ConfigPage: TInputQueryWizardPage;
   AgentLocale: string;
+  UuidValidationResult: string;
 
 function IsUuid(Value: string): Boolean;
 var
@@ -1116,9 +1117,11 @@ function CheckUuidAvailable(): string;
 var
   Payload: string;
   ResponseBody: string;
+  ValidationResult: string;
   StatusCode: Integer;
 begin
   Result := '';
+  UuidValidationResult := '';
   Payload :=
     '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
     '"hostname":"' + JsonEscape(LocalHostname()) + '",' +
@@ -1129,15 +1132,41 @@ begin
   if not SendAgentEvent(
     'validateSystemInstallation', Payload, EffectiveToken(), StatusCode, ResponseBody) then
   begin
-    { Validation is advisory. A transport failure must not block installation. }
+    { Events are asynchronous; Vulnwatcher owns the final validation decision. }
     Exit;
   end;
 
   if (StatusCode < 200) or (StatusCode >= 300) then
   begin
-    { The receiver handles validation failures and user notification. }
     Exit;
   end;
+
+  ValidationResult := JsonExtractFirstStringKey(ResponseBody, 'result');
+  UuidValidationResult := ValidationResult;
+  if (ValidationResult = 'available') or (ValidationResult = 'same_system') then
+  begin
+    Exit;
+  end;
+
+  if ValidationResult = 'not_found' then
+  begin
+    Exit;
+  end;
+
+  if ValidationResult = 'different_system' then
+  begin
+    Result := T('uuidBelongsOther') + #13#10 + T('uuidBelongsOtherLocal');
+    Exit;
+  end;
+
+  { The event handler normally acknowledges asynchronously with an empty body. }
+  if Trim(ResponseBody) = '' then
+  begin
+    Exit;
+  end;
+
+  Result := T('uuidValidateDenied') + '.' + #13#10 +
+    T('responseLabel') + ResponseBody;
 end;
 
 function ActivateSystemInRsm(): string;
@@ -1148,6 +1177,13 @@ var
   StatusCode: Integer;
 begin
   Result := '';
+  { Keep an unknown UUID completely silent. The validation request already
+    established that there is no System to activate. }
+  if (UuidValidationResult = 'not_found') or (UuidValidationResult = '') then
+  begin
+    Exit;
+  end;
+
   Payload :=
     '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
     '"action":"activate",' +
