@@ -1039,7 +1039,7 @@ namespace RsAgent
             }
         }
 
-        private static string GetFqdn()
+        internal static string GetFqdn()
         {
             try
             {

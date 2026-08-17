@@ -40,6 +40,8 @@ namespace RsAgent
             {
                 { "uuid", config.Uuid },
                 { "action", "disconnect" },
+                { "hostname", Environment.MachineName },
+                { "fqdn", InventoryCollector.GetFqdn() },
                 { "RStoken", config.Token }
             });
             var body = await SendEventAsync(config, "changeSystemStatus", payload).ConfigureAwait(false);
