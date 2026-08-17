@@ -103,7 +103,7 @@ Resultado:
 agent/windows/Output/FirulaiAgent.exe
 ```
 
-El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador. Para desplegar la descarga desde Firulai, publica este `Output/FirulaiAgent.exe` como asset de la release Windows.
+El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador. Para desplegar la descarga desde Firulai, publica primero este `Output/FirulaiAgent.exe` como asset de la release Windows; si `apps/rsm-firulai/agents/windows/Output/FirulaiAgent.exe` no existe en el build de la app, `scripts/build-app-dist.mjs` lo descarga desde la release estable y lo incluye en el zip de prod.
 
 ---
 
@@ -128,14 +128,17 @@ Si existe instalación local, el instalador cancela el proceso y pide desinstala
 En modo gráfico, el acuerdo de licencia aparece antes de la página de UUID y token, y el botón para continuar permanece deshabilitado hasta marcar su aceptación. En modo silencioso, el instalador requiere `/ACCEPTLICENSE=yes /UUID=<UUID> /TOKEN=<TOKEN>`; si falta la aceptación explícita o alguna credencial, termina con error y no debe crear ni reemplazar archivos.
 
 La validación remota envía `RStrigger=validateSystemInstallation` al endpoint del
-agente. `RSdata` contiene `uuid`, `hostname`, `fqdn` y `RStoken`; ningún ID de
+agente. `RSdata` contiene `uuid`, `hostname`, `fqdn`, `locale` y `RStoken`; ningún ID de
 propiedad RSM forma parte del instalador. El receptor devuelve `available`,
 `same_system`, `different_system` o `not_found` y mantiene internamente el
 mapping de propiedades.
 
-La validación es informativa y no bloquea la instalación. Si el UUID no existe,
-pertenece a otro equipo o la validación falla, el script receptor debe preparar
-la notificación al usuario y el instalador continúa con normalidad.
+El resultado `not_found` no muestra error y permite continuar. El resultado
+`different_system` bloquea la instalación antes de crear archivos o el servicio.
+Como los eventos son asíncronos, una respuesta vacía solo confirma su recepción;
+la decisión final y el bloqueo de cualquier escritura corresponden a Vulnwatcher.
+El receptor usa el UUID para resolver Cliente/Cuenta mediante la relación de
+System `1785` y consulta Cuenta detalles por Cliente `1883` para obtener `1881`.
 
 Orden equivalente al instalador Linux:
 
