@@ -4,6 +4,12 @@
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define DefaultApiUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php"
+#ifndef InstallerLanguage
+#define InstallerLanguage "all"
+#endif
+#ifndef InstallerSuffix
+#define InstallerSuffix ""
+#endif
 
 [Setup]
 AppId={{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}
@@ -15,7 +21,11 @@ DefaultDirName={autopf}\RSAgent
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir=..\Output
+#if InstallerSuffix == ""
 OutputBaseFilename=FirulaiAgent
+#else
+OutputBaseFilename=FirulaiAgent-{#InstallerSuffix}
+#endif
 Compression=zip
 SolidCompression=no
 PrivilegesRequired=admin
@@ -23,23 +33,78 @@ ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayName={#MyAppDisplayName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Agente de inventario para Firulai
+VersionInfoDescription=Firulai inventory agent
 VersionInfoProductName={#MyAppDisplayName}
-LicenseFile=LICENSE-es.txt
+LicenseFile=LICENSE-en.txt
 ShowLanguageDialog=no
 UsePreviousLanguage=no
+#if InstallerLanguage == "all"
+LanguageDetectionMethod=uilanguage
+#else
+LanguageDetectionMethod=none
+#endif
 
 [Languages]
+#if InstallerLanguage == "english"
 Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "LICENSE-en.txt"
+#endif
+#if InstallerLanguage == "spanish"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"; LicenseFile: "LICENSE-es.txt"
+#endif
+#if InstallerLanguage == "catalan"
 Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"; LicenseFile: "LICENSE-ca.txt"
+#endif
+#if InstallerLanguage == "basque"
 Name: "basque"; MessagesFile: "Languages\Basque.isl"; LicenseFile: "LICENSE-eu.txt"
+#endif
+#if InstallerLanguage == "galician"
 Name: "galician"; MessagesFile: "Languages\Galician.isl"; LicenseFile: "LICENSE-gl.txt"
+#endif
+#if InstallerLanguage == "french"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"; LicenseFile: "LICENSE-fr.txt"
+#endif
+#if InstallerLanguage == "german"
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"; LicenseFile: "LICENSE-de.txt"
+#endif
+#if InstallerLanguage == "italian"
 Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"; LicenseFile: "LICENSE-it.txt"
+#endif
+#if InstallerLanguage == "japanese"
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"; LicenseFile: "LICENSE-ja.txt"
+#endif
+#if InstallerLanguage == "chinesesimplified"
 Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"; LicenseFile: "LICENSE-zh-CN.txt"
+#endif
+#if InstallerLanguage != "english"
+Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "LICENSE-en.txt"
+#endif
+#if InstallerLanguage != "spanish"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"; LicenseFile: "LICENSE-es.txt"
+#endif
+#if InstallerLanguage != "catalan"
+Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"; LicenseFile: "LICENSE-ca.txt"
+#endif
+#if InstallerLanguage != "basque"
+Name: "basque"; MessagesFile: "Languages\Basque.isl"; LicenseFile: "LICENSE-eu.txt"
+#endif
+#if InstallerLanguage != "galician"
+Name: "galician"; MessagesFile: "Languages\Galician.isl"; LicenseFile: "LICENSE-gl.txt"
+#endif
+#if InstallerLanguage != "french"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"; LicenseFile: "LICENSE-fr.txt"
+#endif
+#if InstallerLanguage != "german"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"; LicenseFile: "LICENSE-de.txt"
+#endif
+#if InstallerLanguage != "italian"
+Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"; LicenseFile: "LICENSE-it.txt"
+#endif
+#if InstallerLanguage != "japanese"
+Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"; LicenseFile: "LICENSE-ja.txt"
+#endif
+#if InstallerLanguage != "chinesesimplified"
+Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"; LicenseFile: "LICENSE-zh-CN.txt"
+#endif
 
 [CustomMessages]
 english.RegisteringService=Registering service...
@@ -48,7 +113,7 @@ english.ServiceDescription=Collects the system software inventory and sends it t
 english.NameAndVersion=%1 version %2
 spanish.RegisteringService=Registrando servicio...
 spanish.StartingService=Arrancando servicio...
-spanish.ServiceDescription=Recopila el inventario de software del sistema y lo envia a Firulai
+spanish.ServiceDescription=Recopila el inventario de software del sistema y lo envía a Firulai
 spanish.NameAndVersion=%1 versión %2
 catalan.RegisteringService=Registrant servei...
 catalan.StartingService=Arrencant servei...
@@ -86,54 +151,134 @@ chinesesimplified.NameAndVersion=%1 版本 %2
 [Messages]
 english.SetupAppTitle=Install
 english.SetupWindowTitle=Install - %1
+english.UninstallAppTitle=Uninstall
+english.UninstallAppFullTitle=Uninstall - %1
 english.WelcomeLabel1=Welcome to the [name] Setup Wizard
 english.WelcomeLabel2=This agent will collect this computer inventory and send the data to Firulai. Once installed, it will send the initial data to Firulai and repeat the send automatically every night.
 english.ConfirmUninstall=%1 will be uninstalled.%n%nThis action will only remove the local agent files and the installer. Firulai data will not be deleted.%n%nThe system will be marked as inactive in Firulai. From Firulai you can permanently delete its data or reinstall the agent later by linking it to the already saved System and inventory.%n%nDo you want to continue?
+english.WizardPreparing=Preparing to Install
+english.PreparingDesc=Setup is preparing to install [name] on your computer.
+english.CannotContinue=Setup cannot continue. Please click Cancel to exit.
+english.WizardUninstalling=Uninstall Status
+english.UninstallStatusLabel=Please wait while %1 is removed from your computer.
+english.StatusUninstalling=Uninstalling %1...
 spanish.SetupAppTitle=Instalar
 spanish.SetupWindowTitle=Instalar - %1
-spanish.WelcomeLabel1=Bienvenido al asistente de instalacion de [name]
-spanish.WelcomeLabel2=Este agente se instalara para recopilar el inventario de este equipo y mandar los datos a Firulai. Una vez instalado, enviara los datos iniciales a Firulai y repetira el envio automaticamente cada noche.
-spanish.ConfirmUninstall=Se va a desinstalar %1.%n%nEsta accion solo eliminara los archivos locales del agente junto al instalador. No se borraran los datos de Firulai.%n%nEl sistema quedara como inactivo en Firulai. Desde Firulai podras eliminar definitivamente sus datos o volver a instalar el agente mas adelante enlazandolo al System y al inventario ya guardados.%n%nQuieres continuar?
+spanish.UninstallAppTitle=Desinstalar
+spanish.UninstallAppFullTitle=Desinstalar - %1
+spanish.WelcomeLabel1=Bienvenido al asistente de instalación de [name]
+spanish.WelcomeLabel2=Este agente se instalará para recopilar el inventario de este equipo y mandar los datos a Firulai. Una vez instalado, enviará los datos iniciales a Firulai y repetirá el envío automáticamente cada noche.
+spanish.ConfirmUninstall=Se va a desinstalar %1.%n%nEsta acción solo eliminará los archivos locales del agente junto al instalador. No se borrarán los datos de Firulai.%n%nEl sistema quedará como inactivo en Firulai. Desde Firulai podrás eliminar definitivamente sus datos o volver a instalar el agente más adelante enlazándolo al System y al inventario ya guardados.%n%n¿Quieres continuar?
+spanish.WizardPreparing=Preparándose para instalar
+spanish.PreparingDesc=El programa de instalación se está preparando para instalar [name] en su sistema.
+spanish.CannotContinue=El programa de instalación no puede continuar. Por favor, presione Cancelar para salir.
+spanish.WizardUninstalling=Estado de la desinstalación
+spanish.UninstallStatusLabel=Por favor, espere mientras %1 se elimina del equipo.
+spanish.StatusUninstalling=Desinstalando %1...
 catalan.SetupAppTitle=Instal·lació
 catalan.SetupWindowTitle=Instal·lació - %1
-catalan.WelcomeLabel1=Benvingut a l'assistent d'instal.lacio de [name]
-catalan.WelcomeLabel2=Aquest agent recollira l'inventari d'aquest equip i enviara les dades a Firulai. Un cop instal.lat, enviara les dades inicials a Firulai i repetira l'enviament automaticament cada nit.
-catalan.ConfirmUninstall=Es desinstal.lara %1.%n%nAquesta accio nomes eliminara els fitxers locals de l'agent i l'instal.lador. Les dades de Firulai no s'eliminaran.%n%nEl sistema es marcara com a inactiu a Firulai. Des de Firulai podras eliminar definitivament les dades o reinstal.lar l'agent mes endavant enllacant-lo al System i a l'inventari ja desats.%n%nVols continuar?
+catalan.UninstallAppTitle=Desinstal·lar
+catalan.UninstallAppFullTitle=Desinstal·lació - %1
+catalan.WelcomeLabel1=Benvingut a l'assistent d'instal·lació de [name]
+catalan.WelcomeLabel2=Aquest agent recollirà l'inventari d'aquest equip i enviarà les dades a Firulai. Un cop instal·lat, enviarà les dades inicials a Firulai i repetirà l'enviament automàticament cada nit.
+catalan.ConfirmUninstall=Es desinstal·larà %1.%n%nAquesta acció només eliminarà els fitxers locals de l'agent i l'instal·lador. Les dades de Firulai no s'eliminaran.%n%nEl sistema es marcarà com a inactiu a Firulai. Des de Firulai podràs eliminar definitivament les dades o reinstal·lar l'agent més endavant enllaçant-lo al System i a l'inventari ja desats.%n%nVols continuar?
+catalan.WizardPreparing=Preparant la instal·lació
+catalan.PreparingDesc=El programa d'instal·lació s'està preparant per instal·lar [name] al sistema.
+catalan.CannotContinue=El programa d'instal·lació no pot continuar. Fes clic a Cancel·la per sortir.
+catalan.WizardUninstalling=Estat de la desinstal·lació
+catalan.UninstallStatusLabel=Espera mentre %1 s'elimina de l'equip.
+catalan.StatusUninstalling=Desinstal·lant %1...
 basque.SetupAppTitle=Instalazioa
 basque.SetupWindowTitle=Instalazioa - %1
+basque.UninstallAppTitle=Desinstalatu
+basque.UninstallAppFullTitle=Desinstalatzea - %1
 basque.WelcomeLabel1=Ongi etorri [name] ezarpen morroira
 basque.WelcomeLabel2=Agente honek ordenagailu honen inbentarioa bildu eta datuak Firulaira bidaliko ditu. Instalatu ondoren, hasierako datuak Firulaira bidaliko ditu eta bidalketa automatikoki errepikatuko du gauero.
 basque.ConfirmUninstall=%1 desinstalatuko da.%n%nEkintza honek agentearen fitxategi lokalak eta instalatzailea bakarrik kenduko ditu. Firulaiko datuak ez dira ezabatuko.%n%nSistema inaktibo gisa markatuko da Firulain. Firulaitik datuak behin betiko ezabatu edo agentea gero berriro instalatu ahal izango duzu gordetako System eta inbentarioari lotuta.%n%nJarraitu nahi duzu?
-galician.SetupAppTitle=Instalacion
-galician.SetupWindowTitle=Instalacion - %1
+basque.WizardPreparing=Instalatzeko prestatzen
+basque.PreparingDesc=Instalatzailea [name] sisteman instalatzeko prestatzen ari da.
+basque.CannotContinue=Instalatzaileak ezin du jarraitu. Egin klik Utzi botoian irteteko.
+basque.WizardUninstalling=Desinstalazioaren egoera
+basque.UninstallStatusLabel=Itxaron %1 ordenagailutik kentzen den bitartean.
+basque.StatusUninstalling=%1 kentzen...
+galician.SetupAppTitle=Instalación
+galician.SetupWindowTitle=Instalación - %1
+galician.UninstallAppTitle=Desinstalar
+galician.UninstallAppFullTitle=Desinstalación - %1
 galician.WelcomeLabel1=Benvido ao asistente de instalación de [name]
-galician.WelcomeLabel2=Este axente recollera o inventario deste equipo e enviara os datos a Firulai. Unha vez instalado, enviara os datos iniciais a Firulai e repetira o envio automaticamente cada noite.
+galician.WelcomeLabel2=Este axente recollerá o inventario deste equipo e enviará os datos a Firulai. Unha vez instalado, enviará os datos iniciais a Firulai e repetirá o envío automaticamente cada noite.
 galician.ConfirmUninstall=Vaise desinstalar %1.%n%nEsta accion so eliminara os ficheiros locais do axente e o instalador. Non se borraran os datos de Firulai.%n%nO sistema quedara como inactivo en Firulai. Desde Firulai poderas eliminar definitivamente os seus datos ou volver instalar o axente mais adiante enlazandoo co System e co inventario xa gardados.%n%nQueres continuar?
+galician.WizardPreparing=Preparando a instalación
+galician.PreparingDesc=O programa de instalación preparase para instalar [name] no sistema.
+galician.CannotContinue=O programa de instalación non pode continuar. Preme Cancelar para sair.
+galician.WizardUninstalling=Estado da desinstalación
+galician.UninstallStatusLabel=Agarda mentres %1 se elimina do equipo.
+galician.StatusUninstalling=Desinstalando %1...
 french.SetupAppTitle=Installer
 french.SetupWindowTitle=Installer - %1
+french.UninstallAppTitle=Désinstaller
+french.UninstallAppFullTitle=Désinstallation - %1
 french.WelcomeLabel1=Bienvenue dans l'assistant d'installation de [name]
-french.WelcomeLabel2=Cet agent collectera l'inventaire de cet ordinateur et enverra les donnees a Firulai. Une fois installe, il enverra les donnees initiales a Firulai et repetera l'envoi automatiquement chaque nuit.
-french.ConfirmUninstall=%1 va etre desinstalle.%n%nCette action supprimera uniquement les fichiers locaux de l'agent et l'installateur. Les donnees Firulai ne seront pas supprimees.%n%nLe systeme sera marque comme inactif dans Firulai. Depuis Firulai, vous pourrez supprimer definitivement ses donnees ou reinstaller l'agent plus tard en le liant au System et a l'inventaire deja enregistres.%n%nVoulez-vous continuer?
+french.WelcomeLabel2=Cet agent collectera l'inventaire de cet ordinateur et enverra les données à Firulai. Une fois installé, il enverra les données initiales à Firulai et répétera l'envoi automatiquement chaque nuit.
+french.ConfirmUninstall=%1 va être désinstallé.%n%nCette action supprimera uniquement les fichiers locaux de l'agent et l'installateur. Les données Firulai ne seront pas supprimées.%n%nLe système sera marqué comme inactif dans Firulai. Depuis Firulai, vous pourrez supprimer définitivement ses données ou réinstaller l'agent plus tard en le liant au System et à l'inventaire déjà enregistrés.%n%nVoulez-vous continuer?
+french.WizardPreparing=Préparation de l'installation
+french.PreparingDesc=Le programme d'installation se prépare à installer [name] sur le système.
+french.CannotContinue=Le programme d'installation ne peut pas continuer. Cliquez sur Annuler pour quitter.
+french.WizardUninstalling=État de la désinstallation
+french.UninstallStatusLabel=Veuillez patienter pendant la suppression de %1 de votre ordinateur.
+french.StatusUninstalling=Désinstallation de %1...
 german.SetupAppTitle=Installieren
 german.SetupWindowTitle=Installieren - %1
-german.WelcomeLabel1=Willkommen beim Setup-Assistenten fuer [name]
+german.UninstallAppTitle=Deinstallieren
+german.UninstallAppFullTitle=Deinstallation - %1
+german.WelcomeLabel1=Willkommen beim Setup-Assistenten für [name]
 german.WelcomeLabel2=Dieser Agent erfasst das Inventar dieses Computers und sendet die Daten an Firulai. Nach der Installation sendet er die ersten Daten an Firulai und wiederholt das Senden jede Nacht automatisch.
-german.ConfirmUninstall=%1 wird deinstalliert.%n%nDiese Aktion entfernt nur die lokalen Agent-Dateien und das Installationsprogramm. Firulai-Daten werden nicht geloescht.%n%nDas System wird in Firulai als inaktiv markiert. In Firulai koennen Sie seine Daten endgueltig loeschen oder den Agenten spaeter erneut installieren, indem Sie ihn mit dem bereits gespeicherten System und Inventar verknuepfen.%n%nMoechten Sie fortfahren?
+german.ConfirmUninstall=%1 wird deinstalliert.%n%nDiese Aktion entfernt nur die lokalen Agent-Dateien und das Installationsprogramm. Firulai-Daten werden nicht gelöscht.%n%nDas System wird in Firulai als inaktiv markiert. In Firulai können Sie seine Daten endgültig löschen oder den Agenten später erneut installieren, indem Sie ihn mit dem bereits gespeicherten System und Inventar verknüpfen.%n%nMöchten Sie fortfahren?
+german.WizardPreparing=Installation wird vorbereitet
+german.PreparingDesc=Das Installationsprogramm bereitet die Installation von [name] auf dem System vor.
+german.CannotContinue=Das Installationsprogramm kann nicht fortfahren. Klicken Sie zum Beenden auf Abbrechen.
+german.WizardUninstalling=Deinstallationsstatus
+german.UninstallStatusLabel=Bitte warten Sie, während %1 vom Computer entfernt wird.
+german.StatusUninstalling=%1 wird entfernt...
 italian.SetupAppTitle=Installa
 italian.SetupWindowTitle=Installa - %1
+italian.UninstallAppTitle=Disinstalla
+italian.UninstallAppFullTitle=Disinstallazione - %1
 italian.WelcomeLabel1=Benvenuto nella procedura guidata di installazione di [name]
-italian.WelcomeLabel2=Questo agente raccogliera l'inventario di questo computer e inviera i dati a Firulai. Una volta installato, inviera i dati iniziali a Firulai e ripetera l'invio automaticamente ogni notte.
-italian.ConfirmUninstall=%1 verra disinstallato.%n%nQuesta azione rimuovera solo i file locali dell'agente e il programma di installazione. I dati Firulai non verranno eliminati.%n%nIl sistema verra marcato come inattivo in Firulai. Da Firulai potrai eliminare definitivamente i dati o reinstallare l'agente piu avanti collegandolo al System e all'inventario gia salvati.%n%nVuoi continuare?
+italian.WelcomeLabel2=Questo agente raccoglierà l'inventario di questo computer e invierà i dati a Firulai. Una volta installato, invierà i dati iniziali a Firulai e ripeterà l'invio automaticamente ogni notte.
+italian.ConfirmUninstall=%1 verrà disinstallato.%n%nQuesta azione rimuoverà solo i file locali dell'agente e il programma di installazione. I dati Firulai non verranno eliminati.%n%nIl sistema verrà marcato come inattivo in Firulai. Da Firulai potrai eliminare definitivamente i dati o reinstallare l'agente più avanti collegandolo al System e all'inventario già salvati.%n%nVuoi continuare?
+italian.WizardPreparing=Preparazione all'installazione
+italian.PreparingDesc=Il programma di installazione si sta preparando a installare [name] nel sistema.
+italian.CannotContinue=Il programma di installazione non può continuare. Fai clic su Annulla per uscire.
+italian.WizardUninstalling=Stato della disinstallazione
+italian.UninstallStatusLabel=Attendi mentre %1 viene rimosso dal computer.
+italian.StatusUninstalling=Disinstallazione di %1...
 japanese.SetupAppTitle=インストール
 japanese.SetupWindowTitle=インストール - %1
+japanese.UninstallAppTitle=アンインストール
+japanese.UninstallAppFullTitle=%1 のアンインストール
 japanese.WelcomeLabel1=[name] セットアップ ウィザードへようこそ
 japanese.WelcomeLabel2=このエージェントは、このコンピューターのインベントリを収集して Firulai に送信します。インストール後、初回データを Firulai に送信し、その後は毎晩自動的に送信します。
 japanese.ConfirmUninstall=%1 をアンインストールします。%n%nこの操作では、ローカルのエージェント ファイルとインストーラーのみを削除します。Firulai のデータは削除されません。%n%nシステムは Firulai で非アクティブとしてマークされます。Firulai からデータを完全に削除するか、あとで保存済みの System とインベントリにリンクしてエージェントを再インストールできます。%n%n続行しますか?
+japanese.WizardPreparing=インストールの準備
+japanese.PreparingDesc=[name] をシステムにインストールする準備をしています。
+japanese.CannotContinue=セットアップを続行できません。終了するにはキャンセルをクリックしてください。
+japanese.WizardUninstalling=アンインストールの状態
+japanese.UninstallStatusLabel=%1 をコンピューターから削除しています。お待ちください。
+japanese.StatusUninstalling=%1 をアンインストールしています...
 chinesesimplified.SetupAppTitle=安装
 chinesesimplified.SetupWindowTitle=安装 - %1
+chinesesimplified.UninstallAppTitle=卸载
+chinesesimplified.UninstallAppFullTitle=卸载 - %1
 chinesesimplified.WelcomeLabel1=欢迎使用 [name] 安装向导
 chinesesimplified.WelcomeLabel2=此代理将收集此计算机的清单并将数据发送到 Firulai。安装后，它会向 Firulai 发送初始数据，并在之后每晚自动重复发送。
 chinesesimplified.ConfirmUninstall=%1 将被卸载。%n%n此操作只会删除本地代理文件和安装程序。Firulai 数据不会被删除。%n%n系统将在 Firulai 中标记为非活动。你可以在 Firulai 中永久删除其数据，或稍后将代理重新链接到已保存的 System 和清单后再次安装。%n%n是否继续?
+chinesesimplified.WizardPreparing=准备安装
+chinesesimplified.PreparingDesc=安装程序正在准备将 [name] 安装到系统中。
+chinesesimplified.CannotContinue=安装程序无法继续。请单击“取消”退出。
+chinesesimplified.WizardUninstalling=卸载状态
+chinesesimplified.UninstallStatusLabel=请稍候，正在从计算机中删除 %1。
+chinesesimplified.StatusUninstalling=正在卸载 %1...
 
 [Files]
 Source: "..\src\RsAgent\bin\Release\RsAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -153,14 +298,15 @@ Name: "{commonappdata}\RSAgent"; Permissions: admins-full system-full
 Name: "{commonappdata}\RSAgent\logs"; Permissions: admins-full system-full
 
 [Registry]
+Root: HKLM; Subkey: "SOFTWARE\Redsauce\RSAgent"; ValueType: string; ValueName: "Locale"; ValueData: "{code:AgentLocaleValue}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: expandsz; ValueName: "EventMessageFile"; ValueData: "{win}\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: dword; ValueName: "TypesSupported"; ValueData: "7"
 
 [Run]
-Filename: "{sys}\sc.exe"; Parameters: "create RSAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{cm:RegisteringService}"
-Filename: "{sys}\sc.exe"; Parameters: "description RSAgent ""{cm:ServiceDescription}"""; Flags: runhidden waituntilterminated
+Filename: "{sys}\sc.exe"; Parameters: "create RSAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|registeringService}"
+Filename: "{sys}\sc.exe"; Parameters: "description RSAgent ""{code:InstallerText|serviceDescription}"""; Flags: runhidden waituntilterminated
 Filename: "{sys}\sc.exe"; Parameters: "failure RSAgent reset= 86400 actions= restart/60000/restart/60000/""""/60000"; Flags: runhidden waituntilterminated
-Filename: "{sys}\sc.exe"; Parameters: "start RSAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{cm:StartingService}"
+Filename: "{sys}\sc.exe"; Parameters: "start RSAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|startingService}"
 
 [UninstallRun]
 Filename: "{sys}\sc.exe"; Parameters: "stop RSAgent"; Flags: runhidden waituntilterminated; RunOnceId: "StopRSAgent"
@@ -171,6 +317,7 @@ var
   ConfigPage: TInputQueryWizardPage;
   AgentLocale: string;
   UuidValidationResult: string;
+  PrepareInstallFailureMessage: string;
 
 function IsUuid(Value: string): Boolean;
 var
@@ -219,15 +366,15 @@ function NormalizeLocale(Value: string): string;
 begin
   Value := Lowercase(Trim(Value));
   StringChangeEx(Value, '-', '_', True);
-  if Pos('es', Value) = 1 then Result := 'es_ES'
-  else if Pos('ca', Value) = 1 then Result := 'ca_ES'
-  else if Pos('eu', Value) = 1 then Result := 'eu_ES'
-  else if Pos('gl', Value) = 1 then Result := 'gl_ES'
-  else if Pos('fr', Value) = 1 then Result := 'fr_FR'
-  else if Pos('de', Value) = 1 then Result := 'de_DE'
-  else if Pos('it', Value) = 1 then Result := 'it_IT'
-  else if Pos('ja', Value) = 1 then Result := 'ja_JP'
-  else if Pos('zh', Value) = 1 then Result := 'zh_CN'
+  if (Pos('es', Value) = 1) or (Value = 'spanish') or (Value = 'espanol') then Result := 'es_ES'
+  else if (Pos('ca', Value) = 1) or (Value = 'catalan') then Result := 'ca_ES'
+  else if (Pos('eu', Value) = 1) or (Value = 'basque') or (Value = 'euskera') then Result := 'eu_ES'
+  else if (Pos('gl', Value) = 1) or (Value = 'galician') or (Value = 'gallego') then Result := 'gl_ES'
+  else if (Pos('fr', Value) = 1) or (Value = 'french') or (Value = 'frances') then Result := 'fr_FR'
+  else if (Pos('de', Value) = 1) or (Value = 'german') or (Value = 'deutsch') or (Value = 'aleman') then Result := 'de_DE'
+  else if (Pos('it', Value) = 1) or (Value = 'italian') or (Value = 'italiano') then Result := 'it_IT'
+  else if (Pos('ja', Value) = 1) or (Value = 'japanese') or (Value = 'japones') then Result := 'ja_JP'
+  else if (Pos('zh', Value) = 1) or (Value = 'chinese') or (Value = 'chino') or (Value = 'chinesesimplified') then Result := 'zh_CN'
   else Result := 'en_US';
 end;
 
@@ -272,43 +419,6 @@ begin
   else Result := 'english';
 end;
 
-function QuotedParam(Name: string; Value: string): string;
-begin
-  Result := '';
-  Value := Trim(Value);
-  if Value = '' then Exit;
-  StringChangeEx(Value, '"', '\"', True);
-  Result := ' /' + Name + '="' + Value + '"';
-end;
-
-function RelaunchParameters(Language: string): string;
-begin
-  Result := '/LANG=' + Language + ' /LANGRELAUNCHED=yes' + QuotedParam('LOCALE', AgentLocale);
-  Result := Result + QuotedParam('UUID', CmdParam('UUID'));
-  Result := Result + QuotedParam('TOKEN', CmdParam('TOKEN'));
-  Result := Result + QuotedParam('ACCEPTLICENSE', CmdParam('ACCEPTLICENSE'));
-end;
-
-function RelaunchWithResolvedLanguageIfNeeded(): Boolean;
-var
-  DesiredLanguage: string;
-  ResultCode: Integer;
-begin
-  Result := False;
-  if CompareText(Trim(CmdParam('LANGRELAUNCHED')), 'yes') = 0 then Exit;
-  DesiredLanguage := InnoLanguageForLocale(AgentLocale);
-  if CompareText(ActiveLanguage(), DesiredLanguage) = 0 then Exit;
-
-  Result := Exec(
-    ExpandConstant('{srcexe}'),
-    RelaunchParameters(DesiredLanguage),
-    '',
-    SW_SHOWNORMAL,
-    ewNoWait,
-    ResultCode
-  );
-end;
-
 function T(Key: string): string;
 var
   Locale: string;
@@ -328,43 +438,48 @@ begin
 
   if AgentLocale = 'es_ES' then
   begin
-    if Key = 'silentLicenseRequired' then Result := 'Para realizar una instalacion silenciosa debes leer y aceptar el Acuerdo de licencia y aviso de uso incluido con el instalador.' + #13#10#13#10 + 'Si lo aceptas, vuelve a ejecutar el instalador anadiendo /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configuracion de RSAgent'
+    if Key = 'silentLicenseRequired' then Result := 'Para realizar una instalación silenciosa debes leer y aceptar el Acuerdo de licencia y aviso de uso incluido con el instalador.' + #13#10#13#10 + 'Si lo aceptas, vuelve a ejecutar el instalador añadiendo /ACCEPTLICENSE=yes.'
+    else if Key = 'configTitle' then Result := 'Configuración de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce los datos facilitados por Firulai'
     else if Key = 'configDescription' then Result := 'Copia el UUID y el token que se te han facilitado en Firulai.'
-    else if Key = 'invalidUuid' then Result := 'Introduce un UUID valido con formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
+    else if Key = 'registeringService' then Result := 'Registrando servicio...'
+    else if Key = 'startingService' then Result := 'Arrancando servicio...'
+    else if Key = 'serviceDescription' then Result := 'Recopila el inventario de software del sistema y lo envía a Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Token de agente:'
+    else if Key = 'invalidUuid' then Result := 'Introduce un UUID válido con formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
     else if Key = 'tokenRequired' then Result := 'Introduce el Agent token facilitado junto al UUID. Es obligatorio para enlazar este agente con Firulai.'
-    else if Key = 'missingUuidCli' then Result := 'UUID obligatorio o no valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o rellena los campos del asistente.'
+    else if Key = 'missingUuidCli' then Result := 'UUID obligatorio o no válido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o rellena los campos del asistente.'
     else if Key = 'missingTokenCli' then Result := 'Agent token obligatorio. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o rellena los campos del asistente.'
     else if Key = 'replaceConfigFailed' then Result := 'No se pudo reemplazar '
-    else if Key = 'replaceConfigAdvice' then Result := '. Cierra el instalador, ejecutalo como Administrador o elimina el archivo manualmente.'
+    else if Key = 'replaceConfigAdvice' then Result := '. Cierra el instalador, ejecútalo como Administrador o elimina el archivo manualmente.'
     else if Key = 'writeConfigFailed' then Result := 'No se pudo escribir '
     else if Key = 'localInstalledSameUuid' then Result := 'Este sistema ya tiene un agente instalado con este UUID.'
     else if Key = 'localInstalledOther' then Result := 'Ya existe un agente instalado en este sistema.'
+    else if Key = 'orphanCleanupFailed' then Result := 'No se pudo limpiar una instalación local incompleta: '
     else if Key = 'installedUuidLabel' then Result := 'UUID instalado actualmente: '
     else if Key = 'requestedUuidLabel' then Result := 'UUID solicitado: '
     else if Key = 'reinstallAdvice' then Result := 'Si necesitas reinstalar el agente, desinstala primero el agente actual desde Windows o ejecutando:'
-    else if Key = 'uuidValidateFailed' then Result := 'No se pudo validar el UUID en Firulai. Comprueba la conexion a internet y que el Agent token sea correcto. La instalacion no continuara sin confirmar que el UUID esta disponible.'
-    else if Key = 'uuidValidateDenied' then Result := 'Firulai no permitio validar el UUID'
-    else if Key = 'uuidValidateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado en Firulai. La instalacion no continuara sin confirmar que el UUID esta disponible.'
+    else if Key = 'uuidValidateFailed' then Result := 'No se pudo validar el UUID en Firulai. Comprueba la conexión a internet y que el Agent token sea correcto. La instalación no continuará sin confirmar que el UUID está disponible.'
+    else if Key = 'uuidValidateDenied' then Result := 'Firulai no permitió validar el UUID'
+    else if Key = 'uuidValidateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado en Firulai. La instalación no continuará sin confirmar que el UUID está disponible.'
     else if Key = 'responseLabel' then Result := 'Respuesta: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID invalido: no existe en Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'UUID inválido: no existe en Firulai.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'No se puede instalar el agente con un UUID que no haya sido generado desde Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'No se pudo localizar el sistema de Firulai asociado al UUID.'
     else if Key = 'firulaiInstalledSameUuid' then Result := 'Este sistema ya tiene un agente instalado en Firulai con este UUID.'
-    else if Key = 'duplicateUuidInstallForbidden' then Result := 'No se puede realizar una nueva instalacion con el mismo UUID.'
+    else if Key = 'duplicateUuidInstallForbidden' then Result := 'No se puede realizar una nueva instalación con el mismo UUID.'
     else if Key = 'firulaiSystemLabel' then Result := 'Sistema en Firulai:'
     else if Key = 'localComputerLabel' then Result := 'Equipo local:'
     else if Key = 'uuidBelongsOther' then Result := 'Este UUID ya pertenece a otro sistema en Firulai.'
     else if Key = 'uuidBelongsOtherLocal' then Result := 'No se puede instalar este agente en el equipo local con ese UUID.'
-    else if Key = 'statusUpdateNoSystem' then Result := 'No se pudo actualizar el estado en Firulai porque no se encontro el sistema asociado al UUID.'
-    else if Key = 'statusUpdateFailed' then Result := 'No se pudo actualizar el estado en Firulai. Comprueba la conexion y el token. La instalacion no continuara sin activar el sistema.'
-    else if Key = 'statusUpdateDenied' then Result := 'Firulai no permitio actualizar el estado'
-    else if Key = 'statusUpdateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado. La instalacion no continuara sin activar el sistema.'
-    else if Key = 'uninstallContactFailed' then Result := 'No se pudo contactar con el agente para marcar el sistema como inactivo en Firulai. La desinstalacion se cancelara para que el estado remoto no quede desactualizado.'
+    else if Key = 'statusUpdateNoSystem' then Result := 'No se pudo actualizar el estado en Firulai porque no se encontró el sistema asociado al UUID.'
+    else if Key = 'statusUpdateFailed' then Result := 'No se pudo actualizar el estado en Firulai. Comprueba la conexión y el token. La instalación no continuará sin activar el sistema.'
+    else if Key = 'statusUpdateDenied' then Result := 'Firulai no permitió actualizar el estado'
+    else if Key = 'statusUpdateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado. La instalación no continuará sin activar el sistema.'
+    else if Key = 'uninstallContactFailed' then Result := 'No se pudo contactar con el agente para marcar el sistema como inactivo en Firulai. La desinstalación se cancelará para que el estado remoto no quede desactualizado.'
     else if Key = 'uninstallUpdateFailed' then Result := 'No se pudo marcar el sistema como inactivo en Firulai. Revisa la conectividad con Firulai y vuelve a desinstalar.'
-    else if Key = 'uninstallSuccess' then Result := 'El sistema se ha marcado como inactivo en Firulai. No se borraran los datos guardados; podras eliminarlos desde Firulai o volver a instalar el agente mas adelante enlazandolo a este mismo System.'
+    else if Key = 'uninstallSuccess' then Result := 'El sistema se ha marcado como inactivo en Firulai. No se borrarán los datos guardados; podrás eliminarlos desde Firulai o volver a instalar el agente más adelante enlazándolo a este mismo System.'
     else Result := Key;
     Exit;
   end;
@@ -375,6 +490,10 @@ begin
     else if Key = 'configTitle' then Result := 'Configuracio de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introdueix les dades facilitades per Firulai'
     else if Key = 'configDescription' then Result := 'Copia UUID i token facilitats per Firulai.'
+    else if Key = 'registeringService' then Result := 'Registrant servei...'
+    else if Key = 'startingService' then Result := 'Arrencant servei...'
+    else if Key = 'serviceDescription' then Result := 'Recull l''inventari de programari del sistema i l''envia a Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Token d''agent:'
     else if Key = 'invalidUuid' then Result := 'Introdueix un UUID valid amb format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
     else if Key = 'tokenRequired' then Result := 'Introdueix Agent token facilitat amb UUID. Es obligatori per enllacar aquest agent amb Firulai.'
     else if Key = 'missingUuidCli' then Result := 'UUID obligatori o no valid. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o omple els camps de assistent.'
@@ -384,6 +503,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'No es pot escriure '
     else if Key = 'localInstalledSameUuid' then Result := 'Aquest sistema ja te un agent instal.lat amb aquest UUID.'
     else if Key = 'localInstalledOther' then Result := 'Ja existeix un agent instal.lat en aquest sistema.'
+    else if Key = 'orphanCleanupFailed' then Result := 'No s''ha pogut netejar una instal.lacio local incompleta: '
     else if Key = 'installedUuidLabel' then Result := 'UUID instal.lat actualment: '
     else if Key = 'requestedUuidLabel' then Result := 'UUID sol.licitat: '
     else if Key = 'reinstallAdvice' then Result := 'Si necessites reinstal.lar agent, desinstal.la primer agent actual des de Windows o executant:'
@@ -418,6 +538,10 @@ begin
     else if Key = 'configTitle' then Result := 'RSAgent konfigurazioa'
     else if Key = 'configSubtitle' then Result := 'Sartu Firulaik emandako datuak'
     else if Key = 'configDescription' then Result := 'Kopiatu Firulaik emandako UUIDa eta tokena.'
+    else if Key = 'registeringService' then Result := 'Zerbitzua erregistratzen...'
+    else if Key = 'startingService' then Result := 'Zerbitzua abiarazten...'
+    else if Key = 'serviceDescription' then Result := 'Sistemaren software inbentarioa bildu eta Firulaira bidaltzen du'
+    else if Key = 'agentTokenLabel' then Result := 'Agent tokena:'
     else if Key = 'invalidUuid' then Result := 'Sartu UUID balioduna xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx formatuarekin.'
     else if Key = 'tokenRequired' then Result := 'Sartu UUIDarekin batera emandako Agent tokena. Derrigorrezkoa da agente hau Firulairekin lotzeko.'
     else if Key = 'missingUuidCli' then Result := 'UUIDa derrigorrezkoa da edo ez da baliozkoa. Erabili setup.exe /UUID=<UUID> /TOKEN=<TOKEN> edo bete morroiaren eremuak.'
@@ -427,6 +551,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'Ezin izan da idatzi '
     else if Key = 'localInstalledSameUuid' then Result := 'Sistema honek dagoeneko agente bat dauka instalatuta UUID honekin.'
     else if Key = 'localInstalledOther' then Result := 'Sistema honetan agente bat instalatuta dago dagoeneko.'
+    else if Key = 'orphanCleanupFailed' then Result := 'Ezin izan da osatu gabeko instalazio lokala garbitu: '
     else if Key = 'installedUuidLabel' then Result := 'Une honetan instalatutako UUIDa: '
     else if Key = 'requestedUuidLabel' then Result := 'Eskatutako UUIDa: '
     else if Key = 'reinstallAdvice' then Result := 'Agentea berriro instalatu behar baduzu, desinstalatu lehenik uneko agentea Windowsetik edo hau exekutatuz:'
@@ -461,6 +586,10 @@ begin
     else if Key = 'configTitle' then Result := 'Configuracion de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce os datos facilitados por Firulai'
     else if Key = 'configDescription' then Result := 'Copia o UUID e o token facilitados por Firulai.'
+    else if Key = 'registeringService' then Result := 'Rexistrando servizo...'
+    else if Key = 'startingService' then Result := 'Iniciando servizo...'
+    else if Key = 'serviceDescription' then Result := 'Recolle o inventario de software do sistema e envíao a Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Token do axente:'
     else if Key = 'invalidUuid' then Result := 'Introduce un UUID valido con formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
     else if Key = 'tokenRequired' then Result := 'Introduce o Agent token facilitado xunto co UUID. E obrigatorio para enlazar este axente con Firulai.'
     else if Key = 'missingUuidCli' then Result := 'UUID obrigatorio ou non valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou cobre os campos do asistente.'
@@ -470,6 +599,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'Non se puido escribir '
     else if Key = 'localInstalledSameUuid' then Result := 'Este sistema xa ten un axente instalado con este UUID.'
     else if Key = 'localInstalledOther' then Result := 'Xa existe un axente instalado neste sistema.'
+    else if Key = 'orphanCleanupFailed' then Result := 'Non se puido limpar unha instalacion local incompleta: '
     else if Key = 'installedUuidLabel' then Result := 'UUID instalado actualmente: '
     else if Key = 'requestedUuidLabel' then Result := 'UUID solicitado: '
     else if Key = 'reinstallAdvice' then Result := 'Se precisas reinstalar o axente, desinstala primeiro o axente actual desde Windows ou executando:'
@@ -504,6 +634,10 @@ begin
     else if Key = 'configTitle' then Result := 'Configuration de RSAgent'
     else if Key = 'configSubtitle' then Result := 'Saisissez les informations fournies par Firulai'
     else if Key = 'configDescription' then Result := 'Copiez le UUID et le token fournis par Firulai.'
+    else if Key = 'registeringService' then Result := 'Enregistrement du service...'
+    else if Key = 'startingService' then Result := 'Demarrage du service...'
+    else if Key = 'serviceDescription' then Result := 'Collecte l''inventaire logiciel du systeme et l''envoie a Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Token d''agent :'
     else if Key = 'invalidUuid' then Result := 'Saisissez un UUID valide au format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
     else if Key = 'tokenRequired' then Result := 'Saisissez le Agent token fourni avec le UUID. Il est obligatoire pour lier cet agent a Firulai.'
     else if Key = 'missingUuidCli' then Result := 'UUID obligatoire ou non valide. Utilisez setup.exe /UUID=<UUID> /TOKEN=<TOKEN> ou remplissez les champs de assistant.'
@@ -513,6 +647,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'Impossible decrire '
     else if Key = 'localInstalledSameUuid' then Result := 'Ce systeme a deja un agent installe avec cet UUID.'
     else if Key = 'localInstalledOther' then Result := 'Un agent est deja installe sur ce systeme.'
+    else if Key = 'orphanCleanupFailed' then Result := 'Impossible de nettoyer une installation locale incomplete : '
     else if Key = 'installedUuidLabel' then Result := 'UUID actuellement installe : '
     else if Key = 'requestedUuidLabel' then Result := 'UUID demande : '
     else if Key = 'reinstallAdvice' then Result := 'Si vous devez reinstaller agent, desinstallez d abord agent actuel depuis Windows ou en executant :'
@@ -547,6 +682,10 @@ begin
     else if Key = 'configTitle' then Result := 'RSAgent-Konfiguration'
     else if Key = 'configSubtitle' then Result := 'Geben Sie die von Firulai bereitgestellten Daten ein'
     else if Key = 'configDescription' then Result := 'Kopieren Sie UUID und Token von Firulai.'
+    else if Key = 'registeringService' then Result := 'Dienst wird registriert...'
+    else if Key = 'startingService' then Result := 'Dienst wird gestartet...'
+    else if Key = 'serviceDescription' then Result := 'Erfasst das Softwareinventar des Systems und sendet es an Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Agent-Token:'
     else if Key = 'invalidUuid' then Result := 'Geben Sie eine gueltige UUID im Format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ein.'
     else if Key = 'tokenRequired' then Result := 'Geben Sie das mit der UUID bereitgestellte Agent token ein. Es ist erforderlich, um diesen Agenten mit Firulai zu verbinden.'
     else if Key = 'missingUuidCli' then Result := 'UUID ist erforderlich oder ungueltig. Verwenden Sie setup.exe /UUID=<UUID> /TOKEN=<TOKEN> oder fuellen Sie die Felder im Assistenten aus.'
@@ -556,6 +695,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'Konnte nicht schreiben: '
     else if Key = 'localInstalledSameUuid' then Result := 'Auf diesem System ist bereits ein Agent mit dieser UUID installiert.'
     else if Key = 'localInstalledOther' then Result := 'Auf diesem System ist bereits ein Agent installiert.'
+    else if Key = 'orphanCleanupFailed' then Result := 'Eine unvollstaendige lokale Installation konnte nicht bereinigt werden: '
     else if Key = 'installedUuidLabel' then Result := 'Aktuell installierte UUID: '
     else if Key = 'requestedUuidLabel' then Result := 'Angeforderte UUID: '
     else if Key = 'reinstallAdvice' then Result := 'Wenn Sie den Agenten erneut installieren muessen, deinstallieren Sie zuerst den aktuellen Agenten ueber Windows oder mit:'
@@ -590,6 +730,10 @@ begin
     else if Key = 'configTitle' then Result := 'Configurazione di RSAgent'
     else if Key = 'configSubtitle' then Result := 'Inserisci i dati forniti da Firulai'
     else if Key = 'configDescription' then Result := 'Copia UUID e token forniti da Firulai.'
+    else if Key = 'registeringService' then Result := 'Registrazione servizio...'
+    else if Key = 'startingService' then Result := 'Avvio servizio...'
+    else if Key = 'serviceDescription' then Result := 'Raccoglie l''inventario software del sistema e lo invia a Firulai'
+    else if Key = 'agentTokenLabel' then Result := 'Token agente:'
     else if Key = 'invalidUuid' then Result := 'Inserisci un UUID valido nel formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.'
     else if Key = 'tokenRequired' then Result := 'Inserisci Agent token fornito con UUID. E obbligatorio per collegare questo agente a Firulai.'
     else if Key = 'missingUuidCli' then Result := 'UUID obbligatorio o non valido. Usa setup.exe /UUID=<UUID> /TOKEN=<TOKEN> o compila i campi della procedura guidata.'
@@ -599,6 +743,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := 'Impossibile scrivere '
     else if Key = 'localInstalledSameUuid' then Result := 'Questo sistema ha gia un agente installato con questo UUID.'
     else if Key = 'localInstalledOther' then Result := 'Esiste gia un agente installato in questo sistema.'
+    else if Key = 'orphanCleanupFailed' then Result := 'Impossibile pulire un''installazione locale incompleta: '
     else if Key = 'installedUuidLabel' then Result := 'UUID attualmente installato: '
     else if Key = 'requestedUuidLabel' then Result := 'UUID richiesto: '
     else if Key = 'reinstallAdvice' then Result := 'Se devi reinstallare agente, disinstalla prima agente attuale da Windows o eseguendo:'
@@ -633,6 +778,10 @@ begin
     else if Key = 'configTitle' then Result := 'RSAgent の設定'
     else if Key = 'configSubtitle' then Result := 'Firulai から提供された情報を入力してください'
     else if Key = 'configDescription' then Result := 'Firulai から提供された UUID と token をコピーしてください。'
+    else if Key = 'registeringService' then Result := 'サービスを登録しています...'
+    else if Key = 'startingService' then Result := 'サービスを開始しています...'
+    else if Key = 'serviceDescription' then Result := 'システムのソフトウェア インベントリを収集して Firulai に送信します'
+    else if Key = 'agentTokenLabel' then Result := 'エージェント トークン:'
     else if Key = 'invalidUuid' then Result := 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 形式の有効な UUID を入力してください。'
     else if Key = 'tokenRequired' then Result := 'UUID と一緒に提供された Agent token を入力してください。このエージェントを Firulai にリンクするために必要です。'
     else if Key = 'missingUuidCli' then Result := 'UUID が必須または無効です。setup.exe /UUID=<UUID> /TOKEN=<TOKEN> を使うか、ウィザードの項目を入力してください。'
@@ -642,6 +791,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := '書き込めませんでした: '
     else if Key = 'localInstalledSameUuid' then Result := 'このシステムには、この UUID のエージェントがすでにインストールされています。'
     else if Key = 'localInstalledOther' then Result := 'このシステムにはエージェントがすでにインストールされています。'
+    else if Key = 'orphanCleanupFailed' then Result := '不完全なローカル インストールをクリーンアップできませんでした: '
     else if Key = 'installedUuidLabel' then Result := '現在インストールされている UUID: '
     else if Key = 'requestedUuidLabel' then Result := '要求された UUID: '
     else if Key = 'reinstallAdvice' then Result := 'エージェントを再インストールする必要がある場合は、まず Windows から現在のエージェントをアンインストールするか、次を実行してください:'
@@ -676,6 +826,10 @@ begin
     else if Key = 'configTitle' then Result := 'RSAgent 配置'
     else if Key = 'configSubtitle' then Result := '输入 Firulai 提供的信息'
     else if Key = 'configDescription' then Result := '复制 Firulai 提供的 UUID 和 token。'
+    else if Key = 'registeringService' then Result := '正在注册服务...'
+    else if Key = 'startingService' then Result := '正在启动服务...'
+    else if Key = 'serviceDescription' then Result := '收集系统软件清单并发送到 Firulai'
+    else if Key = 'agentTokenLabel' then Result := '代理令牌:'
     else if Key = 'invalidUuid' then Result := '请输入格式为 xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx 的有效 UUID。'
     else if Key = 'tokenRequired' then Result := '请输入与 UUID 一起提供的 Agent token。需要它来将此代理链接到 Firulai。'
     else if Key = 'missingUuidCli' then Result := 'UUID 必填或无效。请使用 setup.exe /UUID=<UUID> /TOKEN=<TOKEN>，或填写向导字段。'
@@ -685,6 +839,7 @@ begin
     else if Key = 'writeConfigFailed' then Result := '无法写入 '
     else if Key = 'localInstalledSameUuid' then Result := '此系统已安装使用此 UUID 的代理。'
     else if Key = 'localInstalledOther' then Result := '此系统已安装代理。'
+    else if Key = 'orphanCleanupFailed' then Result := '无法清理不完整的本地安装: '
     else if Key = 'installedUuidLabel' then Result := '当前安装的 UUID: '
     else if Key = 'requestedUuidLabel' then Result := '请求的 UUID: '
     else if Key = 'reinstallAdvice' then Result := '如果需要重新安装代理，请先从 Windows 卸载当前代理，或运行:'
@@ -717,6 +872,10 @@ begin
   else if Key = 'configTitle' then Result := 'RSAgent configuration'
   else if Key = 'configSubtitle' then Result := 'Enter the details provided by Firulai'
   else if Key = 'configDescription' then Result := 'Copy the UUID and token provided by Firulai.'
+  else if Key = 'registeringService' then Result := 'Registering service...'
+  else if Key = 'startingService' then Result := 'Starting service...'
+  else if Key = 'serviceDescription' then Result := 'Collects the system software inventory and sends it to Firulai'
+  else if Key = 'agentTokenLabel' then Result := 'Agent token:'
   else if Key = 'invalidUuid' then Result := 'Enter a valid UUID using the xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx format.'
   else if Key = 'tokenRequired' then Result := 'Enter the Agent token provided with the UUID. It is required to link this agent with Firulai.'
   else if Key = 'missingUuidCli' then Result := 'UUID is required or invalid. Use setup.exe /UUID=<UUID> /TOKEN=<TOKEN> or fill in the wizard fields.'
@@ -726,6 +885,7 @@ begin
   else if Key = 'writeConfigFailed' then Result := 'Could not write '
   else if Key = 'localInstalledSameUuid' then Result := 'This system already has an agent installed with this UUID.'
   else if Key = 'localInstalledOther' then Result := 'An agent is already installed on this system.'
+  else if Key = 'orphanCleanupFailed' then Result := 'Could not clean up an incomplete local installation: '
   else if Key = 'installedUuidLabel' then Result := 'Currently installed UUID: '
   else if Key = 'requestedUuidLabel' then Result := 'Requested UUID: '
   else if Key = 'reinstallAdvice' then Result := 'If you need to reinstall the agent, first uninstall the current agent from Windows or by running:'
@@ -753,6 +913,11 @@ begin
   else Result := Key;
 end;
 
+function InstallerText(Param: string): string;
+begin
+  Result := T(Param);
+end;
+
 function EffectiveUuid(): string;
 begin
   Result := CmdParam('UUID');
@@ -778,24 +943,16 @@ begin
 end;
 
 procedure ResolveAgentLocale(); forward;
+procedure LocalizedSetupErrorMessage(Message: string); forward;
 
 function InitializeSetup(): Boolean;
 begin
   Result := True;
   ResolveAgentLocale();
 
-  if not WizardSilent() then
-  begin
-    if RelaunchWithResolvedLanguageIfNeeded() then
-    begin
-      Result := False;
-      Exit;
-    end;
-  end;
-
   if WizardSilent() and not LicenseAcceptedFromCommandLine() then
   begin
-    MsgBox(T('silentLicenseRequired'), mbError, MB_OK);
+    LocalizedSetupErrorMessage(T('silentLicenseRequired'));
     Result := False;
     Exit;
   end;
@@ -819,6 +976,64 @@ begin
     FileExists(ExpandConstant('{commonappdata}\RSAgent\config.json'));
 end;
 
+function HasLocalAgentExecutableOrUninstaller(): Boolean;
+begin
+  Result :=
+    FileExists(ExpandConstant('{app}\{#MyAppExeName}')) or
+    FileExists(ExpandConstant('{app}\unins000.exe'));
+end;
+
+function CleanupOrphanedLocalAgentInstallation(): string;
+var
+  ConfigDir: string;
+  ResultCode: Integer;
+begin
+  Result := '';
+  ConfigDir := ExpandConstant('{commonappdata}\RSAgent');
+
+  if HasLocalAgentExecutableOrUninstaller() then
+  begin
+    Exit;
+  end;
+
+  if (not IsServiceInstalled()) and (not DirExists(ConfigDir)) then
+  begin
+    Exit;
+  end;
+
+  Exec(ExpandConstant('{sys}\sc.exe'), 'stop RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\sc.exe'), 'delete RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  if DirExists(ConfigDir) then
+  begin
+    Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ConfigDir + '" /grant:r *S-1-5-32-544:F /T /C', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if not DelTree(ConfigDir, True, True, True) then
+    begin
+      Result := T('orphanCleanupFailed') + ConfigDir;
+      Exit;
+    end;
+  end;
+end;
+
+function AppRegistryKey(): string;
+begin
+  Result := 'SOFTWARE\Redsauce\RSAgent';
+end;
+
+function AppUninstallRegistryKey(): string;
+begin
+  Result := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}_is1';
+end;
+
+function InstalledLocaleFromRegistry(): string;
+var
+  Locale: string;
+begin
+  Result := '';
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, AppRegistryKey(), 'Locale', Locale) then
+    Result := Locale;
+end;
+
 function ExtractInstalledUuid(): string;
 var
   ConfigJson: AnsiString;
@@ -827,7 +1042,7 @@ var
   FirstQuotePos: Integer;
   SecondQuotePos: Integer;
 begin
-  Result := '';
+  Result := InstalledLocaleFromRegistry();
 
   if not LoadStringFromFile(ExpandConstant('{commonappdata}\RSAgent\config.json'), ConfigJson) then
   begin
@@ -1074,6 +1289,41 @@ begin
   AgentLocale := NormalizeLocale(Locale);
 end;
 
+function AgentLocaleValue(Param: string): string;
+begin
+  ResolveAgentLocale();
+  Result := AgentLocale;
+end;
+
+procedure ResolveUninstallLocale();
+var
+  Locale: string;
+begin
+  Locale := ActiveLanguage();
+  AgentLocale := NormalizeLocale(Locale);
+end;
+
+procedure ConfigureLocalizedUninstallEntry();
+var
+  UninstallerPath: string;
+begin
+  ResolveAgentLocale();
+  UninstallerPath := ExpandConstant('{uninstallexe}');
+  RegWriteStringValue(HKEY_LOCAL_MACHINE, AppRegistryKey(), 'Locale', AgentLocale);
+  RegWriteStringValue(
+    HKEY_LOCAL_MACHINE,
+    AppUninstallRegistryKey(),
+    'UninstallString',
+    '"' + UninstallerPath + '"'
+  );
+  RegWriteStringValue(
+    HKEY_LOCAL_MACHINE,
+    AppUninstallRegistryKey(),
+    'QuietUninstallString',
+    '"' + UninstallerPath + '" /VERYSILENT /SUPPRESSMSGBOXES'
+  );
+end;
+
 function SendAgentEvent(Trigger: string; Data: string; Token: string;
   var StatusCode: Integer; var ResponseBody: string): Boolean;
 var
@@ -1266,6 +1516,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Instal·la'
     else if Key = 'buttonCancel' then Result := 'Cancel·la'
     else if Key = 'buttonFinish' then Result := 'Finalitza'
+    else if Key = 'preparingTitle' then Result := 'Preparant la instal·lació'
+    else if Key = 'preparingDescription' then Result := 'El programa d''instal·lació s''està preparant per instal·lar {#MyAppDisplayName} al sistema.'
+    else if Key = 'cannotContinue' then Result := 'El programa d''instal·lació no pot continuar. Fes clic a Cancel·la per sortir.'
     else if Key = 'welcomeTitle' then Result := 'Benvingut a l''assistent d''instal·lació de {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Aquest agent recollirà l''inventari d''aquest equip i enviarà les dades a Firulai. Un cop instal·lat, enviarà les dades inicials a Firulai i repetirà l''enviament automàticament cada nit.'
     else if Key = 'readyTitle' then Result := 'A punt per instal·lar'
@@ -1287,6 +1540,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Instalatu'
     else if Key = 'buttonCancel' then Result := 'Utzi'
     else if Key = 'buttonFinish' then Result := 'Amaitu'
+    else if Key = 'preparingTitle' then Result := 'Instalatzeko prestatzen'
+    else if Key = 'preparingDescription' then Result := 'Instalatzailea {#MyAppDisplayName} sisteman instalatzeko prestatzen ari da.'
+    else if Key = 'cannotContinue' then Result := 'Instalatzaileak ezin du jarraitu. Egin klik Utzi botoian irteteko.'
     else if Key = 'welcomeTitle' then Result := 'Ongi etorri {#MyAppDisplayName} instalatzeko morroira'
     else if Key = 'welcomeDescription' then Result := 'Agente honek ordenagailu honen inbentarioa bildu eta datuak Firulaira bidaliko ditu. Instalatu ondoren, hasierako datuak Firulaira bidaliko ditu eta bidalketa automatikoki errepikatuko du gauero.'
     else if Key = 'readyTitle' then Result := 'Instalatzeko prest'
@@ -1308,6 +1564,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Instalar'
     else if Key = 'buttonCancel' then Result := 'Cancelar'
     else if Key = 'buttonFinish' then Result := 'Finalizar'
+    else if Key = 'preparingTitle' then Result := 'Preparando a instalación'
+    else if Key = 'preparingDescription' then Result := 'O programa de instalación prepárase para instalar {#MyAppDisplayName} no sistema.'
+    else if Key = 'cannotContinue' then Result := 'O programa de instalación non pode continuar. Preme Cancelar para saír.'
     else if Key = 'welcomeTitle' then Result := 'Benvido ao asistente de instalación de {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Este axente recollerá o inventario deste equipo e enviará os datos a Firulai. Unha vez instalado, enviará os datos iniciais a Firulai e repetirá o envío automaticamente cada noite.'
     else if Key = 'readyTitle' then Result := 'Listo para instalar'
@@ -1329,6 +1588,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Installer'
     else if Key = 'buttonCancel' then Result := 'Annuler'
     else if Key = 'buttonFinish' then Result := 'Terminer'
+    else if Key = 'preparingTitle' then Result := 'Préparation de l''installation'
+    else if Key = 'preparingDescription' then Result := 'Le programme d''installation se prépare à installer {#MyAppDisplayName} sur le système.'
+    else if Key = 'cannotContinue' then Result := 'Le programme d''installation ne peut pas continuer. Cliquez sur Annuler pour quitter.'
     else if Key = 'welcomeTitle' then Result := 'Bienvenue dans l''assistant d''installation de {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Cet agent collectera l''inventaire de cet ordinateur et enverra les donnees a Firulai. Une fois installe, il enverra les donnees initiales a Firulai et repetera l''envoi automatiquement chaque nuit.'
     else if Key = 'readyTitle' then Result := 'Prêt à installer'
@@ -1350,6 +1612,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Installieren'
     else if Key = 'buttonCancel' then Result := 'Abbrechen'
     else if Key = 'buttonFinish' then Result := 'Fertigstellen'
+    else if Key = 'preparingTitle' then Result := 'Installation wird vorbereitet'
+    else if Key = 'preparingDescription' then Result := 'Das Installationsprogramm bereitet die Installation von {#MyAppDisplayName} auf dem System vor.'
+    else if Key = 'cannotContinue' then Result := 'Das Installationsprogramm kann nicht fortfahren. Klicken Sie auf Abbrechen, um es zu beenden.'
     else if Key = 'welcomeTitle' then Result := 'Willkommen beim Installationsassistenten von {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Dieser Agent erfasst das Inventar dieses Computers und sendet die Daten an Firulai. Nach der Installation sendet er die ersten Daten an Firulai und wiederholt das Senden jede Nacht automatisch.'
     else if Key = 'readyTitle' then Result := 'Bereit zur Installation'
@@ -1371,6 +1636,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Installa'
     else if Key = 'buttonCancel' then Result := 'Annulla'
     else if Key = 'buttonFinish' then Result := 'Fine'
+    else if Key = 'preparingTitle' then Result := 'Preparazione all''installazione'
+    else if Key = 'preparingDescription' then Result := 'Il programma di installazione si sta preparando a installare {#MyAppDisplayName} nel sistema.'
+    else if Key = 'cannotContinue' then Result := 'Il programma di installazione non può continuare. Fai clic su Annulla per uscire.'
     else if Key = 'welcomeTitle' then Result := 'Benvenuto nella procedura guidata di installazione di {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Questo agente raccogliera l''inventario di questo computer e inviera i dati a Firulai. Una volta installato, inviera i dati iniziali a Firulai e ripetera l''invio automaticamente ogni notte.'
     else if Key = 'readyTitle' then Result := 'Pronto per l''installazione'
@@ -1392,6 +1660,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'インストール'
     else if Key = 'buttonCancel' then Result := 'キャンセル'
     else if Key = 'buttonFinish' then Result := '完了'
+    else if Key = 'preparingTitle' then Result := 'インストールの準備'
+    else if Key = 'preparingDescription' then Result := '{#MyAppDisplayName} をシステムにインストールする準備をしています。'
+    else if Key = 'cannotContinue' then Result := 'セットアップを続行できません。終了するにはキャンセルをクリックしてください。'
     else if Key = 'welcomeTitle' then Result := '{#MyAppDisplayName} セットアップ ウィザードへようこそ'
     else if Key = 'welcomeDescription' then Result := 'このエージェントは、このコンピューターのインベントリを収集して Firulai に送信します。インストール後、初回データを Firulai に送信し、その後は毎晩自動的に送信します。'
     else if Key = 'readyTitle' then Result := 'インストールの準備完了'
@@ -1413,6 +1684,9 @@ begin
     else if Key = 'buttonInstall' then Result := '安装'
     else if Key = 'buttonCancel' then Result := '取消'
     else if Key = 'buttonFinish' then Result := '完成'
+    else if Key = 'preparingTitle' then Result := '准备安装'
+    else if Key = 'preparingDescription' then Result := '安装程序正在准备将 {#MyAppDisplayName} 安装到系统中。'
+    else if Key = 'cannotContinue' then Result := '安装程序无法继续。请单击“取消”退出。'
     else if Key = 'welcomeTitle' then Result := '欢迎使用 {#MyAppDisplayName} 安装向导'
     else if Key = 'welcomeDescription' then Result := '此代理将收集此计算机的清单并将数据发送到 Firulai。安装后，它会向 Firulai 发送初始数据，并在之后每晚自动重复发送。'
     else if Key = 'readyTitle' then Result := '准备安装'
@@ -1434,6 +1708,9 @@ begin
     else if Key = 'buttonInstall' then Result := 'Instalar'
     else if Key = 'buttonCancel' then Result := 'Cancelar'
     else if Key = 'buttonFinish' then Result := 'Finalizar'
+    else if Key = 'preparingTitle' then Result := 'Preparándose para instalar'
+    else if Key = 'preparingDescription' then Result := 'El programa de instalación se está preparando para instalar {#MyAppDisplayName} en el sistema.'
+    else if Key = 'cannotContinue' then Result := 'El programa de instalación no puede continuar. Pulsa Cancelar para salir.'
     else if Key = 'welcomeTitle' then Result := 'Bienvenido al asistente de instalación de {#MyAppDisplayName}'
     else if Key = 'welcomeDescription' then Result := 'Este agente recopilará el inventario de este equipo y enviará los datos a Firulai. Una vez instalado, enviará los datos iniciales a Firulai y repetirá el envío automáticamente cada noche.'
     else if Key = 'readyTitle' then Result := 'Listo para instalar'
@@ -1453,6 +1730,9 @@ begin
   else if Key = 'buttonInstall' then Result := 'Install'
   else if Key = 'buttonCancel' then Result := 'Cancel'
   else if Key = 'buttonFinish' then Result := 'Finish'
+  else if Key = 'preparingTitle' then Result := 'Preparing to Install'
+  else if Key = 'preparingDescription' then Result := 'Setup is preparing to install {#MyAppDisplayName} on your system.'
+  else if Key = 'cannotContinue' then Result := 'Setup cannot continue. Please click Cancel to exit.'
   else if Key = 'welcomeTitle' then Result := 'Welcome to the {#MyAppDisplayName} Setup Wizard'
   else if Key = 'welcomeDescription' then Result := 'This agent will collect this computer inventory and send the data to Firulai. Once installed, it will send the initial data to Firulai and repeat the send automatically every night.'
   else if Key = 'readyTitle' then Result := 'Ready to Install'
@@ -1464,6 +1744,12 @@ begin
   else if Key = 'finishedTitle' then Result := 'Installation Complete'
   else if Key = 'finishedDescription' then Result := '{#MyAppDisplayName} has been installed successfully on your system.'
   else Result := Key;
+end;
+
+function LocalizedPrepareInstallFailure(Message: string): string;
+begin
+  PrepareInstallFailureMessage := Message;
+  Result := Message;
 end;
 
 procedure ApplyLocalizedButtons(CurPageID: Integer);
@@ -1479,6 +1765,15 @@ begin
     WizardForm.NextButton.Caption := LocalizedInstallerText('buttonNext');
 end;
 
+procedure ApplyLocalizedInstallingPage();
+begin
+  ApplyLocalizedWizardChrome();
+  ApplyLocalizedButtons(wpInstalling);
+  WizardForm.PageNameLabel.Caption := LocalizedInstallerText('installingTitle');
+  WizardForm.PageDescriptionLabel.Caption := LocalizedInstallerText('installingDescription');
+  WizardForm.StatusLabel.Caption := LocalizedInstallerText('installingStatus');
+end;
+
 procedure ApplyLocalizedStandardPage(CurPageID: Integer);
 begin
   ApplyLocalizedWizardChrome();
@@ -1491,6 +1786,20 @@ begin
   end
   else if CurPageID = wpLicense then
     ApplyLocalizedLicensePage()
+  else if CurPageID = wpPreparing then
+  begin
+    WizardForm.PageNameLabel.Caption := LocalizedInstallerText('preparingTitle');
+    WizardForm.PageDescriptionLabel.Caption := LocalizedInstallerText('preparingDescription');
+    if PrepareInstallFailureMessage <> '' then
+    begin
+      WizardForm.PreparingLabel.Caption :=
+        PrepareInstallFailureMessage + #13#10#13#10#13#10 +
+        LocalizedInstallerText('cannotContinue');
+      WizardForm.AdjustLabelHeight(WizardForm.PreparingLabel);
+    end
+    else if WizardForm.PreparingMemo.Visible then
+      WizardForm.PreparingLabel.Caption := LocalizedInstallerText('cannotContinue');
+  end
   else if CurPageID = ConfigPage.ID then
   begin
     WizardForm.PageNameLabel.Caption := T('configTitle');
@@ -1503,11 +1812,7 @@ begin
     WizardForm.ReadyLabel.Caption := LocalizedInstallerText('readyInstruction');
   end
   else if CurPageID = wpInstalling then
-  begin
-    WizardForm.PageNameLabel.Caption := LocalizedInstallerText('installingTitle');
-    WizardForm.PageDescriptionLabel.Caption := LocalizedInstallerText('installingDescription');
-    WizardForm.StatusLabel.Caption := LocalizedInstallerText('installingStatus');
-  end
+    ApplyLocalizedInstallingPage()
   else if CurPageID = wpFinished then
   begin
     WizardForm.FinishedHeadingLabel.Caption := LocalizedInstallerText('finishedTitle');
@@ -1526,19 +1831,19 @@ begin
       'Instalazio programa berriro exekutatu ahal izango duzu beste une batean osatzeko.' + #13#10#13#10 +
       'Instalaziotik irten nahi duzu?'
   else if AgentLocale = 'gl_ES' then
-    Result := 'A instalacion ainda non se completou. Se cancelas agora, o programa non se instalara.' + #13#10#13#10 +
-      'Poderas executar novamente o programa de instalacion noutra ocasion para completala.' + #13#10#13#10 +
-      'Sair da instalacion?'
+    Result := 'A instalación aínda non se completou. Se cancelas agora, o programa non se instalará.' + #13#10#13#10 +
+      'Poderás executar novamente o programa de instalación noutra ocasión para completala.' + #13#10#13#10 +
+      'Sair da instalación?'
   else if AgentLocale = 'fr_FR' then
-    Result := 'L''installation n''est pas encore terminee. Si vous annulez maintenant, le programme ne sera pas installe.' + #13#10#13#10 +
+    Result := 'L''installation n''est pas encore terminée. Si vous annulez maintenant, le programme ne sera pas installé.' + #13#10#13#10 +
       'Vous pourrez relancer le programme d''installation plus tard pour la terminer.' + #13#10#13#10 +
       'Quitter l''installation ?'
   else if AgentLocale = 'de_DE' then
     Result := 'Die Installation ist noch nicht abgeschlossen. Wenn Sie jetzt abbrechen, wird das Programm nicht installiert.' + #13#10#13#10 +
-      'Sie koennen das Installationsprogramm spaeter erneut ausfuehren, um die Installation abzuschliessen.' + #13#10#13#10 +
+      'Sie können das Installationsprogramm später erneut ausführen, um die Installation abzuschließen.' + #13#10#13#10 +
       'Installation beenden?'
   else if AgentLocale = 'it_IT' then
-    Result := 'L''installazione non e ancora stata completata. Se annulli ora, il programma non verra installato.' + #13#10#13#10 +
+    Result := 'L''installazione non è ancora stata completata. Se annulli ora, il programma non verrà installato.' + #13#10#13#10 +
       'Potrai eseguire di nuovo il programma di installazione in un altro momento per completarla.' + #13#10#13#10 +
       'Uscire dall''installazione?'
   else if AgentLocale = 'ja_JP' then
@@ -1550,36 +1855,37 @@ begin
       '你可以稍后重新运行安装程序以完成安装。' + #13#10#13#10 +
       '要退出安装吗？'
   else if AgentLocale = 'es_ES' then
-    Result := 'La instalacion no se ha completado aun. Si cancelas ahora, el programa no se instalara.' + #13#10#13#10 +
-      'Puedes ejecutar nuevamente el programa de instalacion en otra ocasion para completarla.' + #13#10#13#10 +
-      'Salir de la instalacion?'
+    Result := 'La instalación no se ha completado aún. Si cancelas ahora, el programa no se instalará.' + #13#10#13#10 +
+      'Puedes ejecutar nuevamente el programa de instalación en otra ocasión para completarla.' + #13#10#13#10 +
+      '¿Salir de la instalación?'
   else
     Result := 'Setup has not completed yet. If you cancel now, the program will not be installed.' + #13#10#13#10 +
       'You can run Setup again later to complete the installation.' + #13#10#13#10 +
       'Exit Setup?';
 end;
 
-function LocalizedYesButton(): string;
+function LocalizedExitTitle(): string;
 begin
-  if AgentLocale = 'ca_ES' then Result := 'Sí'
-  else if AgentLocale = 'eu_ES' then Result := 'Bai'
-  else if AgentLocale = 'fr_FR' then Result := 'Oui'
-  else if AgentLocale = 'de_DE' then Result := 'Ja'
-  else if AgentLocale = 'ja_JP' then Result := 'はい'
-  else if AgentLocale = 'zh_CN' then Result := '是'
-  else if AgentLocale = 'es_ES' then Result := 'Sí'
-  else Result := 'Yes';
+  if AgentLocale = 'ca_ES' then Result := 'Sortir de la instal·lació?'
+  else if AgentLocale = 'eu_ES' then Result := 'Instalaziotik irten?'
+  else if AgentLocale = 'gl_ES' then Result := 'Sair da instalación?'
+  else if AgentLocale = 'fr_FR' then Result := 'Quitter l''installation ?'
+  else if AgentLocale = 'de_DE' then Result := 'Installation beenden?'
+  else if AgentLocale = 'it_IT' then Result := 'Uscire dall''installazione?'
+  else if AgentLocale = 'ja_JP' then Result := 'インストールを終了しますか？'
+  else if AgentLocale = 'zh_CN' then Result := '要退出安装吗？'
+  else if AgentLocale = 'es_ES' then Result := '¿Salir de la instalación?'
+  else Result := 'Exit Setup?';
 end;
 
-function LocalizedNoButton(): string;
+function ShowLocalizedConfirmationDialog(DialogCaption: string; DialogTitle: string; Message: string): Boolean;
 begin
-  if AgentLocale = 'eu_ES' then Result := 'Ez'
-  else if AgentLocale = 'gl_ES' then Result := 'Non'
-  else if AgentLocale = 'fr_FR' then Result := 'Non'
-  else if AgentLocale = 'de_DE' then Result := 'Nein'
-  else if AgentLocale = 'ja_JP' then Result := 'いいえ'
-  else if AgentLocale = 'zh_CN' then Result := '否'
-  else Result := 'No';
+  Result := MsgBox(DialogTitle + #13#10#13#10 + Message, mbConfirmation, MB_YESNO) = IDYES;
+end;
+
+procedure LocalizedSetupErrorMessage(Message: string);
+begin
+  MsgBox(Message, mbError, MB_OK);
 end;
 
 function RuntimeLicenseFileName(): string;
@@ -1668,13 +1974,14 @@ end;
 
 procedure ApplyLocalizedLicensePage();
 var
-  LicenseText: AnsiString;
   LicenseFileName: string;
+  LicenseFilePath: string;
 begin
   LicenseFileName := RuntimeLicenseFileName();
+  LicenseFilePath := ExpandConstant('{tmp}\' + LicenseFileName);
   ExtractTemporaryFile(LicenseFileName);
-  if LoadStringFromFile(ExpandConstant('{tmp}\' + LicenseFileName), LicenseText) then
-    WizardForm.LicenseMemo.Text := LicenseText;
+  WizardForm.LicenseMemo.Lines.LoadFromFile(LicenseFilePath);
+  DeleteFile(LicenseFilePath);
 
   WizardForm.PageNameLabel.Caption := LocalizedLicenseTitle();
   WizardForm.PageDescriptionLabel.Caption := LocalizedLicenseDescription();
@@ -1695,8 +2002,8 @@ begin
   );
   ConfigPage.Caption := T('configTitle');
   ConfigPage.Description := T('configDescription');
-  ConfigPage.Add('UUID:', False);
-  ConfigPage.Add('Agent token:', True);
+  ConfigPage.Add(T('uuidLabel'), False);
+  ConfigPage.Add(T('agentTokenLabel'), True);
   ConfigPage.Values[0] := CmdParam('UUID');
   ConfigPage.Values[1] := CmdParam('TOKEN');
 end;
@@ -1706,17 +2013,30 @@ begin
   ApplyLocalizedStandardPage(CurPageID);
 end;
 
+procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);
+begin
+  ApplyLocalizedInstallingPage();
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssInstall) or (CurStep = ssPostInstall) then
+    ApplyLocalizedInstallingPage();
+
+  if CurStep = ssDone then
+    ConfigureLocalizedUninstallEntry();
+end;
+
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
-var
-  ButtonLabels: TArrayOfString;
 begin
   if CurPageID = wpFinished then Exit;
 
   Confirm := False;
-  SetArrayLength(ButtonLabels, 2);
-  ButtonLabels[0] := LocalizedYesButton();
-  ButtonLabels[1] := LocalizedNoButton();
-  Cancel := TaskDialogMsgBox('', LocalizedExitMessage(), mbConfirmation, MB_YESNO, ButtonLabels, 0) = IDYES;
+  Cancel := ShowLocalizedConfirmationDialog(
+    LocalizedInstallerText('buttonInstall'),
+    LocalizedExitTitle(),
+    LocalizedExitMessage()
+  );
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -1727,14 +2047,14 @@ begin
     ResolveAgentLocale();
     if not IsUuid(ConfigPage.Values[0]) then
     begin
-      MsgBox(T('invalidUuid'), mbError, MB_OK);
+      LocalizedSetupErrorMessage(T('invalidUuid'));
       Result := False;
       Exit;
     end;
 
     if Trim(ConfigPage.Values[1]) = '' then
     begin
-      MsgBox(T('tokenRequired'), mbError, MB_OK);
+      LocalizedSetupErrorMessage(T('tokenRequired'));
       Result := False;
       Exit;
     end;
@@ -1751,38 +2071,46 @@ var
   ValidationError: string;
 begin
   Result := '';
+  PrepareInstallFailureMessage := '';
   ResolveAgentLocale();
+
+  ValidationError := CleanupOrphanedLocalAgentInstallation();
+  if ValidationError <> '' then
+  begin
+    Result := LocalizedPrepareInstallFailure(ValidationError);
+    Exit;
+  end;
 
   if not IsUuid(EffectiveUuid()) then
   begin
-    Result := T('missingUuidCli');
+    Result := LocalizedPrepareInstallFailure(T('missingUuidCli'));
     Exit;
   end;
 
   if EffectiveToken() = '' then
   begin
-    Result := T('missingTokenCli');
+    Result := LocalizedPrepareInstallFailure(T('missingTokenCli'));
     Exit;
   end;
 
   ValidationError := CheckLocalAgentInstallation();
   if ValidationError <> '' then
   begin
-    Result := ValidationError;
+    Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 
   ValidationError := CheckUuidAvailable();
   if ValidationError <> '' then
   begin
-    Result := ValidationError;
+    Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 
   ValidationError := ActivateSystemInRsm();
   if ValidationError <> '' then
   begin
-    Result := ValidationError;
+    Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 
@@ -1796,7 +2124,7 @@ begin
     Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ConfigPath + '" /grant:r *S-1-5-32-544:F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     if not DeleteFile(ConfigPath) then
     begin
-      Result := T('replaceConfigFailed') + ConfigPath + T('replaceConfigAdvice');
+      Result := LocalizedPrepareInstallFailure(T('replaceConfigFailed') + ConfigPath + T('replaceConfigAdvice'));
       Exit;
     end;
   end;
@@ -1811,11 +2139,17 @@ begin
 
   if not SaveStringToFile(ConfigPath, ConfigJson, False) then
   begin
-    Result := T('writeConfigFailed') + ConfigPath;
+    Result := LocalizedPrepareInstallFailure(T('writeConfigFailed') + ConfigPath);
     Exit;
   end;
 
   Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ConfigPath + '" /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:R', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  ResolveUninstallLocale();
+  Result := True;
 end;
 
 function MarkSystemDisconnectedInRsm(): Boolean;
@@ -1823,16 +2157,11 @@ var
   ResultCode: Integer;
   AgentPath: string;
   ConfigPath: string;
-  InstalledLocale: string;
 begin
   Result := True;
+  ResolveUninstallLocale();
   AgentPath := ExpandConstant('{app}\{#MyAppExeName}');
   ConfigPath := ExpandConstant('{commonappdata}\RSAgent\config.json');
-  InstalledLocale := ExtractInstalledLocale();
-  if InstalledLocale <> '' then
-  begin
-    AgentLocale := NormalizeLocale(InstalledLocale);
-  end;
 
   if (not FileExists(AgentPath)) or (not FileExists(ConfigPath)) then
   begin
@@ -1843,26 +2172,12 @@ begin
 
   if not Exec(AgentPath, '--mark-disconnected-on-uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
-    MsgBox(T('uninstallContactFailed'), mbError, MB_OK);
-    Result := False;
     Exit;
   end;
 
-  if ResultCode <> 0 then
+  if (ResultCode <> 0) and (ResultCode <> 2) then
   begin
-    if ResultCode = 2 then
-    begin
-      Result := True;
-    end
-    else
-    begin
-      MsgBox(T('uninstallUpdateFailed'), mbError, MB_OK);
-      Result := False;
-    end;
-  end
-  else if ResultCode = -1 then
-  begin
-    MsgBox(T('uninstallSuccess'), mbInformation, MB_OK);
+    Exit;
   end;
 end;
 
@@ -1872,10 +2187,7 @@ var
 begin
   if CurUninstallStep = usUninstall then
   begin
-    if not MarkSystemDisconnectedInRsm() then
-    begin
-      Abort;
-    end;
+    MarkSystemDisconnectedInRsm();
   end;
 
   if CurUninstallStep = usPostUninstall then

@@ -37,7 +37,7 @@ https://rsm1.redsauce.net
 
 ## Instalación gráfica
 
-1. Descarga el instalador desde Firulai. Segun tu idioma de usuario, el archivo puede llamarse `FirulaiAgent-ca.exe`, `FirulaiAgent-en.exe`, etc. Es el mismo instalador; el sufijo solo indica el idioma inicial del asistente.
+1. Descarga el instalador desde Firulai. Segun tu idioma de usuario, el mismo binario puede descargarse como `FirulaiAgent-ca.exe`, `FirulaiAgent-en.exe`, `FirulaiAgent_ca.exe`, etc. El instalador lee ese sufijo para elegir el idioma.
 2. Ejecuta el instalador con doble clic.
 3. Acepta la solicitud de permisos de Administrador de Windows.
 4. Lee el Acuerdo de licencia y aviso de uso y marca la casilla de aceptación. No se puede continuar sin aceptarlo.
@@ -52,7 +52,7 @@ Antes de instalar, el asistente valida que no exista ya un agente en el equipo, 
 
 ## Qué hace el instalador
 
-El instalador `FirulaiAgent.exe` realiza estas acciones:
+El instalador `FirulaiAgent.exe`, tambien cuando se descarga con sufijo de idioma, realiza estas acciones:
 
 1. Solicita privilegios de Administrador mediante UAC.
 2. Muestra el Acuerdo de licencia y aviso de uso y exige su aceptación antes de solicitar credenciales.

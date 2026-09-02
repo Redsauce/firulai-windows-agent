@@ -18,7 +18,7 @@ todas as condicions, non instale nin utilice o Axente.
 O Axente e unha ferramenta de inventario tecnico e apoio a xestion de
 vulnerabilidades. Instala como servizo de Windows, recolle periodicamente
 informacion tecnica do equipo e enviaa a Firulai mediante HTTPS para manter o
-inventario e correlacionalo con vulnerabilidades coÃ±ecidas.
+inventario e correlacionalo con vulnerabilidades coñecidas.
 
 O Axente non substitue unha auditoria de seguridade, unha analise profesional
 nin as medidas de prevencion, actualizacion, copia de seguridade ou resposta a
@@ -32,9 +32,9 @@ administre ou estea expresamente autorizado a supervisar, e so cunha conta ou
 servizo Firulai autorizado.
 
 Non adquire a propiedade do Axente nin de Firulai. Non pode vender, alugar,
-sublicenciar, distribuÃ­r, eludir controis de acceso, usar o Axente para acceder
+sublicenciar, distribuír, eludir controis de acceso, usar o Axente para acceder
 sen autorizacion a sistemas de terceiros nin empregalo con fins ilicitos. A
-enxeÃ±aria inversa so se permite cando unha norma imperativa o autorice.
+enxeñaria inversa so se permite cando unha norma imperativa o autorice.
 
 3. AUTORIZACION E RESPONSABILIDADE
 
@@ -59,7 +59,7 @@ O Axente usa o UUID para identificar o sistema e o Agent token para autorizar as
 comunicacions con Firulai. O token gardase localmente nun ficheiro de
 configuracion restrinxido a SYSTEM e Administrators.
 
-O Axente non esta deseÃ±ado para recoller deliberadamente contrasinais, chaves
+O Axente non esta deseñado para recoller deliberadamente contrasinais, chaves
 privadas nin contido de documentos de usuario. Poren, metadatos tecnicos poden
 ser datos persoais ou informacion confidencial segundo o contorno. Debe avaliar
 esta circunstancia e aplicar as garantias e bases xuridicas necesarias.
@@ -79,19 +79,19 @@ Firulai.
 6. SEGURIDADE E USO AUTORIZADO
 
 Non debe usar o Axente para supervisar, inventariar ou acceder a equipos sen
-permiso. ManteÃ±a Windows e os mecanismos de proteccion actualizados, controle
+permiso. Manteña Windows e os mecanismos de proteccion actualizados, controle
 as contas administrativas e comunique calquera sospeita de exposicion do Agent
 token ou uso non autorizado.
 
 Os resultados de inventario e vulnerabilidades poden conter erros, omisions,
 falsos positivos, atrasos ou diferenzas respecto do estado real do equipo.
-Verifique os resultados antes de tomar decisions que afecten a dispoÃ±ibilidade,
+Verifique os resultados antes de tomar decisions que afecten a dispoñibilidade,
 integridade ou seguridade.
 
 7. SOFTWARE E SERVIZOS DE TERCEIROS
 
 O Axente pode consultar ferramentas presentes no equipo e comunicarse con
-servizos ou fontes de informacion empregados por Firulai. Estes compoÃ±entes
+servizos ou fontes de informacion empregados por Firulai. Estes compoñentes
 poden estar suxeitos as suas propias licenzas, condicions e politicas.
 Redsauce non concede dereitos sobre produtos de terceiros.
 
@@ -99,7 +99,7 @@ Redsauce non concede dereitos sobre produtos de terceiros.
 
 Redsauce pode publicar correccions, novas versions ou cambios necesarios para a
 seguridade, compatibilidade ou funcionamento. Na medida permitida pola lei, o
-Axente proporcionase "tal cal" e segundo dispoÃ±ibilidade, sen garantir
+Axente proporcionase "tal cal" e segundo dispoñibilidade, sen garantir
 funcionamento ininterrompido, deteccion completa, datos de terceiros completos
 ou actuais nin prevencion de incidentes de seguridade.
 
@@ -122,7 +122,7 @@ https://redsauce.net
 
 ACEPTACION
 
-Ao continuar, recoÃ±ece que comprende o funcionamento descrito, acepta a
+Ao continuar, recoñece que comprende o funcionamento descrito, acepta a
 recollida e transmision do inventario tecnico e confirma que ten autorizacion
 para instalar o Axente.
 

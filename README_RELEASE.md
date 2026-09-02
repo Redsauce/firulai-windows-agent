@@ -35,7 +35,7 @@ Documento interno para generar, publicar y actualizar el instalador Windows.
 
 ```text
 Archivo: FirulaiAgent.exe
-SHA-256: B8C9F8F0A50690860951C6DB4CB4421EF067E58544AD634A5FF687626E77C170
+SHA-256: calcular despues de generar el instalador
 Firma Authenticode: no firmada
 ```
 
@@ -74,13 +74,13 @@ El usuario final no descarga el repo. Descarga el instalador publicado como asse
 FirulaiAgent.exe
 ```
 
-Firulai no descarga directamente este asset desde el navegador. La aplicacion sirve el mismo binario desde el endpoint autenticado:
+Firulai no descarga directamente este asset desde el navegador. La aplicacion sirve el binario desde el endpoint autenticado:
 
 ```text
 /api/agents/windows/installer
 ```
 
-Ese endpoint lee el idioma guardado en las preferencias del App user (`preferences.locale`) y cambia solo el nombre de descarga, por ejemplo `FirulaiAgent-ca.exe` o `FirulaiAgent-en.exe`. El instalador detecta ese sufijo al arrancar y selecciona el idioma antes de mostrar el asistente. No se generan instaladores distintos por idioma.
+Ese endpoint lee el idioma guardado en las preferencias del App user (`preferences.locale`) y entrega `FirulaiAgent.exe` con un nombre localizado, por ejemplo `FirulaiAgent-ca.exe`, `FirulaiAgent-en.exe` o `FirulaiAgent_ca.exe`. El instalador multidioma lee ese sufijo para elegir el idioma de la licencia, el asistente, el `config.json` y el desinstalador.
 
 Enlace estable para la aplicación:
 
@@ -120,18 +120,7 @@ Compilar el agente:
 Generar el instalador. Inno Setup puede estar instalado para todos los usuarios o solo para el usuario actual:
 
 ```powershell
-$iscc = @(
-  "$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe"
-  "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
-  "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-  "C:\Program Files\Inno Setup 6\ISCC.exe"
-) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-
-if (-not $iscc) {
-  throw "No se ha encontrado ISCC.exe. Instala Inno Setup antes de continuar."
-}
-
-& $iscc .\installer\RsAgent.iss
+.\scripts\build-localized-installers.ps1
 ```
 
 Resultado:
@@ -140,7 +129,7 @@ Resultado:
 agent/windows/Output/FirulaiAgent.exe
 ```
 
-El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el código C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y después generar el instalador. Para desplegar la descarga desde Firulai, publica primero este `Output/FirulaiAgent.exe` como asset de la release Windows; si `apps/rsm-firulai/agents/windows/Output/FirulaiAgent.exe` no existe en el build de la app, `scripts/build-app-dist.mjs` lo descarga desde la release estable y lo incluye en el zip de prod.
+El instalador contiene el ejecutable compilado en `src/RsAgent/bin/Release/RsAgent.exe`. Si cambian el codigo C# o el script `installer/RsAgent.iss`, hay que repetir los dos pasos: compilar el agente y despues generar `FirulaiAgent.exe`. Para desplegar la descarga desde Firulai, publica `Output/FirulaiAgent.exe` como asset de la release Windows; si no existe en `apps/rsm-firulai/agents/windows/Output`, `scripts/build-app-dist.mjs` lo descarga desde la release estable y lo incluye en el zip de prod.
 
 ---
 
@@ -266,13 +255,13 @@ La clave del origen se conserva al desinstalar para que Windows pueda seguir mos
 https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe
 ```
 
-Para esta versión, los endpoints de Firulai del instalador Windows apuntan a `https://rsm1.redsauce.net/AppController/commands_RSM/api/...`. Como cambia la URL configurada en el instalador y en el `config.json` generado, hay que compilar de nuevo `RsAgent.exe` y generar un nuevo `FirulaiAgent.exe`.
+Para esta versión, los endpoints de Firulai del instalador Windows apuntan a `https://rsm1.redsauce.net/AppController/commands_RSM/api/...`. Como cambia la URL configurada en el instalador y en el `config.json` generado, hay que compilar de nuevo `RsAgent.exe` y generar de nuevo `FirulaiAgent.exe`.
 
 ---
 
-## Cuando hay que generar otro EXE
+## Cuando hay que generar el EXE
 
-Generar un nuevo `FirulaiAgent.exe` si cambia cualquier cosa que deba llegar a los usuarios:
+Generar de nuevo `FirulaiAgent.exe` si cambia cualquier cosa que deba llegar a los usuarios:
 
 - Codigo C# del agente.
 - Validación o almacenamiento del Agent token.
@@ -292,10 +281,10 @@ No hace falta generar otro EXE si solo cambia:
 
 ## Integración en la aplicación
 
-En la aplicación, el botón Windows debe apuntar al asset del último Release:
+En la aplicación, el botón Windows debe apuntar al endpoint autenticado:
 
 ```html
-<a href="https://github.com/OWNER/REPO/releases/latest/download/FirulaiAgent.exe">
+<a href="/api/agents/windows/installer">
   Descargar agente Windows
 </a>
 ```
@@ -303,7 +292,7 @@ En la aplicación, el botón Windows debe apuntar al asset del último Release:
 Flujo para el usuario:
 
 1. Pulsa el boton Windows.
-2. Descarga `FirulaiAgent.exe`.
+2. Descarga el `FirulaiAgent-<idioma>.exe` que corresponde a sus preferencias.
 3. Ejecuta el instalador como Administrador.
 4. Introduce el UUID y el token facilitados en Firulai.
 5. Si ya existe un agente instalado, el instalador cancela y pide desinstalar primero.
