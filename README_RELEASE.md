@@ -2,6 +2,19 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
+## Notas de la release v0.17.0
+
+- Recoge antivirus desde Security Center y completa los datos de Defender:
+  estado, nombre, ultima actualizacion de firmas, version y ultimo analisis.
+- Envia el bloque semantico `antivirus` en `newServerData`. Si la consulta falla,
+  conserva el resto del inventario y no comunica una falsa ausencia de antivirus.
+- Prioriza productos activos y limita la consulta PowerShell a 30 segundos.
+- Recolector integrado en el archivo existente `src/RsAgent/InventoryCollector.cs`,
+  sin archivos fuente ni dependencias nuevos.
+- Requiere el receptor de inventario actualizado para crear el Antivirus con su
+  relacion Cliente y enlazarlo al System. No cambia la configuracion del agente.
+- Instalador definitivo multidioma: `Output/FirulaiAgent.exe`.
+
 ## Notas de la release v0.15.0
 
 ### Cambios principales

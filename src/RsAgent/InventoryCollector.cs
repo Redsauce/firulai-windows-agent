@@ -52,6 +52,8 @@ namespace RsAgent
                 { "packages", software.Packages }
             };
 
+            var antivirus = AntivirusCollector.Collect();
+            if (antivirus != null) payload["antivirus"] = antivirus;
             return new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(payload);
         }
 
@@ -937,7 +939,7 @@ namespace RsAgent
             };
         }
 
-        private static string RunCommand(string fileName, string arguments, int timeoutSeconds)
+        internal static string RunCommand(string fileName, string arguments, int timeoutSeconds)
         {
             try
             {
@@ -1129,6 +1131,89 @@ namespace RsAgent
                    bool.TryParse(Convert.ToString(value), out parsed) && parsed
                 ? "true"
                 : "false";
+        }
+    }
+}
+
+namespace RsAgent
+{
+    internal static class AntivirusCollector
+    {
+        // SecurityCenter2 does not expose vendor signature versions or scan dates.
+        internal const string Script = @"
+$ErrorActionPreference = 'Stop'
+function AvDate($value) {
+    if ($null -eq $value) { return $null }
+    try {
+        $date = [datetime]$value
+        if ($date.Year -le 1601) { return $null }
+        return $date.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    } catch { return $null }
+}
+$products = @()
+$securityCenterAvailable = $false
+try {
+    $products = @(Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct -ErrorAction Stop)
+    $securityCenterAvailable = $true
+} catch {}
+$defender = $null
+try { $defender = Get-MpComputerStatus -ErrorAction Stop } catch {}
+$rows = @()
+foreach ($product in $products) {
+    if ([string]::IsNullOrWhiteSpace($product.displayName)) { continue }
+    $state = $null
+    if ($null -ne $product.productState) {
+        # SecurityCenter2 packed state; signature/provider flags are independent.
+        # This legacy bitmask is not the WSC_SECURITY_PRODUCT_STATE COM enum.
+        $code = [int]$product.productState -band 0xF000
+        if ($code -eq 0x1000) { $state = 'active' }
+        elseif ($code -in 0,0x2000,0x3000) { $state = 'inactive' }
+    }
+    $rows += [pscustomobject]@{
+        antivirus_state = $state; antivirus_name = [string]$product.displayName
+        antivirus_updated = $null; signature_version = $null; last_scan = $null
+    }
+}
+if ($null -ne $defender) {
+    $row = $rows | Where-Object { $_.antivirus_name -match '^(Microsoft |Windows )Defender( Antivirus)?$' } | Select-Object -First 1
+    if ($null -eq $row) {
+        $row = [pscustomobject]@{
+            antivirus_state = $null; antivirus_name = 'Microsoft Defender Antivirus'
+            antivirus_updated = $null; signature_version = $null; last_scan = $null
+        }
+        $rows += $row
+    }
+    if ($null -ne $defender.AntivirusEnabled -and $null -ne $defender.RealTimeProtectionEnabled) {
+        $row.antivirus_state = 'inactive'
+        if ($defender.AntivirusEnabled -and $defender.RealTimeProtectionEnabled -and
+            ([string]$defender.AMRunningMode -notmatch 'Passive|EDR Block')) {
+            $row.antivirus_state = 'active'
+        }
+    }
+    $row.antivirus_updated = AvDate $defender.AntivirusSignatureLastUpdated
+    if (-not [string]::IsNullOrWhiteSpace($defender.AntivirusSignatureVersion)) {
+        $row.signature_version = [string]$defender.AntivirusSignatureVersion
+    }
+    $row.last_scan = @((AvDate $defender.QuickScanEndTime), (AvDate $defender.FullScanEndTime)) |
+        Where-Object { $null -ne $_ } | Sort-Object -Descending | Select-Object -First 1
+}
+if ($rows.Count -gt 0) {
+    # The System relation stores one product: active first, then stable name order.
+    $rows | Sort-Object @{Expression={ if ($_.antivirus_state -eq 'active') {0} elseif ($_.antivirus_state -eq 'inactive') {1} else {2} }},antivirus_name |
+        Select-Object -First 1 | ConvertTo-Json -Compress
+} elseif ($securityCenterAvailable -and $products.Count -eq 0) {
+    [pscustomobject]@{ antivirus_state='Not installed'; antivirus_name=$null;
+        antivirus_updated=$null; signature_version=$null; last_scan=$null } | ConvertTo-Json -Compress
+} else { 'null' }
+";
+
+        public static Dictionary<string, object> Collect()
+        {
+            var encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(Script));
+            var output = InventoryCollector.RunCommand("powershell.exe",
+                "-NoProfile -NonInteractive -EncodedCommand " + encoded, 30);
+            try { return new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(output); }
+            catch { return null; }
         }
     }
 }
