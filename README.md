@@ -353,7 +353,7 @@ Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicaci
 
 ## Versión actual
 
-Versión del agente: `0.17.0` (preparada; pendiente de publicar)
+Versión del agente: `0.18.0` (preparada; pendiente de publicar)
 
 Nombre del instalador publicado:
 

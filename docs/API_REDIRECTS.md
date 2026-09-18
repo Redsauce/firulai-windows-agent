@@ -1,6 +1,6 @@
 # API: configuracion y pruebas Windows
 
-Version preparada: 0.17.0.
+Version preparada: 0.18.0.
 
 El instalador escribe la cadena `ApiBaseUrl` en
 `HKLM\SOFTWARE\Redsauce\RSAgent` (vista de 64 bits en Windows de 64 bits).
@@ -58,7 +58,7 @@ para apuntarla a HTTPBingo: enviaria el inventario real.
 
 Ejecutar `scripts/build-agent.ps1` y despues `scripts/build-localized-installers.ps1`.
 Resultado: `Output/FirulaiAgent.exe`. El codigo se publica en una rama del
-repositorio; el ejecutable va como asset de la release v0.17.0, no como archivo
+repositorio; el ejecutable va como asset de la release v0.18.0, no como archivo
 versionado. Las pruebas no se incluyen en el instalador. Consultar
 `Output/RELEASE_CHECKSUMS.txt` para el SHA256 generado. La nueva instalacion
 completa y los receptores de RSM requieren comprobacion en un equipo de pruebas.

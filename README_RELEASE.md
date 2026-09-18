@@ -2,7 +2,7 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
-## Version preparada v0.17.0
+## Version preparada v0.18.0
 
 La URL base pasa a ApiBaseUrl en el registro HKLM. El endpoint se mantiene en
 el modulo del agente. Redirecciones 301/308 guardan la nueva base tras respuesta
@@ -11,11 +11,23 @@ la misma base. Las configuraciones antiguas api_url se ignoran.
 
 Compilar con `scripts/build-agent.ps1` y generar el instalador con
 `scripts/build-localized-installers.ps1`. Publicar `Output/FirulaiAgent.exe`
-como asset de v0.17.0 una vez subido el codigo aprobado; no versionar el binario.
+como asset de v0.18.0 una vez subido el codigo aprobado; no versionar el binario.
 SHA256: `Output/RELEASE_CHECKSUMS.txt`. Pruebas y limites:
 [API_REDIRECTS.md](docs/API_REDIRECTS.md). Esta version aun no esta publicada.
 
 Las notas siguientes corresponden a releases anteriores.
+## Notas de la release v0.17.0
+
+- Recoge antivirus desde Security Center y completa los datos de Defender:
+  estado, nombre, ultima actualizacion de firmas, version y ultimo analisis.
+- Envia el bloque semantico `antivirus` en `newServerData`. Si la consulta falla,
+  conserva el resto del inventario y no comunica una falsa ausencia de antivirus.
+- Prioriza productos activos y limita la consulta PowerShell a 30 segundos.
+- Recolector integrado en el archivo existente `src/RsAgent/InventoryCollector.cs`,
+  sin archivos fuente ni dependencias nuevos.
+- Requiere el receptor de inventario actualizado para crear el Antivirus con su
+  relacion Cliente y enlazarlo al System. No cambia la configuracion del agente.
+- Instalador definitivo multidioma: `Output/FirulaiAgent.exe`.
 
 ## Notas de la release v0.15.0
 
