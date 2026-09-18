@@ -124,7 +124,7 @@ namespace RsAgent
 
                 phase = AgentText.T("service.phaseConfigLoad");
                 var config = AgentConfig.Load();
-                Logger.Info(AgentText.T("service.configLoaded", executionId, config.Uuid, GetSafeDestination(config.ApiUrl), config.Locale));
+                Logger.Info(AgentText.T("service.configLoaded", executionId, config.Uuid, GetSafeDestination(ApiEndpoint.Url), config.Locale));
 
                 phase = AgentText.T("service.phaseInventoryCollection");
                 Logger.Info(AgentText.T("service.collectingInventory", executionId));

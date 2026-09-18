@@ -90,34 +90,14 @@ namespace RsAgent
 
         private static async Task<string> SendEventAsync(AgentConfig config, string trigger, string json)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            string url = ApiEndpoint.Url;
             var stopwatch = Stopwatch.StartNew();
-            Logger.Info(AgentText.T("rsm.httpStarted", GetSafeDestination(config.ApiUrl), Encoding.UTF8.GetByteCount(json)));
-
-            using (var client = new HttpClient())
-            using (var form = new MultipartFormDataContent())
-            {
-                client.Timeout = TimeSpan.FromSeconds(30);
-                client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", config.Token);
-                form.Add(new StringContent(trigger), "RStrigger");
-                form.Add(new StringContent(json, Encoding.UTF8, "application/json"), "RSdata");
-                form.Add(new StringContent(config.Token), "RStoken");
-
-                var response = await client.PostAsync(config.ApiUrl, form).ConfigureAwait(false);
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Logger.Info(AgentText.T(
-                    "rsm.httpResponse",
-                    (int)response.StatusCode,
-                    response.ReasonPhrase,
-                    stopwatch.ElapsedMilliseconds,
-                    body.Length));
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException(AgentText.T("rsm.httpFailed", (int)response.StatusCode, body));
-                }
-
-                return body;
-            }
+            Logger.Info(AgentText.T("rsm.httpStarted", GetSafeDestination(url), Encoding.UTF8.GetByteCount(json)));
+            var response = await ApiEndpoint.PostAsync(url, config.Token, trigger, json, ApiEndpoint.Store.Write).ConfigureAwait(false);
+            Logger.Info(AgentText.T("rsm.httpResponse", response.Status, response.Reason, stopwatch.ElapsedMilliseconds, response.Body.Length));
+            if (response.Status < 200 || response.Status >= 300)
+                throw new InvalidOperationException(AgentText.T("rsm.httpFailed", response.Status, response.Body));
+            return response.Body;
         }
 
         private static bool TryGetBoolean(Dictionary<string, object> values, string key, out bool result)

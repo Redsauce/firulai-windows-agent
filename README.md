@@ -353,10 +353,14 @@ Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicaci
 
 ## Versión actual
 
-Versión del agente: `0.15.0`
+Versión del agente: `0.17.0` (preparada; pendiente de publicar)
 
 Nombre del instalador publicado:
 
 ```text
 FirulaiAgent.exe
 ```
+
+## Base de la API y redirecciones
+
+Consulta [la guia de configuracion y pruebas](docs/API_REDIRECTS.md).

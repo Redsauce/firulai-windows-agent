@@ -1,9 +1,15 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.16.0"
+#define MyAppVersion "0.17.0"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
-#define DefaultApiUrl "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php"
+#define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
+#if ApiEndpointHandle == 0
+  #error "Cannot read ApiEndpoint.txt"
+#endif
+#define DefaultApiBaseUrl Trim(FileRead(ApiEndpointHandle))
+#define ApiPath Trim(FileRead(ApiEndpointHandle))
+#expr FileClose(ApiEndpointHandle)
 #ifndef InstallerLanguage
 #define InstallerLanguage "all"
 #endif
@@ -298,6 +304,7 @@ Name: "{commonappdata}\RSAgent"; Permissions: admins-full system-full
 Name: "{commonappdata}\RSAgent\logs"; Permissions: admins-full system-full
 
 [Registry]
+Root: HKLM; Subkey: "SOFTWARE\Redsauce\RSAgent"; ValueType: string; ValueName: "ApiBaseUrl"; ValueData: "{code:ApiBaseUrlValue}"; Flags: uninsdeletevalue
 Root: HKLM; Subkey: "SOFTWARE\Redsauce\RSAgent"; ValueType: string; ValueName: "Locale"; ValueData: "{code:AgentLocaleValue}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: expandsz; ValueName: "EventMessageFile"; ValueData: "{win}\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: dword; ValueName: "TypesSupported"; ValueData: "7"
@@ -1324,10 +1331,11 @@ begin
   );
 end;
 
+#include "ApiEndpoint.iss"
+
 function SendAgentEvent(Trigger: string; Data: string; Token: string;
   var StatusCode: Integer; var ResponseBody: string): Boolean;
 var
-  Http: Variant;
   Boundary: string;
   Body: string;
 begin
@@ -1348,19 +1356,7 @@ begin
     Token + #13#10 +
     '--' + Boundary + '--' + #13#10;
 
-  try
-    Http := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-    Http.Open('POST', '{#DefaultApiUrl}', False);
-    Http.SetTimeouts(5000, 5000, 20000, 20000);
-    Http.SetRequestHeader('Authorization', Token);
-    Http.SetRequestHeader('Content-Type', 'multipart/form-data; boundary=' + Boundary);
-    Http.Send(Body);
-    StatusCode := Http.Status;
-    ResponseBody := Http.ResponseText;
-    Result := True;
-  except
-    Result := False;
-  end;
+  Result := PostApiBody(Body, Token, Boundary, StatusCode, ResponseBody);
 end;
 
 function CheckUuidAvailable(): string;
@@ -2133,7 +2129,6 @@ begin
     '{' + #13#10 +
     '  "token": "' + JsonEscape(EffectiveToken()) + '",' + #13#10 +
     '  "uuid": "' + JsonEscape(EffectiveUuid()) + '",' + #13#10 +
-    '  "api_url": "{#DefaultApiUrl}",' + #13#10 +
     '  "locale": "' + JsonEscape(AgentLocale) + '"' + #13#10 +
     '}';
 

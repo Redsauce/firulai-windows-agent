@@ -2,6 +2,21 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
+## Version preparada v0.17.0
+
+La URL base pasa a ApiBaseUrl en el registro HKLM. El endpoint se mantiene en
+el modulo del agente. Redirecciones 301/308 guardan la nueva base tras respuesta
+correcta; 302/307 conservan la original. Instalacion y desinstalacion utilizan
+la misma base. Las configuraciones antiguas api_url se ignoran.
+
+Compilar con `scripts/build-agent.ps1` y generar el instalador con
+`scripts/build-localized-installers.ps1`. Publicar `Output/FirulaiAgent.exe`
+como asset de v0.17.0 una vez subido el codigo aprobado; no versionar el binario.
+SHA256: `Output/RELEASE_CHECKSUMS.txt`. Pruebas y limites:
+[API_REDIRECTS.md](docs/API_REDIRECTS.md). Esta version aun no esta publicada.
+
+Las notas siguientes corresponden a releases anteriores.
+
 ## Notas de la release v0.15.0
 
 ### Cambios principales
@@ -109,6 +124,7 @@ Compilar el agente:
 ```powershell
 & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
   /target:exe `
+  /resource:.\src\RsAgent\ApiEndpoint.txt,RsAgent.ApiEndpoint.txt `
   /out:.\src\RsAgent\bin\Release\RsAgent.exe `
   /r:System.Management.dll `
   /r:System.Net.Http.dll `

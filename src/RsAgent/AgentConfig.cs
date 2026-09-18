@@ -8,17 +8,14 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.16.0";
-        public const string DefaultApiUrl = "https://rsm1.redsauce.net/AppController/commands_RSM/api/api.php";
+        public const string AgentVersion = "0.17.0";
 
         public string token { get; set; }
         public string uuid { get; set; }
-        public string api_url { get; set; }
         public string locale { get; set; }
 
         public string Token { get { return token ?? ""; } }
         public string Uuid { get { return uuid ?? ""; } }
-        public string ApiUrl { get { return string.IsNullOrWhiteSpace(api_url) ? DefaultApiUrl : api_url; } }
         public string Locale { get { return AgentText.NormalizeLocale(locale); } }
 
         public static string DataDir
@@ -54,7 +51,6 @@ namespace RsAgent
             {
                 token = GetString(raw, "token"),
                 uuid = GetString(raw, "uuid"),
-                api_url = GetString(raw, "api_url"),
                 locale = GetString(raw, "locale")
             };
             AgentText.SetLocale(config.Locale);
