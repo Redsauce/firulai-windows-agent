@@ -2,7 +2,7 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
-## Version preparada v0.18.0
+## Version preparada 0.19.0
 
 La URL base pasa a ApiBaseUrl en el registro HKLM. El endpoint se mantiene en
 el modulo del agente. Redirecciones 301/308 guardan la nueva base tras respuesta
@@ -11,7 +11,7 @@ la misma base. Las configuraciones antiguas api_url se ignoran.
 
 Compilar con `scripts/build-agent.ps1` y generar el instalador con
 `scripts/build-localized-installers.ps1`. Publicar `Output/FirulaiAgent.exe`
-como asset de v0.18.0 una vez subido el codigo aprobado; no versionar el binario.
+como asset de 0.19.0 una vez subido el codigo aprobado; no versionar el binario.
 SHA256: `Output/RELEASE_CHECKSUMS.txt`. Pruebas y limites:
 [API_REDIRECTS.md](docs/API_REDIRECTS.md). Esta version aun no esta publicada.
 
