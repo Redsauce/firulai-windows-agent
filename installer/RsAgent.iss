@@ -443,6 +443,15 @@ begin
   if AgentLocale = '' then
     AgentLocale := NormalizeLocale(ActiveLanguage());
 
+  if Key = 'capacityExceeded' then
+  begin
+    if AgentLocale = 'es_ES' then
+      Result := 'No hay una plaza Windows disponible. Contrata mÃ¡s capacidad en Firulai o libera una plaza antes de instalar el agente.'
+    else
+      Result := 'No Windows slot is available. Add capacity in Firulai or free a slot before installing the agent.';
+    Exit;
+  end;
+
   if AgentLocale = 'es_ES' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Para realizar una instalación silenciosa debes leer y aceptar el Acuerdo de licencia y aviso de uso incluido con el instalador.' + #13#10#13#10 + 'Si lo aceptas, vuelve a ejecutar el instalador añadiendo /ACCEPTLICENSE=yes.'
@@ -1372,6 +1381,7 @@ begin
     '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
     '"hostname":"' + JsonEscape(LocalHostname()) + '",' +
     '"fqdn":"' + JsonEscape(LocalFqdn()) + '",' +
+    '"platform":"windows",' +
     '"locale":"' + JsonEscape(AgentLocale) + '",' +
     '"RStoken":"' + JsonEscape(EffectiveToken()) + '"}';
 
@@ -1405,6 +1415,12 @@ begin
     Exit;
   end;
 
+  if ValidationResult = 'capacity_exceeded' then
+  begin
+    Result := T('capacityExceeded');
+    Exit;
+  end;
+
   { The event handler normally acknowledges asynchronously with an empty body. }
   if Trim(ResponseBody) = '' then
   begin
@@ -1433,6 +1449,7 @@ begin
   Payload :=
     '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
     '"action":"activate",' +
+    '"platform":"windows",' +
     '"RStoken":"' + JsonEscape(EffectiveToken()) + '"}';
 
   if not SendAgentEvent(
@@ -1459,6 +1476,11 @@ begin
   Updated := Lowercase(Trim(JsonExtractFirstScalarKey(ResponseBody, 'updated')));
   if Updated <> 'true' then
   begin
+    if JsonExtractFirstStringKey(ResponseBody, 'error') = 'capacity_exceeded' then
+    begin
+      Result := T('capacityExceeded');
+      Exit;
+    end;
     Result := T('statusUpdateFailed') + #13#10 +
       T('responseLabel') + ResponseBody;
   end;
