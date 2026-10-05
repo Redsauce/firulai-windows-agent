@@ -17,6 +17,96 @@ namespace RsAgent
 
     internal static class RsmClient
     {
+        public static async Task ValidateSystemUuidExistsAsync(AgentConfig config)
+        {
+            const string apiSuffix = "/api.php";
+            var apiUrl = ApiEndpoint.Url;
+            if (!apiUrl.EndsWith(apiSuffix, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(AgentText.T("rsm.invalidUrl"));
+
+            var itemsUrl = apiUrl.Substring(0, apiUrl.Length - apiSuffix.Length) + "/v2/items/get.php";
+            var serializer = new JavaScriptSerializer();
+            var payload = serializer.Serialize(new Dictionary<string, object>
+            {
+                { "itemTypeID", "191" },
+                { "propertyIDs", new[] { "1780" } },
+                { "translateIDs", false },
+                { "filterRules", new[] { new Dictionary<string, string>
+                    { { "propertyID", "1780" }, { "value", config.Uuid }, { "operation", "=" } } } }
+            });
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            using (var handler = new HttpClientHandler { AllowAutoRedirect = false })
+            using (var client = new HttpClient(handler))
+            {
+                client.Timeout = TimeSpan.FromSeconds(20);
+                string body = null;
+                HttpStatusCode status = 0;
+                for (var hop = 0; hop <= 5; hop++)
+                {
+                    using (var request = new HttpRequestMessage(HttpMethod.Post, itemsUrl))
+                    {
+                        request.Headers.TryAddWithoutValidation("Authorization", config.Token);
+                        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+                        using (var response = await client.SendAsync(request).ConfigureAwait(false))
+                        {
+                            status = response.StatusCode;
+                            if ((int)status >= 300 && (int)status < 400)
+                            {
+                                if (hop == 5 || response.Headers.Location == null)
+                                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "invalid redirect"));
+                                var next = new Uri(new Uri(itemsUrl), response.Headers.Location);
+                                if (next.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(next.UserInfo) ||
+                                    !string.IsNullOrEmpty(next.Query) || !string.IsNullOrEmpty(next.Fragment) ||
+                                    !next.AbsolutePath.EndsWith("/commands_RSM/api/v2/items/get.php", StringComparison.OrdinalIgnoreCase))
+                                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "unsafe redirect"));
+                                itemsUrl = next.AbsoluteUri;
+                                continue;
+                            }
+                            body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        }
+                    }
+                    break;
+                }
+                if ((int)status < 200 || (int)status >= 300)
+                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, body));
+
+                object decoded;
+                try { decoded = serializer.DeserializeObject(body); }
+                catch (ArgumentException)
+                {
+                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "invalid response"));
+                }
+                var matches = CountSystemUuidMatches(decoded, config.Uuid);
+                if (matches == 0)
+                    throw new InvalidOperationException(AgentText.T("rsm.inventoryUuidMissing", config.Uuid));
+                if (matches != 1)
+                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "ambiguous UUID"));
+            }
+        }
+
+        private static int CountSystemUuidMatches(object value, string uuid)
+        {
+            var rows = value as object[];
+            if (rows != null)
+            {
+                var count = 0;
+                foreach (var row in rows) count += CountSystemUuidMatches(row, uuid);
+                return count;
+            }
+            var fields = value as Dictionary<string, object>;
+            if (fields == null) return 0;
+            if (fields.ContainsKey("error") || fields.ContainsKey("errors"))
+                throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", 200, "RSM error"));
+            object storedUuid;
+            if (fields.TryGetValue("1780", out storedUuid))
+                return string.Equals(Convert.ToString(storedUuid), uuid, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+            object wrappedRows;
+            foreach (var key in new[] { "items", "data", "result" })
+                if (fields.TryGetValue(key, out wrappedRows)) return CountSystemUuidMatches(wrappedRows, uuid);
+            return 0;
+        }
+
         public static async Task SendAsync(AgentConfig config, string inventoryJson)
         {
             var serializer = new JavaScriptSerializer();

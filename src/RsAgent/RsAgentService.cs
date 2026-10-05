@@ -126,6 +126,8 @@ namespace RsAgent
                 var config = AgentConfig.Load();
                 Logger.Info(AgentText.T("service.configLoaded", executionId, config.Uuid, GetSafeDestination(ApiEndpoint.Url), config.Locale));
 
+                await RsmClient.ValidateSystemUuidExistsAsync(config).ConfigureAwait(false);
+
                 phase = AgentText.T("service.phaseInventoryCollection");
                 Logger.Info(AgentText.T("service.collectingInventory", executionId));
                 var inventoryJson = InventoryCollector.Collect(config);
