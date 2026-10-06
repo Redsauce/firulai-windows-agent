@@ -136,6 +136,7 @@ namespace RsAgent
                 Logger.Info(AgentText.T("service.inventoryCollected", executionId, inventoryJson.Length, outputPath));
 
                 phase = AgentText.T("service.phaseHttpSend");
+                await RsmClient.ValidateSystemUuidExistsAsync(config).ConfigureAwait(false);
                 await RsmClient.SendAsync(config, inventoryJson).ConfigureAwait(false);
 
                 phase = AgentText.T("service.phaseStateSave");

@@ -17,10 +17,10 @@ namespace RsAgent
 
     internal static class RsmClient
     {
-        public static async Task ValidateSystemUuidExistsAsync(AgentConfig config)
+        public static async Task ValidateSystemUuidExistsAsync(AgentConfig config, bool installing = false, string apiUrlOverride = null)
         {
             const string apiSuffix = "/api.php";
-            var apiUrl = ApiEndpoint.Url;
+            var apiUrl = apiUrlOverride ?? ApiEndpoint.Url;
             if (!apiUrl.EndsWith(apiSuffix, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(AgentText.T("rsm.invalidUrl"));
 
@@ -29,7 +29,7 @@ namespace RsAgent
             var payload = serializer.Serialize(new Dictionary<string, object>
             {
                 { "itemTypeID", "191" },
-                { "propertyIDs", new[] { "1780" } },
+                { "propertyIDs", new[] { "1780", "1751", "1972", "1785", "1752", "1749", "1750" } },
                 { "translateIDs", false },
                 { "filterRules", new[] { new Dictionary<string, string>
                     { { "propertyID", "1780" }, { "value", config.Uuid }, { "operation", "=" } } } }
@@ -69,7 +69,7 @@ namespace RsAgent
                     break;
                 }
                 if ((int)status < 200 || (int)status >= 300)
-                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, body));
+                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "HTTP error"));
 
                 object decoded;
                 try { decoded = serializer.DeserializeObject(body); }
@@ -77,11 +77,13 @@ namespace RsAgent
                 {
                     throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "invalid response"));
                 }
-                var matches = CountSystemUuidMatches(decoded, config.Uuid);
-                if (matches == 0)
+                var matches = new List<Dictionary<string, object>>();
+                SystemEligibility.CollectRows(decoded, config.Uuid, matches);
+                if (matches.Count == 0)
                     throw new InvalidOperationException(AgentText.T("rsm.inventoryUuidMissing", config.Uuid));
-                if (matches != 1)
+                if (matches.Count != 1)
                     throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "ambiguous UUID"));
+                SystemEligibility.Validate(matches[0], config, installing);
             }
         }
 

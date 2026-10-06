@@ -2,7 +2,16 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
-## Version preparada 0.19.0
+## Release 0.19.1
+
+La instalación valida el UUID, su visibilidad con el token, la cobertura y la
+identidad antes de crear el servicio. Cada ejecución exige un sistema activo y
+con cobertura antes de recopilar y antes de enviar. La excepción de Arsys 6956
+solo se aplica a cobertura. Los errores públicos de validación son genéricos
+y están traducidos a los diez idiomas. Cada inventario reporta la versión del
+agente que lo generó.
+
+Las notas siguientes describen la base 0.19.0, que se conserva en esta release.
 
 La URL base pasa a ApiBaseUrl en el registro HKLM. El endpoint se mantiene en
 el modulo del agente. Redirecciones 301/308 guardan la nueva base tras respuesta

@@ -22,6 +22,17 @@ FirulaiAgent.exe
 
 ## Requisitos
 
+El instalador consulta RSM de forma síncrona antes de crear configuración o
+servicio: el UUID debe existir una sola vez, tener cobertura y corresponder a
+Windows y a este equipo (o ser una reserva nueva). Una respuesta vacía de un
+evento no confirma estas condiciones. Tras pedir la activación, espera su
+confirmación en RSM antes de arrancar el servicio.
+
+Cada ejecución vuelve a comprobar existencia, estado activo y cobertura antes
+de recopilar y antes de enviar. Si falla alguna condición, no envía inventario
+ni actualiza la fecha de éxito. La cuenta Arsys 6956 mantiene únicamente su
+excepción temporal de cobertura.
+
 - Windows 10, Windows 11 o Windows Server 2019 o superior.
 - .NET Framework 4.8 o compatible instalado en el sistema.
 - Permisos de Administrador para instalar o desinstalar.
@@ -353,7 +364,7 @@ Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicaci
 
 ## Versión actual
 
-Versión del agente: `0.19.0` (preparada; pendiente de publicar)
+Versión del agente: `0.19.1`
 
 Nombre del instalador publicado:
 

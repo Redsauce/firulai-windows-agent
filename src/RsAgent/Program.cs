@@ -20,6 +20,8 @@ namespace RsAgent
 
         private static int Main(string[] args)
         {
+            if (args.Length == 3 && (args[0] == "--validate-installation" || args[0] == "--validate-activation"))
+                return ValidateForInstaller(args[0], args[1], args[2]);
             var isUninstallStatusUpdateRequest =
                 args.Length > 0 &&
                 (args[0].Equals("--mark-disconnected-on-uninstall", StringComparison.OrdinalIgnoreCase) ||
@@ -57,6 +59,43 @@ namespace RsAgent
             {
                 Logger.Error(AgentText.T("program.fatal"), ex);
                 if (Environment.UserInteractive) Console.Error.WriteLine(ex);
+                return 1;
+            }
+        }
+
+private static int ValidateForInstaller(string mode, string configPath, string resultPath)
+        {
+            try
+            {
+                var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                var raw = serializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(configPath));
+                var config = new AgentConfig {
+                    token = Convert.ToString(raw["token"]),
+                    uuid = Convert.ToString(raw["uuid"]),
+                    locale = Convert.ToString(raw["locale"])
+                };
+                AgentText.SetLocale(config.Locale);
+                config.Validate();
+                var timer = Stopwatch.StartNew();
+                while (true)
+                {
+                    try
+                    {
+                        RsmClient.ValidateSystemUuidExistsAsync(config, mode == "--validate-installation",
+                            Convert.ToString(raw["api_url"])).GetAwaiter().GetResult();
+                        File.WriteAllText(resultPath, "");
+                        return 0;
+                    }
+                    catch (SystemEligibilityException ex)
+                    {
+                        if (mode != "--validate-activation" || ex.Code != "inactive" || timer.ElapsedMilliseconds >= 30000) throw;
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                File.WriteAllText(resultPath, AgentText.T("rsm.systemValidationFailed"));
                 return 1;
             }
         }

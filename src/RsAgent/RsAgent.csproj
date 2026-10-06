@@ -49,6 +49,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="RsAgentService.cs" />
     <Compile Include="RsmClient.cs" />
+    <Compile Include="SystemEligibility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

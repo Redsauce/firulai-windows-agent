@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.19.0"
+#define MyAppVersion "0.19.1"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
@@ -479,7 +479,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai no permitió validar el UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado en Firulai. La instalación no continuará sin confirmar que el UUID está disponible.'
     else if Key = 'responseLabel' then Result := 'Respuesta: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID inválido: no existe en Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'No se ha podido validar el sistema. Comprueba el UUID y el token e inténtalo de nuevo.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'No se puede instalar el agente con un UUID que no haya sido generado desde Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'No se pudo localizar el sistema de Firulai asociado al UUID.'
@@ -527,7 +527,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai no ha permes validar UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Comprova que el token correspon a UUID facilitat a Firulai. La instal.lacio no continuara sense confirmar que UUID esta disponible.'
     else if Key = 'responseLabel' then Result := 'Resposta: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID no valid: no existeix a Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'No s''ha pogut validar el sistema. Comprova l''UUID i el token i torna-ho a provar.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'No es pot instal.lar agent amb un UUID que no hagi estat generat des de Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'No es pot localitzar sistema de Firulai associat a UUID.'
@@ -575,7 +575,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulaik ez du UUIDa baliozkotzen utzi'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Egiaztatu tokena Firulaik emandako UUIDari dagokiola. Instalazioak ez du jarraituko UUIDa erabilgarri dagoela baieztatu arte.'
     else if Key = 'responseLabel' then Result := 'Erantzuna: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID baliogabea: ez da Firulain existitzen.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'Ezin izan da sistema balioztatu. Egiaztatu UUIDa eta tokena eta saiatu berriro.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Ezin da agentea instalatu Firulaitik sortu ez den UUID batekin.'
     else if Key = 'uuidLabel' then Result := 'UUIDa: '
     else if Key = 'systemLookupFailed' then Result := 'Ezin izan da UUIDari lotutako Firulai sistema aurkitu.'
@@ -623,7 +623,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai non permitiu validar o UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Comproba que o token corresponde ao UUID facilitado en Firulai. A instalacion non continuara sen confirmar que o UUID esta dispoñible.'
     else if Key = 'responseLabel' then Result := 'Resposta: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID non valido: non existe en Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'Non se puido validar o sistema. Comproba o UUID e o token e téntao de novo.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Non se pode instalar o axente cun UUID que non fose xerado desde Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Non se puido localizar o sistema de Firulai asociado ao UUID.'
@@ -671,7 +671,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai a refuse la validation du UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Verifiez que le token correspond au UUID fourni dans Firulai. Installation ne continuera pas sans confirmer que le UUID est disponible.'
     else if Key = 'responseLabel' then Result := 'Reponse : '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID non valide : il n existe pas dans Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'Impossible de valider le système. Vérifiez l''UUID et le jeton, puis réessayez.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Impossible installer agent avec un UUID qui n a pas ete genere depuis Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID : '
     else if Key = 'systemLookupFailed' then Result := 'Impossible de localiser le systeme Firulai associe au UUID.'
@@ -719,7 +719,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai hat die UUID-Validierung verweigert'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Pruefen Sie, ob der Token zur in Firulai bereitgestellten UUID gehoert. Die Installation wird nicht fortgesetzt, bis die UUID bestaetigt ist.'
     else if Key = 'responseLabel' then Result := 'Antwort: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'Ungueltige UUID: Sie existiert nicht in Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'Das System konnte nicht validiert werden. Prüfen Sie UUID und Token und versuchen Sie es erneut.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Der Agent kann nicht mit einer UUID installiert werden, die nicht in Firulai erzeugt wurde.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Das mit der UUID verknuepfte Firulai-System konnte nicht gefunden werden.'
@@ -767,7 +767,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai non ha permesso di validare UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'Controlla che il token corrisponda a UUID fornito in Firulai. Installazione non continuera senza confermare che UUID sia disponibile.'
     else if Key = 'responseLabel' then Result := 'Risposta: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID non valido: non esiste in Firulai.'
+    else if Key = 'uuidInvalidNotFound' then Result := 'Impossibile convalidare il sistema. Controlla UUID e token e riprova.'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Non e possibile installare agente con un UUID non generato da Firulai.'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'Impossibile trovare il sistema Firulai associato a UUID.'
@@ -815,7 +815,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai が UUID の検証を許可しませんでした'
     else if Key = 'uuidValidateDeniedAdvice' then Result := 'token が Firulai で提供された UUID に対応していることを確認してください。UUID が利用可能であることを確認できるまで、インストールは続行されません。'
     else if Key = 'responseLabel' then Result := '応答: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID が無効です: Firulai に存在しません。'
+    else if Key = 'uuidInvalidNotFound' then Result := 'システムを検証できませんでした。UUID とトークンを確認して再試行してください。'
     else if Key = 'uuidInvalidNoGenerated' then Result := 'Firulai で生成されていない UUID ではエージェントをインストールできません。'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := 'UUID に関連付けられた Firulai のシステムを見つけられませんでした。'
@@ -863,7 +863,7 @@ begin
     else if Key = 'uuidValidateDenied' then Result := 'Firulai 不允许验证 UUID'
     else if Key = 'uuidValidateDeniedAdvice' then Result := '请确认 token 对应 Firulai 提供的 UUID。未确认 UUID 可用前，安装不会继续。'
     else if Key = 'responseLabel' then Result := '响应: '
-    else if Key = 'uuidInvalidNotFound' then Result := 'UUID 无效: Firulai 中不存在。'
+    else if Key = 'uuidInvalidNotFound' then Result := '无法验证系统。请检查 UUID 和令牌，然后重试。'
     else if Key = 'uuidInvalidNoGenerated' then Result := '不能使用不是从 Firulai 生成的 UUID 安装代理。'
     else if Key = 'uuidLabel' then Result := 'UUID: '
     else if Key = 'systemLookupFailed' then Result := '无法找到与 UUID 关联的 Firulai 系统。'
@@ -909,7 +909,7 @@ begin
   else if Key = 'uuidValidateDenied' then Result := 'Firulai did not allow UUID validation'
   else if Key = 'uuidValidateDeniedAdvice' then Result := 'Check that the token matches the UUID provided in Firulai. Installation will not continue until the UUID availability is confirmed.'
   else if Key = 'responseLabel' then Result := 'Response: '
-  else if Key = 'uuidInvalidNotFound' then Result := 'Invalid UUID: it does not exist in Firulai.'
+  else if Key = 'uuidInvalidNotFound' then Result := 'Could not validate the system. Check the UUID and token and try again.'
   else if Key = 'uuidInvalidNoGenerated' then Result := 'The agent cannot be installed with a UUID that was not generated from Firulai.'
   else if Key = 'uuidLabel' then Result := 'UUID: '
   else if Key = 'systemLookupFailed' then Result := 'Could not locate the Firulai system associated with the UUID.'
@@ -1368,6 +1368,39 @@ begin
   Result := PostApiBody(Body, Token, Boundary, StatusCode, ResponseBody);
 end;
 
+function CheckSystemRegistration(RequireActive: Boolean): string;
+var
+  ConfigPath, ResultPath, ValidationDir, AgentPath, Payload, Mode: string;
+  ResponseText: AnsiString;
+  ExitCode: Integer;
+begin
+  Result := T('uuidInvalidNotFound');
+  ValidationDir := ExpandConstant('{tmp}\registration-check');
+  if not ForceDirectories(ValidationDir) then Exit;
+  if not Exec(ExpandConstant('{sys}\icacls.exe'),
+    '"' + ValidationDir + '" /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F',
+    '', SW_HIDE, ewWaitUntilTerminated, ExitCode) or (ExitCode <> 0) then Exit;
+  ConfigPath := ValidationDir + '\request.json';
+  ResultPath := ValidationDir + '\result.txt';
+  AgentPath := ExpandConstant('{tmp}\RsAgent.exe');
+  ExtractTemporaryFile('RsAgent.exe');
+  Payload := '{"uuid":"' + JsonEscape(EffectiveUuid()) + '","token":"' +
+    JsonEscape(EffectiveToken()) + '","locale":"' + JsonEscape(AgentLocale) +
+    '","api_url":"' + JsonEscape(ApiBaseUrlValue('') + '{#ApiPath}') + '"}';
+  try
+    if not SaveStringToFile(ConfigPath, UTF8Encode(Payload), False) then Exit;
+    if RequireActive then Mode := '--validate-activation'
+    else Mode := '--validate-installation';
+    if not Exec(AgentPath, Mode + ' "' + ConfigPath + '" "' + ResultPath + '"',
+      '', SW_HIDE, ewWaitUntilTerminated, ExitCode) then Exit;
+    if ExitCode = 0 then Result := ''
+    else if LoadStringFromFile(ResultPath, ResponseText) then Result := UTF8Decode(ResponseText);
+  finally
+    DeleteFile(ConfigPath);
+    DeleteFile(ResultPath);
+  end;
+end;
+
 function CheckUuidAvailable(): string;
 var
   Payload: string;
@@ -1406,6 +1439,7 @@ begin
 
   if ValidationResult = 'not_found' then
   begin
+    Result := T('uuidInvalidNotFound') + #13#10 + T('uuidInvalidNoGenerated');
     Exit;
   end;
 
@@ -1439,9 +1473,9 @@ var
   StatusCode: Integer;
 begin
   Result := '';
-  { Keep an unknown UUID completely silent. The validation request already
-    established that there is no System to activate. }
-  if (UuidValidationResult = 'not_found') or (UuidValidationResult = '') then
+  { An empty response acknowledges an asynchronous validation request.
+    Activation must still be sent before the service collects inventory. }
+  if UuidValidationResult = 'not_found' then
   begin
     Exit;
   end;
@@ -2118,14 +2152,28 @@ begin
     Exit;
   end;
 
-  ValidationError := CheckUuidAvailable();
+  ValidationError := CheckSystemRegistration(False);
   if ValidationError <> '' then
   begin
     Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 
+  ValidationError := CheckUuidAvailable();
+  if ValidationError <> '' then
+  begin
+    Result := LocalizedPrepareInstallFailure(T('uuidInvalidNotFound'));
+    Exit;
+  end;
+
   ValidationError := ActivateSystemInRsm();
+  if ValidationError <> '' then
+  begin
+    Result := LocalizedPrepareInstallFailure(T('uuidInvalidNotFound'));
+    Exit;
+  end;
+
+  ValidationError := CheckSystemRegistration(True);
   if ValidationError <> '' then
   begin
     Result := LocalizedPrepareInstallFailure(ValidationError);
