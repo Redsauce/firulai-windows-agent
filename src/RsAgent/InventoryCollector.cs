@@ -54,7 +54,14 @@ namespace RsAgent
 
             var antivirus = AntivirusCollector.Collect();
             if (antivirus != null) payload["antivirus"] = antivirus;
-            return new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(payload);
+            return CreateInventorySerializer().Serialize(payload);
+        }
+
+        // The same limit must apply to collection, Appx parsing and upload
+        // preparation. Otherwise a successfully collected JSON can fail later.
+        internal static JavaScriptSerializer CreateInventorySerializer()
+        {
+            return new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         }
 
         private static Dictionary<string, object> CollectSystem(string uuid)
@@ -1091,7 +1098,7 @@ namespace RsAgent
             if (string.IsNullOrWhiteSpace(output)) yield break;
 
             object parsed;
-            try { parsed = new JavaScriptSerializer().DeserializeObject(output); }
+            try { parsed = CreateInventorySerializer().DeserializeObject(output); }
             catch { yield break; }
 
             var rows = parsed as object[];

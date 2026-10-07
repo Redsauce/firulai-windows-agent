@@ -111,7 +111,7 @@ namespace RsAgent
 
         public static async Task SendAsync(AgentConfig config, string inventoryJson)
         {
-            var serializer = new JavaScriptSerializer();
+            var serializer = InventoryCollector.CreateInventorySerializer();
             var inventory = serializer.Deserialize<Dictionary<string, object>>(inventoryJson);
             inventory["RStoken"] = config.Token;
             await SendEventAsync(config, "newServerData", serializer.Serialize(inventory)).ConfigureAwait(false);
