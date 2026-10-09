@@ -2,6 +2,13 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
+## Release 0.19.3
+
+Correccion de versiones de archivo con caracteres no validos en XML. Se sanea
+ProductVersion y se utiliza FileVersion cuando el valor saneado queda vacio.
+Notas y validacion: [docs/releases/0.19.3.md](docs/releases/0.19.3.md).
+
+
 ## Release 0.19.1
 
 La instalación valida el UUID, su visibilidad con el token, la cobertura y la
