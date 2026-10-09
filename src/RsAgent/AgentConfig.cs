@@ -8,7 +8,7 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.19.2";
+        public const string AgentVersion = "0.19.3";
 
 
         public string token { get; set; }

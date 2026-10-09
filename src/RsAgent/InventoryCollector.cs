@@ -551,7 +551,7 @@ namespace RsAgent
                 catch { continue; }
 
                 var name = FirstNonEmpty(info.ProductName, info.FileDescription);
-                var version = FirstNonEmpty(info.ProductVersion, info.FileVersion);
+                var version = FileMetadataVersion(info);
                 if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(version)) continue;
 
                 string directory;
@@ -583,7 +583,7 @@ namespace RsAgent
             try
             {
                 var info = FileVersionInfo.GetVersionInfo(executable);
-                application.Version = FirstNonEmpty(info.ProductVersion, info.FileVersion);
+                application.Version = FileMetadataVersion(info);
             }
             catch { }
         }
@@ -608,7 +608,7 @@ namespace RsAgent
             {
                 var info = FileVersionInfo.GetVersionInfo(path);
                 if (string.IsNullOrWhiteSpace(FirstNonEmpty(info.ProductName, info.FileDescription)) ||
-                    string.IsNullOrWhiteSpace(FirstNonEmpty(info.ProductVersion, info.FileVersion))) return -1;
+                    string.IsNullOrWhiteSpace(FileMetadataVersion(info))) return -1;
                 var score = 0;
                 var executableName = NormalizeProductName(System.IO.Path.GetFileNameWithoutExtension(path));
                 var productName = NormalizeProductName(info.ProductName);
@@ -779,6 +779,19 @@ namespace RsAgent
             catch { return ""; }
         }
 
+        internal static string NormalizeFileMetadataVersion(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+            var cleaned = Regex.Replace(value, "[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\uFFFE\\uFFFF]", "");
+            return cleaned.Trim();
+        }
+
+        private static string FileMetadataVersion(FileVersionInfo info)
+        {
+            return FirstNonEmpty(NormalizeFileMetadataVersion(info.ProductVersion),
+                NormalizeFileMetadataVersion(info.FileVersion));
+        }
+
         private static IEnumerable<Tuple<string, string>> CollectApplicationLibraries(string root)
         {
             var results = new List<Tuple<string, string>>();
@@ -799,7 +812,7 @@ namespace RsAgent
                         try
                         {
                             var info = FileVersionInfo.GetVersionInfo(file);
-                            var version = FirstNonEmpty(info.ProductVersion, info.FileVersion);
+                            var version = FileMetadataVersion(info);
                             if (string.IsNullOrWhiteSpace(version)) continue;
                             var name = FirstNonEmpty(info.OriginalFilename, System.IO.Path.GetFileName(file));
                             results.Add(Tuple.Create(name.Trim(), version.Trim()));

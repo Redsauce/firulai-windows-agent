@@ -45,6 +45,10 @@ namespace RsAgent
 
         public static int Main()
         {
+            Check(InventoryCollector.NormalizeFileMetadataVersion("\x0e") == "", "Invalid ProductVersion must allow FileVersion fallback.");
+            Check(InventoryCollector.NormalizeFileMetadataVersion("1.\x0e" + "2.3") == "1.2.3", "XML-invalid controls removed from file metadata.");
+            Check(InventoryCollector.NormalizeFileMetadataVersion("1.2.3+abcdef1234567") == "1.2.3+abcdef1234567", "Valid version metadata preserved.");
+
             Inventory(128);
             Inventory(2097000);
             Inventory(2100000);
