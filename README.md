@@ -304,10 +304,10 @@ Si confirmas la operación, el desinstalador:
 2. Detiene el servicio `RSAgent`.
 3. Envía `changeSystemStatus` con el UUID y `action=disconnect` al receptor de Firulai.
 4. El receptor localiza el System y aplica el estado desconectado mediante su configuración interna.
-5. Si Firulai confirma la actualización, informa de que los datos no se borrarán y elimina el servicio y los archivos locales del agente.
+5. Elimina el servicio y los archivos locales del agente tanto si Firulai confirma la actualización como si falla la comunicación.
 6. Si el UUID ya no existe en Firulai, informa de que no hay ningún System enlazado y desinstala igualmente la aplicación local.
 
-Por seguridad, si no se puede contactar con Firulai o la actualización de estado no se confirma correctamente, la desinstalación se cancela. En ese caso, los archivos locales se conservan para que puedas revisar la conectividad y volver a intentarlo.
+Si no se puede contactar con Firulai o la actualización de estado falla, la desinstalación local continúa. El System puede conservar su estado anterior en Firulai.
 
 Una desinstalación completada elimina:
 
