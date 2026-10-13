@@ -168,6 +168,11 @@ namespace RsAgent
                 }
 
                 CancelTimer();
+                if (await AgentUpdater.CheckAsync().ConfigureAwait(false))
+                {
+                    ScheduleRetry(requiredAfterLocal);
+                    return;
+                }
                 var lastSuccessLocal = GetLastSuccessLocal();
                 if (lastSuccessLocal != DateTime.MinValue && lastSuccessLocal >= requiredAfterLocal)
                 {

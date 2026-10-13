@@ -57,7 +57,14 @@ https://rsm1.redsauce.net
 
 Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
 
-Antes de instalar, el asistente valida que no exista ya un agente en el equipo, que el token permite consultar Firulai y que el UUID existe y está disponible. Si detecta una instalación previa, el proceso se cancela y se debe desinstalar primero el agente actual.
+En una instalacion nueva, el asistente valida el token y el UUID en Firulai. Si
+encuentra una instalacion valida y el instalador tiene una version superior,
+actualiza el agente conservando UUID, token, idioma y configuracion, sin
+desinstalar. No permite instalar una version inferior ni cambiar la identidad
+del equipo durante una actualizacion.
+
+Las actualizaciones automaticas y su validacion se describen en
+[AUTOMATIC_UPDATES.md](docs/AUTOMATIC_UPDATES.md).
 
 ---
 
@@ -68,7 +75,7 @@ El instalador `FirulaiAgent.exe`, tambien cuando se descarga con sufijo de idiom
 1. Solicita privilegios de Administrador mediante UAC.
 2. Muestra el Acuerdo de licencia y aviso de uso y exige su aceptación antes de solicitar credenciales.
 3. Valida el formato del UUID introducido y que el token no esté vacío.
-4. Comprueba que no exista una instalación local previa.
+4. Detecta una instalacion existente y comprueba si corresponde actualizarla.
 5. Valida en Firulai que el UUID existe y está disponible para este equipo.
 6. Solicita al receptor que active el System asociado al UUID.
 7. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
@@ -81,7 +88,9 @@ El instalador `FirulaiAgent.exe`, tambien cuando se descarga con sufijo de idiom
 14. Arranca el servicio y ejecuta el primer inventario.
 15. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
 
-Si ya existe una instalación previa o el servicio está ejecutándose, el instalador lo detecta al inicio y cancela la instalación. Para reinstalar, primero hay que desinstalar el agente actual.
+Si ya existe una instalacion valida y la nueva version es superior, el instalador
+actualiza los archivos conservando la identidad y la configuracion. Si se desea
+cambiar el UUID del equipo, se mantiene el procedimiento de desinstalar e instalar.
 
 La instalación se considera existente si aparece cualquiera de estas señales: servicio `RSAgent`, `RsAgent.exe`, `unins000.exe` o `C:\ProgramData\RSAgent\config.json`.
 
@@ -304,10 +313,10 @@ Si confirmas la operación, el desinstalador:
 2. Detiene el servicio `RSAgent`.
 3. Envía `changeSystemStatus` con el UUID y `action=disconnect` al receptor de Firulai.
 4. El receptor localiza el System y aplica el estado desconectado mediante su configuración interna.
-5. Si Firulai confirma la actualización, informa de que los datos no se borrarán y elimina el servicio y los archivos locales del agente.
+5. Elimina el servicio y los archivos locales del agente tanto si Firulai confirma la actualización como si falla la comunicación.
 6. Si el UUID ya no existe en Firulai, informa de que no hay ningún System enlazado y desinstala igualmente la aplicación local.
 
-Por seguridad, si no se puede contactar con Firulai o la actualización de estado no se confirma correctamente, la desinstalación se cancela. En ese caso, los archivos locales se conservan para que puedas revisar la conectividad y volver a intentarlo.
+Si no se puede contactar con Firulai o la actualización de estado falla, la desinstalación local continúa. El System puede conservar su estado anterior en Firulai.
 
 Una desinstalación completada elimina:
 

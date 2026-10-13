@@ -1,0 +1,16 @@
+﻿{
+    "success":  true,
+    "expectedVersion":  "0.20.2",
+    "backupDirectory":  "C:\\ProgramData\\RSAgent\\upgrade-test-backup-789f4b54324a4d6bbb41148b2195d80d",
+    "previousVersion":  "0.20.1",
+    "automaticWorker":  true,
+    "installerExitCode":  0,
+    "serviceRunning":  true,
+    "configurationPreserved":  true,
+    "binaryMatchesBuild":  true,
+    "installedVersion":  "0.20.2",
+    "apiBasePreserved":  true,
+    "recoveryJournalCleared":  true,
+    "newInventoryGenerated":  true,
+    "inventoryUploadConfirmed":  true
+}

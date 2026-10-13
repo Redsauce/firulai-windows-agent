@@ -2,6 +2,13 @@
 
 Documento interno para generar, publicar y actualizar el instalador Windows.
 
+## Actualizaciones automaticas (implementacion local)
+
+El nuevo instalador actualiza instalaciones existentes sin desinstalar y el
+servicio verifica paquetes firmados antes de actualizar automaticamente.
+Preparacion de claves, publicacion, pruebas y limites:
+[AUTOMATIC_UPDATES.md](docs/AUTOMATIC_UPDATES.md).
+
 ## Release 0.19.3
 
 Correccion de versiones de archivo con caracteres no validos en XML. Se sanea
@@ -193,7 +200,9 @@ La instalación local se considera existente si aparece cualquiera de estas señ
 - Desinstalador `unins000.exe`.
 - Configuración local `C:\ProgramData\RSAgent\config.json`.
 
-Si existe instalación local, el instalador cancela el proceso y pide desinstalar primero el agente actual. No reinstala encima, igual que `install.sh`.
+Si existe una instalacion valida y la version del instalador es superior,
+actualiza sobre ella sin desinstalar ni cambiar su identidad. Una version igual
+o inferior, una configuracion invalida o un cambio de UUID se rechazan.
 
 En modo gráfico, el acuerdo de licencia aparece antes de la página de UUID y token, y el botón para continuar permanece deshabilitado hasta marcar su aceptación. En modo silencioso, el instalador requiere `/ACCEPTLICENSE=yes /UUID=<UUID> /TOKEN=<TOKEN>`; si falta la aceptación explícita o alguna credencial, termina con error y no debe crear ni reemplazar archivos.
 
@@ -214,7 +223,7 @@ Orden equivalente al instalador Linux:
 
 1. Validar permisos de Administrador mediante UAC.
 2. Validar UUID y token obligatorios.
-3. Bloquear si ya existe instalación local.
+3. Detectar si corresponde una actualizacion y preservar la configuracion existente.
 4. Validar UUID en Firulai usando el token introducido.
 5. Enviar `changeSystemStatus` con UUID y `action=activate` para que el receptor active el System.
 6. Crear directorios y configuración.
@@ -251,7 +260,7 @@ Flujo interno:
 6. Si Firulai responde correctamente y el UUID existe, el desinstalador marca el System como `Disconnected`, informa de que los datos no se borrarán y elimina el servicio, `C:\Program Files\RSAgent\` y `C:\ProgramData\RSAgent\`.
 7. Si Firulai responde correctamente pero el UUID ya no existe, el desinstalador informa de que no hay ningún System enlazado en Firulai y continúa con la desinstalación local.
 
-El aviso de desinstalación indica que solo se borrarán archivos locales junto al instalador, que no se borrarán datos de Firulai, y que el sistema quedará inactivo en Firulai. Desde Firulai se podrán eliminar definitivamente sus datos o volver a instalar el agente más adelante enlazándolo al System y al inventario ya guardados. Si Firulai no confirma la actualización de estado, el desinstalador cancela el proceso para que se pueda reintentar.
+El aviso de desinstalación indica que solo se borrarán archivos locales junto al instalador, que no se borrarán datos de Firulai, y que se intentará dejar el sistema inactivo en Firulai. Desde Firulai se podrán eliminar definitivamente sus datos o volver a instalar el agente más adelante enlazándolo al System y al inventario ya guardados. Si Firulai no confirma la actualización de estado, el desinstalador continúa con la retirada local.
 
 El aviso de permisos de Windows puede seguir mostrando `unins000.exe` porque es el ejecutable generado por Inno Setup y se muestra antes de que el desinstalador pueda ejecutar código propio. Para hacerlo más reconocible, el instalador define el nombre visible como `Firulai Inventory Agent` y la información de versión como agente de inventario para Firulai. Para que Windows muestre un publicador verificado en UAC será necesario firmar el instalador/desinstalador.
 
@@ -287,7 +296,7 @@ La clave del origen se conserva al desinstalar para que Windows pueda seguir mos
 3. Compilar el agente.
 4. Generar `Output/FirulaiAgent.exe`.
 5. Probar instalación en una máquina Windows limpia.
-6. Probar que una segunda instalación sobre el mismo equipo se cancela y pide desinstalar primero.
+6. Probar que una version superior actualiza el mismo equipo sin desinstalar y conserva su configuracion; una igual o inferior se rechaza.
 7. Probar instalación con UUID inexistente o ya asignado y comprobar que se cancela antes de crear archivos.
 8. Probar desinstalación y comprobar en Firulai que el receptor deja el System asociado al UUID como desconectado.
 9. Crear tag en GitHub, por ejemplo `v0.15.0`.
@@ -339,7 +348,7 @@ Flujo para el usuario:
 2. Descarga el `FirulaiAgent-<idioma>.exe` que corresponde a sus preferencias.
 3. Ejecuta el instalador como Administrador.
 4. Introduce el UUID y el token facilitados en Firulai.
-5. Si ya existe un agente instalado, el instalador cancela y pide desinstalar primero.
+5. Si ya existe un agente instalado valido, una version superior lo actualiza conservando UUID, token e idioma.
 6. Si el UUID no está disponible en Firulai, el instalador cancela sin crear la instalación.
 7. Si no se puede activar el System en Firulai, el instalador cancela sin crear la instalación.
 8. Si las validaciones son correctas, el servicio `RSAgent` queda instalado.

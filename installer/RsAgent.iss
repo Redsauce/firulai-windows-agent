@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.19.3"
+#define MyAppVersion "0.20.3"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
@@ -35,6 +35,7 @@ OutputBaseFilename=FirulaiAgent-{#InstallerSuffix}
 Compression=zip
 SolidCompression=no
 PrivilegesRequired=admin
+SetupMutex=Global\FirulaiAgentInstaller
 ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayName={#MyAppDisplayName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
@@ -310,10 +311,10 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAg
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: dword; ValueName: "TypesSupported"; ValueData: "7"
 
 [Run]
-Filename: "{sys}\sc.exe"; Parameters: "create RSAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|registeringService}"
+Filename: "{sys}\sc.exe"; Parameters: "create RSAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|registeringService}"; Check: IsNewInstallation
 Filename: "{sys}\sc.exe"; Parameters: "description RSAgent ""{code:InstallerText|serviceDescription}"""; Flags: runhidden waituntilterminated
 Filename: "{sys}\sc.exe"; Parameters: "failure RSAgent reset= 86400 actions= restart/60000/restart/60000/""""/60000"; Flags: runhidden waituntilterminated
-Filename: "{sys}\sc.exe"; Parameters: "start RSAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|startingService}"
+Filename: "{sys}\sc.exe"; Parameters: "start RSAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|startingService}"; Check: IsNewInstallation
 
 [UninstallRun]
 Filename: "{sys}\sc.exe"; Parameters: "stop RSAgent"; Flags: runhidden waituntilterminated; RunOnceId: "StopRSAgent"
@@ -325,6 +326,14 @@ var
   AgentLocale: string;
   UuidValidationResult: string;
   PrepareInstallFailureMessage: string;
+  UpgradeDetected: Boolean;
+  UpgradePrepared: Boolean;
+  UpgradeCommitted: Boolean;
+  UpgradeError: Boolean;
+  UpgradeHelper: string;
+  UpgradeInstalledUuid: string;
+  UpgradeInstalledLocale: string;
+  UpgradeInstalledVersion: string;
 
 function IsUuid(Value: string): Boolean;
 var
@@ -934,6 +943,25 @@ begin
   Result := T(Param);
 end;
 
+function IsNewInstallation(): Boolean;
+begin
+  Result := not UpgradeDetected;
+end;
+
+function UpgradeFailureText(): string;
+begin
+  if AgentLocale = 'es_ES' then Result := 'No se pudo actualizar el agente. Se necesita una version posterior y una instalacion valida; revisa el registro del instalador.'
+  else if AgentLocale = 'ca_ES' then Result := 'No s ha pogut actualitzar l agent. Cal una versio posterior i una instal·lacio valida; revisa el registre de l instal·lador.'
+  else if AgentLocale = 'eu_ES' then Result := 'Ezin izan da agentea eguneratu. Bertsio berriagoa eta instalazio baliozkoa behar dira; egiaztatu instalatzailearen erregistroa.'
+  else if AgentLocale = 'gl_ES' then Result := 'Non se puido actualizar o axente. Requirese unha version posterior e unha instalacion valida; revisa o rexistro do instalador.'
+  else if AgentLocale = 'fr_FR' then Result := 'Impossible de mettre a jour l agent. Une version plus recente et une installation valide sont requises; consultez le journal.'
+  else if AgentLocale = 'de_DE' then Result := 'Der Agent konnte nicht aktualisiert werden. Eine neuere Version und eine gültige Installation sind erforderlich; prüfen Sie das Protokoll.'
+  else if AgentLocale = 'it_IT' then Result := 'Impossibile aggiornare l agente. Servono una versione successiva e un installazione valida; controllare il registro.'
+  else if AgentLocale = 'ja_JP' then Result := '更新できませんでした。新しいバージョンと有効なインストールが必要です。ログを確認してください。'
+  else if AgentLocale = 'zh_CN' then Result := '无法更新代理。需要较新版本和有效安装，请检查安装日志。'
+  else Result := 'Could not update the agent. A newer version and a valid installation are required; check the installer log.';
+end;
+
 function EffectiveUuid(): string;
 begin
   Result := CmdParam('UUID');
@@ -1298,6 +1326,11 @@ procedure ResolveAgentLocale();
 var
   Locale: string;
 begin
+  if UpgradeDetected and (UpgradeInstalledLocale <> '') then
+  begin
+    AgentLocale := NormalizeLocale(UpgradeInstalledLocale);
+    Exit;
+  end;
   Locale := Trim(CmdParam('LOCALE'));
   if Locale = '' then Locale := Trim(CmdParam('AGENTLOCALE'));
   if Locale = '' then Locale := LocaleFromInstallerFileName();
@@ -1523,6 +1556,7 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
+  if UpgradeDetected and (PageID = ConfigPage.ID) then Result := True;
   if (PageID = ConfigPage.ID) and IsSilentWithConfig() then Result := True;
 end;
 
@@ -2043,7 +2077,29 @@ begin
 end;
 
 procedure InitializeWizard();
+var
+  ResultCode: Integer;
+  ReportPath: string;
 begin
+  UpgradeDetected := IsLocalAgentInstalled();
+  if UpgradeDetected then
+  begin
+    ExtractTemporaryFile('{#MyAppExeName}');
+    UpgradeHelper := ExpandConstant('{tmp}\{#MyAppExeName}');
+    ReportPath := ExpandConstant('{tmp}\upgrade.ini');
+    UpgradeError := not Exec(UpgradeHelper, '--inspect-upgrade {#MyAppVersion} "' + ReportPath + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if not UpgradeError then UpgradeError := ResultCode <> 0;
+    if not UpgradeError then
+    begin
+      UpgradeInstalledUuid := GetIniString('upgrade', 'uuid', '', ReportPath);
+      UpgradeInstalledLocale := GetIniString('upgrade', 'locale', '', ReportPath);
+      UpgradeInstalledVersion := GetIniString('upgrade', 'version', '', ReportPath);
+      UpgradeError := not IsUuid(UpgradeInstalledUuid);
+      if (CmdParam('UUID') <> '') and (CompareText(Trim(CmdParam('UUID')), UpgradeInstalledUuid) <> 0) then UpgradeError := True;
+      if CmdParam('TOKEN') <> '' then UpgradeError := True;
+    end;
+    DeleteFile(ReportPath);
+  end;
   ResolveAgentLocale();
   ApplyLocalizedWizardChrome();
   ConfigPage := CreateInputQueryPage(
@@ -2071,12 +2127,42 @@ begin
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
 begin
   if (CurStep = ssInstall) or (CurStep = ssPostInstall) then
     ApplyLocalizedInstallingPage();
 
+  if UpgradePrepared and (CurStep = ssPostInstall) then
+  begin
+    if not Exec(UpgradeHelper, '--upgrade-service start', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      RaiseException(UpgradeFailureText());
+    if ResultCode <> 0 then RaiseException(UpgradeFailureText());
+  end;
   if CurStep = ssDone then
+  begin
     ConfigureLocalizedUninstallEntry();
+    if UpgradePrepared then
+    begin
+      if not Exec(UpgradeHelper, '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then RaiseException(UpgradeFailureText());
+      if ResultCode <> 0 then RaiseException(UpgradeFailureText());
+    end;
+    UpgradeCommitted := True;
+    if UpgradePrepared then DeleteFile(ExpandConstant('{app}\{#MyAppExeName}.pre-update'));
+  end;
+end;
+
+procedure DeinitializeSetup();
+var
+  ResultCode: Integer;
+begin
+  if UpgradePrepared and not UpgradeCommitted then
+  begin
+    Log('Update did not complete; restoring the previous agent executable.');
+    if not Exec(UpgradeHelper, '--recover-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Log('ERROR: recovery helper could not start; startup recovery task retained.')
+    else if ResultCode <> 0 then Log('ERROR: recovery failed; startup recovery task retained.');
+  end;
 end;
 
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
@@ -2125,6 +2211,30 @@ begin
   Result := '';
   PrepareInstallFailureMessage := '';
   ResolveAgentLocale();
+
+  if UpgradeDetected then
+  begin
+    if UpgradeError or not IsServiceInstalled() then
+    begin
+      Result := LocalizedPrepareInstallFailure(UpgradeFailureText());
+      Exit;
+    end;
+    if UpgradePrepared then
+    begin
+      Result := LocalizedPrepareInstallFailure(UpgradeFailureText());
+      Exit;
+    end;
+    if not FileCopy(ExpandConstant('{app}\{#MyAppExeName}'), ExpandConstant('{app}\{#MyAppExeName}.pre-update'), False) then
+    begin
+      Result := LocalizedPrepareInstallFailure(UpgradeFailureText());
+      Exit;
+    end;
+    UpgradePrepared := True;
+    if not Exec(UpgradeHelper, '--prepare-upgrade "' + ExpandConstant('{app}') + '" ' + UpgradeInstalledVersion, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Result := LocalizedPrepareInstallFailure(UpgradeFailureText())
+    else if ResultCode <> 0 then Result := LocalizedPrepareInstallFailure(UpgradeFailureText());
+    Exit;
+  end;
 
   ValidationError := CleanupOrphanedLocalAgentInstallation();
   if ValidationError <> '' then
@@ -2252,6 +2362,7 @@ var
 begin
   if CurUninstallStep = usUninstall then
   begin
+    Exec(ExpandConstant('{app}\{#MyAppExeName}'), '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     MarkSystemDisconnectedInRsm();
   end;
 

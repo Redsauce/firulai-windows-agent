@@ -8,12 +8,14 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.19.3";
+        public const string AgentVersion = "0.20.3";
 
 
         public string token { get; set; }
         public string uuid { get; set; }
         public string locale { get; set; }
+        public bool? auto_update { get; set; }
+        public bool AutoUpdate { get { return auto_update ?? true; } }
 
         public string Token { get { return token ?? ""; } }
         public string Uuid { get { return uuid ?? ""; } }
@@ -48,11 +50,19 @@ namespace RsAgent
 
             var serializer = new JavaScriptSerializer();
             var raw = serializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(ConfigPath));
+            object updateSetting;
+            bool? autoUpdate = null;
+            if (raw.TryGetValue("auto_update", out updateSetting))
+            {
+                if (!(updateSetting is bool)) throw new InvalidOperationException("auto_update must be a JSON boolean.");
+                autoUpdate = (bool)updateSetting;
+            }
             var config = new AgentConfig
             {
                 token = GetString(raw, "token"),
                 uuid = GetString(raw, "uuid"),
-                locale = GetString(raw, "locale")
+                locale = GetString(raw, "locale"),
+                auto_update = autoUpdate
             };
             AgentText.SetLocale(config.Locale);
             config.Validate();

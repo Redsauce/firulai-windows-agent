@@ -20,6 +20,17 @@ namespace RsAgent
 
         private static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--apply-update") return AgentUpdater.Apply();
+            if (args.Length == 3 && args[0] == "--inspect-upgrade")
+                return InstallerUpgrade.Inspect(args[1], args[2]);
+            if (args.Length == 3 && args[0] == "--prepare-upgrade")
+                return InstallerUpgrade.PrepareRecovery(args[1], args[2]);
+            if (args.Length == 1 && args[0] == "--complete-upgrade")
+                return InstallerUpgrade.CompleteRecovery();
+            if (args.Length == 1 && args[0] == "--recover-upgrade")
+                return InstallerUpgrade.Recover();
+            if (args.Length == 2 && args[0] == "--upgrade-service")
+                return InstallerUpgrade.ServiceAction(args[1]);
             if (args.Length == 3 && (args[0] == "--validate-installation" || args[0] == "--validate-activation"))
                 return ValidateForInstaller(args[0], args[1], args[2]);
             var isUninstallStatusUpdateRequest =

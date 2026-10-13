@@ -45,6 +45,12 @@
     <Compile Include="AgentState.cs" />
     <Compile Include="AgentText.cs" />
     <Compile Include="InventoryCollector.cs" />
+    <Compile Include="InstallerUpgrade.cs" />
+    <Compile Include="UpdateManifest.cs" />
+    <Compile Include="AgentUpdater.cs" />
+    <EmbeddedResource Include="UpdatePublicKey.xml">
+      <LogicalName>RsAgent.UpdatePublicKey.xml</LogicalName>
+    </EmbeddedResource>
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="RsAgentService.cs" />
