@@ -1,0 +1,9 @@
+﻿{
+    "success":  true,
+    "expectedVersion":  "0.20.3",
+    "previousVersion":  "0.20.2",
+    "installedVersion":  "0.20.3",
+    "configurationPreserved":  true,
+    "inventoryUploadConfirmed":  true,
+    "downloadedInstaller":  true
+}

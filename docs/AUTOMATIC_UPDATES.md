@@ -91,8 +91,12 @@ helper automatico firmado 0.20.0 -> 0.20.1, ambas correctas, con configuracion
 conservada y nuevo inventario. La comprobacion final 0.20.1 -> 0.20.2 mediante
 helper automatico confirma tambien el envio correcto del inventario mediante
 el avance de `last_success_utc`. Evidencia: `automatic-update-validation.json`.
-La descarga de los assets oficiales de actualizacion
-no puede validarse hasta publicar una release con el manifiesto.
+La release 0.20.3 esta publicada. Se ha reiniciado el servicio del equipo
+autorizado con version 0.20.2: ha descargado el manifiesto y el instalador
+oficiales, actualizado automaticamente a 0.20.3, conservado la configuracion
+y confirmado el envio del inventario. Evidencia: `published-update-validation.json`.
+El guion reproducible es `scripts/test-published-update.ps1`; necesita una
+release superior a la instalada y permisos de administrador.
 
 El rollback forzado se ha probado en este mismo equipo: se detuvo el servicio,
 se simulo un ejecutable de reemplazo invalido y el helper restauro el binario
