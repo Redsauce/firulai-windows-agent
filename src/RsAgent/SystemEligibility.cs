@@ -21,7 +21,7 @@ namespace RsAgent
         {
             var account = Field(row, "1785");
             if (string.IsNullOrEmpty(account) ||
-                (account != "6956" && !Field(row, "1972").Equals("covered", StringComparison.OrdinalIgnoreCase)))
+                (!installing && !Field(row, "1972").Equals("covered", StringComparison.OrdinalIgnoreCase)))
                 throw new SystemEligibilityException("uncovered", AgentText.T("rsm.systemNotCovered"));
 
             if (installing)

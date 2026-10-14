@@ -117,6 +117,36 @@ namespace RsAgent
             await SendEventAsync(config, "newServerData", serializer.Serialize(inventory)).ConfigureAwait(false);
         }
 
+        internal static Dictionary<string, string> BuildAgentVersionReport(AgentConfig config)
+        {
+            return new Dictionary<string, string>
+            {
+                { "uuid", config.Uuid },
+                { "action", "report_version" },
+                { "agent_version", AgentConfig.AgentVersion },
+                { "hostname", Environment.MachineName },
+                { "fqdn", InventoryCollector.GetFqdn() },
+                { "RStoken", config.Token }
+            };
+        }
+
+        internal static async Task ReportAgentVersionAsync(AgentConfig config)
+        {
+            var serializer = new JavaScriptSerializer();
+            var body = await SendEventAsync(config, "changeSystemStatus", serializer.Serialize(BuildAgentVersionReport(config))).ConfigureAwait(false);
+            // An empty HTTP response means queued, not that RSM has already updated the version.
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                Logger.Info("Agent version report queued: " + AgentConfig.AgentVersion + ".");
+                return;
+            }
+            var response = serializer.Deserialize<Dictionary<string, object>>(body);
+            bool updated;
+            if (!TryGetBoolean(response, "updated", out updated) || !updated)
+                throw new InvalidOperationException("Agent version report was not accepted.");
+            Logger.Info("Agent version report confirmed: " + AgentConfig.AgentVersion + ".");
+        }
+
         private static string GetSafeDestination(string url)
         {
             Uri uri;
@@ -131,53 +161,63 @@ namespace RsAgent
             var payload = serializer.Serialize(new Dictionary<string, string>
             {
                 { "uuid", config.Uuid },
-                { "action", "disconnect" },
+                { "action", "uninstall" },
                 { "hostname", Environment.MachineName },
                 { "fqdn", InventoryCollector.GetFqdn() },
                 { "RStoken", config.Token }
             });
             var body = await SendEventAsync(config, "changeSystemStatus", payload).ConfigureAwait(false);
 
-            // Events Handler may accept and execute the event with HTTP 2xx
-            // without forwarding the script stdout to the caller.
-            if (string.IsNullOrWhiteSpace(body))
+            // Acknowledging a queued event is not a confirmation of uninstallation.
+            if (!string.IsNullOrWhiteSpace(body))
             {
-                return new UninstallStatusUpdateResult
+                var response = serializer.Deserialize<Dictionary<string, object>>(body);
+                object error;
+                if (response.TryGetValue("error", out error) && !string.IsNullOrEmpty(Convert.ToString(error)) && Convert.ToString(error) != "system_not_found")
+                    throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", "RSM rejected request"));
+            }
+            for (int attempt = 0; attempt < 20; attempt++)
+            {
+                var confirmation = await GetUninstallationConfirmationAsync(config).ConfigureAwait(false);
+                if (confirmation != 0)
+                    return new UninstallStatusUpdateResult { SystemFound = confirmation == 1, Message = "Agent uninstalled or system already deleted; no coverage retained." };
+                await Task.Delay(1000).ConfigureAwait(false);
+            }
+            throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", "Uninstallation was not confirmed by RSM."));
+        }
+
+        internal static bool IsUninstalledRow(Dictionary<string, object> row)
+        {
+            object status, coverage;
+            return row.TryGetValue("1751", out status) && row.TryGetValue("1972", out coverage) &&
+                Convert.ToString(status).Equals("Agente desinstalado", StringComparison.OrdinalIgnoreCase) &&
+                Convert.ToString(coverage).Equals("uncovered", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static async Task<int> GetUninstallationConfirmationAsync(AgentConfig config)
+        {
+            var url = ApiEndpoint.Url.Substring(0, ApiEndpoint.Url.Length - "/api.php".Length) + "/v2/items/get.php";
+            var serializer = new JavaScriptSerializer();
+            var payload = serializer.Serialize(new Dictionary<string, object> {
+                { "itemTypeID", "191" }, { "propertyIDs", new[] { "1780", "1751", "1972" } },
+                { "translateIDs", false }, { "filterRules", new[] { new Dictionary<string, string> {
+                    { "propertyID", "1780" }, { "value", config.Uuid }, { "operation", "=" } } } }
+            });
+            using (var handler = new HttpClientHandler { AllowAutoRedirect = false })
+            using (var client = new HttpClient(handler))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, url))
+            {
+                client.Timeout = TimeSpan.FromSeconds(5);
+                request.Headers.TryAddWithoutValidation("Authorization", config.Token);
+                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+                using (var response = await client.SendAsync(request).ConfigureAwait(false))
                 {
-                    SystemFound = true,
-                    Message = "changeSystemStatus accepted with an empty response body."
-                };
+                    if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Uninstallation confirmation unavailable.");
+                    var rows = new List<Dictionary<string, object>>();
+                    SystemEligibility.CollectRows(serializer.DeserializeObject(await response.Content.ReadAsStringAsync().ConfigureAwait(false)), config.Uuid, rows);
+                    return rows.Count == 0 ? 2 : (rows.Count == 1 && IsUninstalledRow(rows[0]) ? 1 : 0);
+                }
             }
-
-            var response = serializer.Deserialize<Dictionary<string, object>>(body);
-            bool systemFound;
-            bool disconnected;
-
-            if (!TryGetBoolean(response, "systemFound", out systemFound) ||
-                !TryGetBoolean(response, "disconnected", out disconnected))
-            {
-                throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", body));
-            }
-
-            if (!systemFound && !disconnected)
-            {
-                return new UninstallStatusUpdateResult
-                {
-                    SystemFound = false,
-                    Message = AgentText.T("rsm.noSystemForUuid", config.Uuid)
-                };
-            }
-
-            if (!systemFound || !disconnected)
-            {
-                throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", body));
-            }
-
-            return new UninstallStatusUpdateResult
-            {
-                SystemFound = true,
-                Message = body
-            };
         }
 
         private static async Task<string> SendEventAsync(AgentConfig config, string trigger, string json)

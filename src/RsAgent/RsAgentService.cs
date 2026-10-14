@@ -128,6 +128,19 @@ namespace RsAgent
 
                 await RsmClient.ValidateSystemUuidExistsAsync(config).ConfigureAwait(false);
 
+                try
+                {
+                    // Installation starts the new service before committing the recovery journal.
+                    for (int attempt = 0; attempt < 40 && InstallerUpgrade.RecoveryPending(); attempt++)
+                        await Task.Delay(250).ConfigureAwait(false);
+                    if (!InstallerUpgrade.RecoveryPending())
+                        await RsmClient.ReportAgentVersionAsync(config).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Agent version report failed; inventory continues. " + ex.GetType().Name);
+                }
+
                 phase = AgentText.T("service.phaseInventoryCollection");
                 Logger.Info(AgentText.T("service.collectingInventory", executionId));
                 var inventoryJson = InventoryCollector.Collect(config);

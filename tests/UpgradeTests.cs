@@ -26,6 +26,19 @@ namespace RsAgent
                 if (!rejected) throw new Exception("Unknown installed version accepted: " + invalid);
             }
             SignedManifestTests();
+            var uninstalled = new System.Collections.Generic.Dictionary<string, object> { { "1751", "Agente desinstalado" }, { "1972", "uncovered" } };
+            if (!RsmClient.IsUninstalledRow(uninstalled)) throw new Exception("Confirmed uninstallation rejected");
+            uninstalled["1972"] = "covered";
+            if (RsmClient.IsUninstalledRow(uninstalled)) throw new Exception("Coverage not released but uninstallation accepted");
+            uninstalled["1972"] = "uncovered"; uninstalled["1751"] = "Disconnected";
+            if (RsmClient.IsUninstalledRow(uninstalled)) throw new Exception("Disconnected mistaken for uninstalled");
+            var versionReport = RsmClient.BuildAgentVersionReport(new AgentConfig {
+                uuid = "550e8400-e29b-41d4-a716-446655440000", token = "fixture-token"
+            });
+            if (versionReport["action"] != "report_version" || versionReport["agent_version"] != AgentConfig.AgentVersion ||
+                versionReport["uuid"] != "550e8400-e29b-41d4-a716-446655440000" || versionReport.Count != 6 ||
+                versionReport.ContainsKey("packages") || versionReport.ContainsKey("last_scan"))
+                throw new Exception("Agent version report contains an incorrect version, identity or inventory fields.");
             if (!new AgentConfig().AutoUpdate || new AgentConfig { auto_update = false }.AutoUpdate)
                 throw new Exception("Default update preference or opt-out is incorrect.");
             Console.WriteLine("PASS: numeric upgrade ordering, downgrade rejection, malformed and prerelease versions.");

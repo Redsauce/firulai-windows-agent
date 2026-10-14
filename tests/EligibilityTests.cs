@@ -34,7 +34,7 @@ namespace RsAgent
             Check("uncovered", Row("Activo", "uncovered"), false, "uncovered");
             Check("empty coverage", Row("Activo", ""), false, "uncovered");
             Check("missing account", Row("Activo", "covered", ""), false, "uncovered");
-            Check("Arsys coverage exception", Row("Activo", "uncovered", "6956"), false, "");
+            Check("Arsys uncovered rejected", Row("Activo", "uncovered", "6956"), false, "uncovered");
             Check("Arsys cannot bypass disconnected", Row("Disconnected", "covered", "6956"), false, "inactive");
             Check("fresh reserve", Row("", "covered"), true, "");
             Check("reinstall disconnected", Row("Disconnected", "covered"), true, "");
@@ -42,7 +42,7 @@ namespace RsAgent
             installedWindows["1752"] = "Windows 10 Pro";
             installedWindows["1749"] = Environment.MachineName;
             Check("reinstall detected Windows edition", installedWindows, true, "");
-            Check("uncovered install", Row("", "uncovered"), true, "uncovered");
+            Check("uncovered install defers capacity to activation", Row("", "uncovered"), true, "");
             var wrongPlatform = Row("", "covered"); wrongPlatform["1752"] = "Linux";
             Check("wrong platform", wrongPlatform, true, "identity");
             var foreign = Row("", "covered"); foreign["1749"] = "foreign-computer.invalid";

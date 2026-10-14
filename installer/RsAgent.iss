@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.3"
+#define MyAppVersion "0.20.4"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
@@ -503,8 +503,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai no permitió actualizar el estado'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Comprueba que el token corresponde al UUID facilitado. La instalación no continuará sin activar el sistema.'
     else if Key = 'uninstallContactFailed' then Result := 'No se pudo contactar con el agente para marcar el sistema como inactivo en Firulai. La desinstalación se cancelará para que el estado remoto no quede desactualizado.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'No se pudo marcar el sistema como inactivo en Firulai. Revisa la conectividad con Firulai y vuelve a desinstalar.'
-    else if Key = 'uninstallSuccess' then Result := 'El sistema se ha marcado como inactivo en Firulai. No se borrarán los datos guardados; podrás eliminarlos desde Firulai o volver a instalar el agente más adelante enlazándolo a este mismo System.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Necesitas conexión con Firulai. Si no se confirma la operación, la desinstalación se cancela y el agente permanece instalado.'
+    else if Key = 'uninstallSuccess' then Result := 'Agente desinstalado. Al desinstalar, el sistema deja de actualizarse y libera una plaza. Conservaremos su inventario y su historial. Esto no elimina el sistema.'
     else Result := Key;
     Exit;
   end;
@@ -551,8 +551,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai no ha permes actualitzar estat'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Comprova que el token correspon a UUID facilitat. La instal.lacio no continuara sense activar el sistema.'
     else if Key = 'uninstallContactFailed' then Result := 'No es pot contactar amb agent per marcar sistema com a inactiu a Firulai. La desinstal.lacio es cancel.lara per evitar estat remot desactualitzat.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'No es pot marcar sistema com a inactiu a Firulai. Revisa la connectivitat amb Firulai i torna a desinstal.lar.'
-    else if Key = 'uninstallSuccess' then Result := 'El sistema s ha marcat com a inactiu a Firulai. No s esborraran les dades desades; podras eliminar-les des de Firulai o tornar a instal.lar agent mes endavant enllacant-lo a aquest mateix System.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Cal connexió amb Firulai. Sense confirmació es cancel·la la desinstal·lació i l’agent continua instal·lat.'
+    else if Key = 'uninstallSuccess' then Result := 'Agent desinstal·lat. La desinstal·lació atura les actualitzacions i allibera una plaça. Conservarem l’inventari i l’historial. No elimina el sistema.'
     else Result := Key;
     Exit;
   end;
@@ -599,8 +599,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulaik ez du egoera eguneratzen utzi'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Egiaztatu tokena emandako UUIDari dagokiola. Instalazioak ez du jarraituko sistema aktibatu arte.'
     else if Key = 'uninstallContactFailed' then Result := 'Ezin izan da agentearekin kontaktatu sistema Firulain inaktibo markatzeko. Desinstalazioa bertan behera utziko da urruneko egoera zaharkituta gera ez dadin.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Ezin izan da sistema Firulain inaktibo markatu. Egiaztatu Firulairekin konektagarritasuna eta desinstalatu berriro.'
-    else if Key = 'uninstallSuccess' then Result := 'Sistema Firulain inaktibo markatu da. Gordetako datuak ez dira ezabatuko; Firulaitik ezabatu edo agentea gero berriro instalatu ahal izango duzu System berari lotuta.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Firulairekin konexioa behar da. Berrespenik gabe desinstalazioa bertan behera uzten da eta agentea instalatuta geratzen da.'
+    else if Key = 'uninstallSuccess' then Result := 'Agentea desinstalatuta. Desinstalatzeak eguneraketak gelditzen ditu eta plaza bat askatzen du. Inbentarioa eta historia gordeko dira. Sistema ez da ezabatzen.'
     else Result := Key;
     Exit;
   end;
@@ -647,8 +647,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai non permitiu actualizar o estado'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Comproba que o token corresponde ao UUID facilitado. A instalacion non continuara sen activar o sistema.'
     else if Key = 'uninstallContactFailed' then Result := 'Non se puido contactar co axente para marcar o sistema como inactivo en Firulai. A desinstalacion cancelarase para que o estado remoto non quede desactualizado.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Non se puido marcar o sistema como inactivo en Firulai. Revisa a conectividade con Firulai e volve desinstalar.'
-    else if Key = 'uninstallSuccess' then Result := 'O sistema marcouse como inactivo en Firulai. Non se borraran os datos gardados; poderas eliminalos desde Firulai ou volver instalar o axente mais adiante enlazandoo a este mesmo System.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Precisas conexión con Firulai. Sen confirmación cancélase a desinstalación e o axente segue instalado.'
+    else if Key = 'uninstallSuccess' then Result := 'Axente desinstalado. A desinstalación detén as actualizacións e libera unha praza. Conservaremos o inventario e o historial. Non elimina o sistema.'
     else Result := Key;
     Exit;
   end;
@@ -695,8 +695,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai a refuse actualiser etat'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Verifiez que le token correspond au UUID fourni. Installation ne continuera pas sans activer le systeme.'
     else if Key = 'uninstallContactFailed' then Result := 'Impossible contacter agent pour marquer le systeme comme inactif dans Firulai. Desinstallation sera annulee pour eviter un etat distant obsolete.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Impossible marquer le systeme comme inactif dans Firulai. Verifiez la connectivite avec Firulai puis desinstallez a nouveau.'
-    else if Key = 'uninstallSuccess' then Result := 'Le systeme a ete marque comme inactif dans Firulai. Les donnees enregistrees ne seront pas supprimees; vous pourrez les supprimer depuis Firulai ou reinstaller agent plus tard en le liant a ce meme System.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Une connexion à Firulai est nécessaire. Sans confirmation, la désinstallation est annulée et l’agent reste installé.'
+    else if Key = 'uninstallSuccess' then Result := 'Agent désinstallé. La désinstallation arrête les mises à jour et libère une place. L’inventaire et l’historique sont conservés. Le système reste enregistré.'
     else Result := Key;
     Exit;
   end;
@@ -743,8 +743,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai hat die Statusaktualisierung verweigert'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Pruefen Sie, ob der Token zur bereitgestellten UUID gehoert. Die Installation wird nicht fortgesetzt, bis das System aktiviert ist.'
     else if Key = 'uninstallContactFailed' then Result := 'Der Agent konnte nicht kontaktiert werden, um das System in Firulai als inaktiv zu markieren. Die Deinstallation wird abgebrochen, damit der Remote-Status aktuell bleibt.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Das System konnte in Firulai nicht als inaktiv markiert werden. Pruefen Sie die Verbindung zu Firulai und deinstallieren Sie erneut.'
-    else if Key = 'uninstallSuccess' then Result := 'Das System wurde in Firulai als inaktiv markiert. Gespeicherte Daten werden nicht geloescht; Sie koennen sie in Firulai loeschen oder den Agenten spaeter erneut mit demselben System verknuepfen.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Eine Verbindung zu Firulai ist erforderlich. Ohne Bestätigung wird die Deinstallation abgebrochen und der Agent bleibt installiert.'
+    else if Key = 'uninstallSuccess' then Result := 'Agent deinstalliert. Die Deinstallation beendet Aktualisierungen und gibt einen Platz frei. Inventar und Verlauf bleiben erhalten. Das System wird nicht gelöscht.'
     else Result := Key;
     Exit;
   end;
@@ -791,8 +791,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai non ha permesso di aggiornare stato'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'Controlla che il token corrisponda a UUID fornito. Installazione non continuera senza attivare il sistema.'
     else if Key = 'uninstallContactFailed' then Result := 'Impossibile contattare agente per marcare il sistema come inattivo in Firulai. Disinstallazione sara annullata per evitare stato remoto non aggiornato.'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Impossibile marcare il sistema come inattivo in Firulai. Controlla connettivita con Firulai e ripeti disinstallazione.'
-    else if Key = 'uninstallSuccess' then Result := 'Il sistema e stato marcato come inattivo in Firulai. I dati salvati non saranno eliminati; potrai eliminarli da Firulai o reinstallare agente piu avanti collegandolo a questo stesso System.'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Serve una connessione a Firulai. Senza conferma la disinstallazione viene annullata e l’agente rimane installato.'
+    else if Key = 'uninstallSuccess' then Result := 'Agente disinstallato. La disinstallazione interrompe gli aggiornamenti e libera un posto. Inventario e cronologia rimangono. Il sistema non viene eliminato.'
     else Result := Key;
     Exit;
   end;
@@ -839,8 +839,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai が状態更新を許可しませんでした'
     else if Key = 'statusUpdateDeniedAdvice' then Result := 'token が提供された UUID に対応していることを確認してください。システムを有効化できるまで、インストールは続行されません。'
     else if Key = 'uninstallContactFailed' then Result := 'Firulai でシステムを非アクティブにするためにエージェントへ接続できませんでした。リモート状態が古くならないようにアンインストールを取り消します。'
-    else if Key = 'uninstallUpdateFailed' then Result := 'Firulai でシステムを非アクティブにできませんでした。Firulai への接続を確認し、もう一度アンインストールしてください。'
-    else if Key = 'uninstallSuccess' then Result := 'システムは Firulai で非アクティブとしてマークされました。保存済みデータは削除されません。Firulai から削除するか、あとで同じ System にリンクしてエージェントを再インストールできます。'
+    else if Key = 'uninstallUpdateFailed' then Result := 'Firulaiへの接続が必要です。確認できない場合はアンインストールを中止し、エージェントを残します。'
+    else if Key = 'uninstallSuccess' then Result := 'エージェント未インストール. アンインストールすると更新が停止し、1枠が空きます。在庫と履歴は保持され、システムは削除されません。'
     else Result := Key;
     Exit;
   end;
@@ -887,8 +887,8 @@ begin
     else if Key = 'statusUpdateDenied' then Result := 'Firulai 不允许更新状态'
     else if Key = 'statusUpdateDeniedAdvice' then Result := '请确认 token 对应提供的 UUID。未激活系统前，安装不会继续。'
     else if Key = 'uninstallContactFailed' then Result := '无法联系代理以在 Firulai 中将系统标记为非活动。卸载将取消，以避免远程状态过期。'
-    else if Key = 'uninstallUpdateFailed' then Result := '无法在 Firulai 中将系统标记为非活动。请检查与 Firulai 的连接并重新卸载。'
-    else if Key = 'uninstallSuccess' then Result := '系统已在 Firulai 中标记为非活动。保存的数据不会删除；可以从 Firulai 删除，或以后重新安装代理并链接到同一个 System。'
+    else if Key = 'uninstallUpdateFailed' then Result := '需要连接 Firulai。无法确认时将取消卸载，代理仍保留安装。'
+    else if Key = 'uninstallSuccess' then Result := '代理已卸载. 卸载将停止更新并释放一个名额。库存和历史记录会保留，不会删除系统。'
     else Result := Key;
     Exit;
   end;
@@ -933,8 +933,8 @@ begin
   else if Key = 'statusUpdateDenied' then Result := 'Firulai did not allow updating the status'
   else if Key = 'statusUpdateDeniedAdvice' then Result := 'Check that the token matches the provided UUID. Installation will not continue until the system is activated.'
   else if Key = 'uninstallContactFailed' then Result := 'Could not contact the agent to mark the system as inactive in Firulai. Uninstall will be cancelled so the remote status does not become outdated.'
-  else if Key = 'uninstallUpdateFailed' then Result := 'Could not mark the system as inactive in Firulai. Check connectivity with Firulai and uninstall again.'
-  else if Key = 'uninstallSuccess' then Result := 'The system has been marked as inactive in Firulai. Saved data will not be deleted; you can delete it from Firulai or reinstall the agent later by linking it to this same System.'
+  else if Key = 'uninstallUpdateFailed' then Result := 'A connection to Firulai is required. Without confirmation, uninstallation is cancelled and the agent remains installed.'
+  else if Key = 'uninstallSuccess' then Result := 'Agent uninstalled. Uninstalling stops updates and frees one seat. Inventory and history are retained. This does not delete the system.'
   else Result := Key;
 end;
 
@@ -1516,6 +1516,7 @@ begin
   Payload :=
     '{"uuid":"' + JsonEscape(EffectiveUuid()) + '",' +
     '"action":"activate",' +
+    '"hostname":"' + JsonEscape(GetComputerNameString()) + '",' +
     '"platform":"windows",' +
     '"RStoken":"' + JsonEscape(EffectiveToken()) + '"}';
 
@@ -2321,6 +2322,8 @@ begin
   Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ConfigPath + '" /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:R', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
+function MarkSystemDisconnectedInRsm(): Boolean; forward;
+
 function InitializeUninstall(): Boolean;
 begin
   ResolveUninstallLocale();
@@ -2333,27 +2336,13 @@ var
   AgentPath: string;
   ConfigPath: string;
 begin
-  Result := True;
+  Result := False;
   ResolveUninstallLocale();
   AgentPath := ExpandConstant('{app}\{#MyAppExeName}');
   ConfigPath := ExpandConstant('{commonappdata}\RSAgent\config.json');
-
-  if (not FileExists(AgentPath)) or (not FileExists(ConfigPath)) then
-  begin
-    Exit;
-  end;
-
-  Exec(ExpandConstant('{sys}\sc.exe'), 'stop RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-
-  if not Exec(AgentPath, '--mark-disconnected-on-uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-  begin
-    Exit;
-  end;
-
-  if (ResultCode <> 0) and (ResultCode <> 2) then
-  begin
-    Exit;
-  end;
+  if (not FileExists(AgentPath)) or (not FileExists(ConfigPath)) then Exit;
+  if not Exec(AgentPath, '--mark-disconnected-on-uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then Exit;
+  Result := (ResultCode = 0) or (ResultCode = 2);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -2362,8 +2351,13 @@ var
 begin
   if CurUninstallStep = usUninstall then
   begin
+    if not MarkSystemDisconnectedInRsm() then
+    begin
+      MsgBox(T('uninstallUpdateFailed'), mbError, MB_OK);
+      Abort;
+    end;
     Exec(ExpandConstant('{app}\{#MyAppExeName}'), '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    MarkSystemDisconnectedInRsm();
+
   end;
 
   if CurUninstallStep = usPostUninstall then

@@ -99,7 +99,7 @@ private static int ValidateForInstaller(string mode, string configPath, string r
                     }
                     catch (SystemEligibilityException ex)
                     {
-                        if (mode != "--validate-activation" || ex.Code != "inactive" || timer.ElapsedMilliseconds >= 30000) throw;
+                        if (mode != "--validate-activation" || (ex.Code != "inactive" && ex.Code != "uncovered") || timer.ElapsedMilliseconds >= 30000) throw;
                         System.Threading.Thread.Sleep(1000);
                     }
                 }
@@ -115,7 +115,26 @@ private static int ValidateForInstaller(string mode, string configPath, string r
         {
             var config = AgentConfig.Load();
 
-            var result = await RsmClient.MarkSystemDisconnectedOnUninstallAsync(config).ConfigureAwait(false);
+            UninstallStatusUpdateResult result;
+            using (var service = new ServiceController("RSAgent"))
+            {
+                var wasRunning = service.Status == ServiceControllerStatus.Running;
+                try
+                {
+                    if (wasRunning)
+                    {
+                        service.Stop();
+                        service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
+                    }
+                    result = await RsmClient.MarkSystemDisconnectedOnUninstallAsync(config).ConfigureAwait(false);
+                }
+                catch
+                {
+                    service.Refresh();
+                    if (wasRunning && service.Status == ServiceControllerStatus.Stopped) service.Start();
+                    throw;
+                }
+            }
             if (!result.SystemFound)
             {
                 Logger.Info(AgentText.T("program.uninstallNoSystemLog", config.Uuid));

@@ -1,5 +1,17 @@
 # Actualizaciones Windows
 
+## Aviso ligero de version (cambio local pendiente de publicar)
+
+El servicio prepara un `changeSystemStatus` con `action=report_version`, UUID,
+hostname, FQDN y version del ejecutable en uso antes de recopilar el inventario.
+Durante una actualizacion espera a que se cierre el diario de recuperacion,
+para no anunciar el binario antes de que termine el instalador. Si falla el
+aviso, continua el inventario completo. Una respuesta vacia confirma solo
+la recepcion en la cola; no se registra como confirmacion de actualizacion RSM.
+
+El receptor debe actualizarse primero para aceptar esta accion. El cambio
+no esta incluido en la release 0.20.3 publicada ni en el agente instalado.
+
 La release 0.20.3 incorpora actualizaciones firmadas. El instalador permite actualizar sobre una
 instalacion valida con una version estrictamente superior. No desinstala ni
 modifica UUID, token, idioma, `config.json`, estado o URL de API. El servicio
