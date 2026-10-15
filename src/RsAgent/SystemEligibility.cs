@@ -41,7 +41,11 @@ namespace RsAgent
             else
             {
                 var status = Field(row, "1751").ToLowerInvariant();
-                if (status != "activo" && status != "active" && status != "connected")
+                // A disconnected covered agent can report again; successful
+                // inventory ingestion restores the installed state.
+                if (status != "agente instalado" && status != "agente desconectado" &&
+                    status != "desconectado" && status != "disconnected" &&
+                    status != "activo" && status != "active" && status != "connected")
                     throw new SystemEligibilityException("inactive", AgentText.T("rsm.systemNotActive"));
             }
         }
