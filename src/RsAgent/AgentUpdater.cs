@@ -12,6 +12,13 @@ namespace RsAgent
     {
         private const string ManifestUrl = "https://github.com/Redsauce/firulai-windows-agent/releases/latest/download/agent-update.json";
         private static DateTime nextCheckUtc;
+        internal static DateTime RetryAtUtc { get; private set; }
+
+        internal static void RecordCheckResult(DateTime nowUtc, bool succeeded)
+        {
+            nextCheckUtc = nowUtc.Add(succeeded ? TimeSpan.FromHours(24) : TimeSpan.FromMinutes(5));
+            RetryAtUtc = succeeded ? DateTime.MinValue : nextCheckUtc;
+        }
         private static readonly string Stage = Path.Combine(AgentConfig.DataDir, "updates");
 
         private static void SecureStage()
@@ -70,49 +77,81 @@ namespace RsAgent
             }
         }
 
-        internal static async Task<bool> CheckAsync()
+        private static readonly System.Threading.SemaphoreSlim CheckLock = new System.Threading.SemaphoreSlim(1, 1);
+
+        internal static Task<bool> CheckAsync()
         {
-            if (DateTime.UtcNow < nextCheckUtc) return false;
-            nextCheckUtc = DateTime.UtcNow.AddHours(24);
+            return CheckAsync(CheckForUpdateAsync, () => DateTime.UtcNow);
+        }
+
+        internal static async Task<bool> CheckAsync(Func<Task<bool>> check, Func<DateTime> utcNow)
+        {
+            await CheckLock.WaitAsync().ConfigureAwait(false);
             try
             {
-                var config = AgentConfig.Load();
-                if (!config.AutoUpdate || InstallerUpgrade.RecoveryPending()) return false;
-                System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls12;
-                var publicKey = PublicKey();
-                if (string.IsNullOrWhiteSpace(publicKey))
+                if (utcNow() < nextCheckUtc) return false;
+                try
                 {
-                    Logger.Warn("Automatic updates unavailable: this build has no trusted release key.");
+                    var launched = await check().ConfigureAwait(false);
+                    RecordCheckResult(utcNow(), true);
+                    return launched;
+                }
+                catch (Exception ex)
+                {
+                    RecordCheckResult(utcNow(), false);
+                    var networkError = ex.InnerException as System.Net.WebException;
+                    Logger.Warn("Automatic update check failed; inventory continues. " + ex.GetType().Name +
+                        (networkError == null ? "" : " NetworkStatus=" + networkError.Status) +
+                        ". Update retry at " + RetryAtUtc.ToLocalTime().ToString("o") + ".");
                     return false;
                 }
-                using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
-                {
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd("Firulai-Windows-Agent/" + AgentConfig.AgentVersion);
-                    var json = await DownloadAsync(client, ManifestUrl, 32768).ConfigureAwait(false);
-                    var signature = System.Text.Encoding.ASCII.GetString(await DownloadAsync(client, ManifestUrl + ".sig", 8192).ConfigureAwait(false));
-                    var manifest = UpdateManifest.Verify(json, signature, publicKey);
-                    if (!InstallerUpgrade.IsNewer(manifest.version, AgentConfig.AgentVersion)) return false;
-                    SecureStage();
-                    var attempted = Path.Combine(Stage, "attempted-version.txt");
-                    if (File.Exists(attempted) && File.ReadAllText(attempted).Trim() == manifest.version) return false;
-                    File.WriteAllBytes(Path.Combine(Stage, "FirulaiAgent.exe"), await DownloadAsync(client, manifest.url, manifest.size).ConfigureAwait(false));
-                    manifest.VerifyPackage(Path.Combine(Stage, "FirulaiAgent.exe"));
-                    File.WriteAllBytes(Path.Combine(Stage, "agent-update.json"), json);
-                    File.WriteAllText(Path.Combine(Stage, "agent-update.json.sig"), signature);
-                    var helper = Path.Combine(Stage, "update-worker.exe");
-                    File.Copy(typeof(AgentUpdater).Assembly.Location, helper, true);
-                    using (var process = Process.Start(new ProcessStartInfo(helper, "--apply-update") { UseShellExecute = false, CreateNoWindow = true }))
-                    {
-                        if (process == null) throw new InvalidOperationException("Could not launch update worker.");
-                    }
-                    Logger.Info("Launched signed agent update " + manifest.version + ".");
-                    return true;
-                }
             }
-            catch (Exception ex)
+            finally { CheckLock.Release(); }
+        }
+
+        private static async Task<bool> CheckForUpdateAsync()
+        {
+            var config = AgentConfig.Load();
+            if (!config.AutoUpdate)
             {
-                Logger.Warn("Automatic update check failed; inventory continues. " + ex.GetType().Name);
+                Logger.Info("Automatic updates disabled by local configuration.");
                 return false;
+            }
+            if (InstallerUpgrade.RecoveryPending()) throw new InvalidOperationException("Upgrade recovery is pending.");
+            System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls12;
+            var publicKey = PublicKey();
+            if (string.IsNullOrWhiteSpace(publicKey))
+            {
+                Logger.Warn("Automatic updates unavailable: this build has no trusted release key.");
+                return false;
+            }
+            using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
+            {
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Firulai-Windows-Agent/" + AgentConfig.AgentVersion);
+                var json = await DownloadAsync(client, ManifestUrl, 32768).ConfigureAwait(false);
+                var signature = System.Text.Encoding.ASCII.GetString(await DownloadAsync(client, ManifestUrl + ".sig", 8192).ConfigureAwait(false));
+                var manifest = UpdateManifest.Verify(json, signature, publicKey);
+                if (!InstallerUpgrade.IsNewer(manifest.version, AgentConfig.AgentVersion))
+                    return false;
+                SecureStage();
+                var attempted = Path.Combine(Stage, "attempted-version.txt");
+                if (File.Exists(attempted) && File.ReadAllText(attempted).Trim() == manifest.version)
+                {
+                    Logger.Warn("Automatic update " + manifest.version + " was already attempted; automatic reinstall suppressed. See updates/installer.log.");
+                    return false;
+                }
+                File.WriteAllBytes(Path.Combine(Stage, "FirulaiAgent.exe"), await DownloadAsync(client, manifest.url, manifest.size).ConfigureAwait(false));
+                manifest.VerifyPackage(Path.Combine(Stage, "FirulaiAgent.exe"));
+                File.WriteAllBytes(Path.Combine(Stage, "agent-update.json"), json);
+                File.WriteAllText(Path.Combine(Stage, "agent-update.json.sig"), signature);
+                var helper = Path.Combine(Stage, "update-worker.exe");
+                File.Copy(typeof(AgentUpdater).Assembly.Location, helper, true);
+                using (var process = Process.Start(new ProcessStartInfo(helper, "--apply-update") { UseShellExecute = false, CreateNoWindow = true }))
+                {
+                    if (process == null) throw new InvalidOperationException("Could not launch update worker.");
+                }
+                Logger.Info("Launched signed agent update " + manifest.version + ".");
+                return true;
             }
         }
 

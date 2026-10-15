@@ -17,6 +17,9 @@ namespace RsAgent
         private readonly object _timerLock = new object();
         private readonly SemaphoreSlim _executionLock = new SemaphoreSlim(1, 1);
         private Timer _timer;
+        private Timer _updateRetryTimer;
+        internal Func<Task<bool>> UpdateCheck = AgentUpdater.CheckAsync;
+        internal Func<DateTime, bool> DailyRunDue = IsDailyRunDue;
         private volatile bool _stopping;
         private DateTime _nextRunAtLocal;
         private string _nextRunTrigger = AgentText.T("service.triggerNone");
@@ -48,7 +51,7 @@ namespace RsAgent
             Task.Run(async () =>
             {
                 var now = DateTime.Now;
-                var dailyRunDue = IsDailyRunDue(now);
+                var dailyRunDue = DailyRunDue(now);
                 var trigger = dailyRunDue ? AgentText.T("service.triggerStartupRecovery") : AgentText.T("service.triggerServiceStart");
                 var requiredAfter = dailyRunDue ? GetScheduledTimeForDay(now.Date) : now;
                 await ExecuteManagedRunAsync(trigger, requiredAfter).ConfigureAwait(false);
@@ -87,7 +90,7 @@ namespace RsAgent
                 powerStatus == PowerBroadcastStatus.ResumeSuspend)
             {
                 var now = DateTime.Now;
-                if (IsDailyRunDue(now))
+                if (DailyRunDue(now))
                 {
                     var scheduledToday = GetScheduledTimeForDay(now.Date);
                     Logger.EventWarning(
@@ -99,6 +102,9 @@ namespace RsAgent
                 {
                     Logger.Info(AgentText.T("service.noDailyPendingAfterResume"));
                 }
+                // A successful inventory must not suppress an outstanding update retry.
+                if (AgentUpdater.RetryAtUtc != DateTime.MinValue)
+                    Task.Run(() => RetryUpdateAsync());
             }
 
             return true;
@@ -181,7 +187,7 @@ namespace RsAgent
                 }
 
                 CancelTimer();
-                if (await AgentUpdater.CheckAsync().ConfigureAwait(false))
+                if (await UpdateCheck().ConfigureAwait(false))
                 {
                     ScheduleRetry(requiredAfterLocal);
                     return;
@@ -206,7 +212,43 @@ namespace RsAgent
             }
             finally
             {
-                _executionLock.Release();
+                try { ScheduleUpdateRetry(); }
+                finally { _executionLock.Release(); }
+            }
+        }
+
+        private void ScheduleUpdateRetry()
+        {
+            lock (_timerLock)
+            {
+                if (_updateRetryTimer != null)
+                {
+                    _updateRetryTimer.Dispose();
+                    _updateRetryTimer = null;
+                }
+                if (_stopping || AgentUpdater.RetryAtUtc == DateTime.MinValue) return;
+                var delay = AgentUpdater.RetryAtUtc - DateTime.UtcNow;
+                var timer = new Timer(Math.Max(1000, delay.TotalMilliseconds));
+                timer.AutoReset = false;
+                timer.Elapsed += async (sender, args) =>
+                    await RetryUpdateAsync().ConfigureAwait(false);
+                _updateRetryTimer = timer;
+                timer.Start();
+            }
+        }
+
+        private async Task RetryUpdateAsync()
+        {
+            await _executionLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (!_stopping) await UpdateCheck().ConfigureAwait(false);
+            }
+            finally
+            {
+                // Preserve the inventory timer, including its separate network retry.
+                try { ScheduleUpdateRetry(); }
+                finally { _executionLock.Release(); }
             }
         }
 
@@ -294,6 +336,11 @@ namespace RsAgent
         {
             _stopping = true;
             CancelTimer();
+            lock (_timerLock)
+            {
+                if (_updateRetryTimer != null) _updateRetryTimer.Dispose();
+                _updateRetryTimer = null;
+            }
             Logger.EventInfo(1001, message);
         }
 

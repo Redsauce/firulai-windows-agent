@@ -1,6 +1,6 @@
 # Actualizaciones Windows
 
-## Aviso ligero de version (cambio local pendiente de publicar)
+## Aviso ligero de version (incluido desde 0.20.4)
 
 El servicio prepara un `changeSystemStatus` con `action=report_version`, UUID,
 hostname, FQDN y version del ejecutable en uso antes de recopilar el inventario.
@@ -9,8 +9,8 @@ para no anunciar el binario antes de que termine el instalador. Si falla el
 aviso, continua el inventario completo. Una respuesta vacia confirma solo
 la recepcion en la cola; no se registra como confirmacion de actualizacion RSM.
 
-El receptor debe actualizarse primero para aceptar esta accion. El cambio
-no esta incluido en la release 0.20.3 publicada ni en el agente instalado.
+El receptor debe aceptar esta accion antes de publicar los agentes. El aviso
+esta incluido desde la release 0.20.4; no esta incluido en 0.20.3.
 
 La release 0.20.3 incorpora actualizaciones firmadas. El instalador permite actualizar sobre una
 instalacion valida con una version estrictamente superior. No desinstala ni
@@ -115,3 +115,26 @@ se simulo un ejecutable de reemplazo invalido y el helper restauro el binario
 original, con configuracion intacta, servicio arrancado y diario/tarea eliminados.
 Evidencia: `recovery-validation.json`. El reinicio o corte de corriente durante
 la instalacion quedan pendientes; no se ha reiniciado el equipo.
+
+## Correccion de reintentos 0.20.5
+
+Las versiones 0.20.3 y 0.20.4 aplican una espera de 24 horas incluso si falla
+la descarga al arrancar. La correccion reintenta cada cinco minutos
+mediante un temporizador independiente del inventario. Conserva los horarios
+y reintentos del inventario, serializa las ejecuciones y cancela el temporizador
+al detener el servicio. Una comprobacion correcta cancela los reintentos cortos
+y aplica la espera habitual de 24 horas. Se conservan la firma y las protecciones
+contra versiones inferiores y bucles de instalacion fallida.
+
+Probado sin modificar el servicio instalado: fallo repetido, recuperacion,
+activacion real del temporizador, conservacion del temporizador de inventario
+y ausencia de reintentos tras detener el servicio. La correccion no protege
+a un agente antiguo hasta que este haya instalado la nueva version.
+
+Validacion adicional de 0.20.5: simulacion de DNS no disponible, timeout,
+recuperacion posterior y dos comprobaciones concurrentes; activacion real
+del temporizador y evento de reanudacion sin inventario pendiente; cancelacion
+al detener el servicio; pruebas de firmas y paquetes alterados, 28 comprobaciones
+de inventarios grandes, 19 de elegibilidad, redirecciones HTTP y URL del instalador.
+Instalador compilado y manifiesto firmado localmente. No se ha instalado
+0.20.5 en el servicio real ni probado un apagado/reinicio completo con esta version.

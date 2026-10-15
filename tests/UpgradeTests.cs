@@ -26,6 +26,8 @@ namespace RsAgent
                 if (!rejected) throw new Exception("Unknown installed version accepted: " + invalid);
             }
             SignedManifestTests();
+            UpdateCheckLifecycleTests();
+            UpdateRetryTests();
             var uninstalled = new System.Collections.Generic.Dictionary<string, object> { { "1751", "Agente desinstalado" }, { "1972", "uncovered" } };
             if (!RsmClient.IsUninstalledRow(uninstalled)) throw new Exception("Confirmed uninstallation rejected");
             uninstalled["1972"] = "covered";
@@ -50,6 +52,128 @@ namespace RsAgent
             try { action(); }
             catch { return; }
             throw new Exception("Accepted " + name);
+        }
+
+        private static void UpdateRetryTests()
+        {
+            var now = DateTime.UtcNow;
+            AgentUpdater.RecordCheckResult(now, false);
+            if (AgentUpdater.RetryAtUtc != now.AddMinutes(5))
+                throw new Exception("Failed check must retry after five minutes, not 24 hours.");
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            using (var service = new RsAgentService())
+            using (var inventoryTimer = new System.Timers.Timer(60000))
+            {
+                var type = typeof(RsAgentService);
+                type.GetField("_timer", flags).SetValue(service, inventoryTimer);
+                int attempts = 0;
+                service.UpdateCheck = () => {
+                    attempts++;
+                    AgentUpdater.RecordCheckResult(now, attempts > 1);
+                    return System.Threading.Tasks.Task.FromResult(false);
+                };
+                type.GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
+                if (type.GetField("_updateRetryTimer", flags).GetValue(service) == null)
+                    throw new Exception("Failed check has no independent retry timer.");
+                for (int attempt = 0; attempt < 2; attempt++)
+                {
+                    var task = (System.Threading.Tasks.Task)type.GetMethod("RetryUpdateAsync", flags).Invoke(service, null);
+                    task.GetAwaiter().GetResult();
+                    if (!Object.ReferenceEquals(type.GetField("_timer", flags).GetValue(service), inventoryTimer))
+                        throw new Exception("Update retry replaced the inventory schedule.");
+                    bool retryScheduled = type.GetField("_updateRetryTimer", flags).GetValue(service) != null;
+                    if (retryScheduled != (attempt == 0))
+                        throw new Exception("Retry must continue after failure and stop after success.");
+                }
+                AgentUpdater.RecordCheckResult(now, false);
+                type.GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
+                type.GetMethod("StopService", flags).Invoke(service, new object[] { "Isolated retry test stopped." });
+                if (type.GetField("_updateRetryTimer", flags).GetValue(service) != null)
+                    throw new Exception("Stopping the service did not cancel the update retry.");
+                ((System.Threading.Tasks.Task)type.GetMethod("RetryUpdateAsync", flags).Invoke(service, null)).GetAwaiter().GetResult();
+                if (attempts != 2 || type.GetField("_updateRetryTimer", flags).GetValue(service) != null)
+                    throw new Exception("Stopped service still checks or schedules updates.");
+            }
+            AgentUpdater.RecordCheckResult(now, true);
+            if (AgentUpdater.RetryAtUtc != DateTime.MinValue)
+                throw new Exception("Successful check retained a network retry.");
+            using (var fired = new System.Threading.ManualResetEvent(false))
+            using (var service = new RsAgentService())
+            {
+                service.UpdateCheck = () => {
+                    AgentUpdater.RecordCheckResult(DateTime.UtcNow, true);
+                    fired.Set();
+                    return System.Threading.Tasks.Task.FromResult(false);
+                };
+                // Expired retry is accelerated to one second: exercise the real timer.
+                AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddMinutes(-5), false);
+                typeof(RsAgentService).GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
+                if (!fired.WaitOne(TimeSpan.FromSeconds(10)))
+                    throw new Exception("Retry never ran independently of an inventory execution.");
+            }
+            using (var resumed = new System.Threading.ManualResetEvent(false))
+            using (var service = new RsAgentService())
+            {
+                service.DailyRunDue = ignored => false;
+                service.UpdateCheck = () => {
+                    AgentUpdater.RecordCheckResult(DateTime.UtcNow, true);
+                    resumed.Set();
+                    return System.Threading.Tasks.Task.FromResult(false);
+                };
+                AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddMinutes(-10), false);
+                typeof(RsAgentService).GetMethod("OnPowerEvent", flags).Invoke(service,
+                    new object[] { System.ServiceProcess.PowerBroadcastStatus.ResumeAutomatic });
+                if (!resumed.WaitOne(TimeSpan.FromSeconds(10)))
+                    throw new Exception("Resume lost the update retry when inventory was already sent.");
+            }
+            Console.WriteLine("PASS: five-minute update retries, repeated failure, inventory timer preservation and stopped service.");
+        }
+
+        private static void UpdateCheckLifecycleTests()
+        {
+            var now = new DateTime(2035, 1, 1, 8, 0, 0, DateTimeKind.Utc);
+            AgentUpdater.RecordCheckResult(now.AddDays(-2), true);
+            int attempts = 0;
+            Func<System.Threading.Tasks.Task<bool>> check = () => {
+                attempts++;
+                var completion = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                if (attempts == 1)
+                    completion.SetException(new System.Net.Http.HttpRequestException("Simulated offline startup",
+                        new System.Net.WebException("Simulated DNS failure", System.Net.WebExceptionStatus.NameResolutionFailure)));
+                else if (attempts == 2)
+                    completion.SetException(new System.Threading.Tasks.TaskCanceledException("Simulated download timeout"));
+                else completion.SetResult(true);
+                return completion.Task;
+            };
+            Func<bool> run = () => AgentUpdater.CheckAsync(check, () => now).GetAwaiter().GetResult();
+            if (run() || attempts != 1 || AgentUpdater.RetryAtUtc != now.AddMinutes(5))
+                throw new Exception("Offline startup did not schedule the short retry.");
+            now = now.AddMinutes(4).AddSeconds(59);
+            if (run() || attempts != 1) throw new Exception("Retry bypassed backoff.");
+            now = now.AddSeconds(1);
+            if (run() || attempts != 2 || AgentUpdater.RetryAtUtc != now.AddMinutes(5))
+                throw new Exception("Timeout stopped further short retries.");
+            now = now.AddMinutes(5);
+            if (!run() || attempts != 3 || AgentUpdater.RetryAtUtc != DateTime.MinValue)
+                throw new Exception("Restored network did not allow launching the update.");
+            now = now.AddHours(23);
+            if (run() || attempts != 3) throw new Exception("Successful checks ignored the normal cooldown.");
+            now = now.AddHours(1);
+            if (!run() || attempts != 4) throw new Exception("Cooldown never expired.");
+
+            // Two overlapping checks must not download or launch two installers.
+            AgentUpdater.RecordCheckResult(now.AddDays(-2), true);
+            var blocked = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            int overlappingCalls = 0;
+            Func<System.Threading.Tasks.Task<bool>> slowCheck = () => { overlappingCalls++; return blocked.Task; };
+            var first = AgentUpdater.CheckAsync(slowCheck, () => now);
+            var second = AgentUpdater.CheckAsync(slowCheck, () => now);
+            if (overlappingCalls != 1) throw new Exception("Update checks overlapped.");
+            blocked.SetResult(true);
+            if (!first.GetAwaiter().GetResult() || second.GetAwaiter().GetResult() || overlappingCalls != 1)
+                throw new Exception("Concurrent requests launched duplicate updates.");
+            AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddDays(-2), true);
+            Console.WriteLine("PASS: offline startup, DNS failure, download timeout, online recovery, cooldown and concurrent checks.");
         }
 
         private static void SignedManifestTests()
