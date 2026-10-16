@@ -57,19 +57,18 @@ namespace RsAgent
 
         private sealed class VersionResponseHandler : System.Net.Http.HttpMessageHandler
         {
-            internal string Response = "{\"items\":[{\"1990\":\"0.20.7\"}]}";
+            internal string Response = "{\"windows\":\"0.20.7\",\"linux\":\"0.4.7\"}";
             internal System.Net.HttpStatusCode Status = System.Net.HttpStatusCode.OK;
-            protected override async System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendAsync(
+            protected override System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendAsync(
                 System.Net.Http.HttpRequestMessage request, System.Threading.CancellationToken cancel)
             {
-                var body = await request.Content.ReadAsStringAsync();
-                if (request.Method != System.Net.Http.HttpMethod.Post ||
-                    request.RequestUri.AbsoluteUri != "https://example.test/AppController/commands_RSM/api/v2/items/get.php" ||
-                    !request.Headers.Contains("Authorization") || !body.Contains("1990") || body.Contains("itemTypeID"))
+                if (request.Method != System.Net.Http.HttpMethod.Get ||
+                    request.RequestUri.AbsoluteUri != AgentReleaseSelection.CatalogUrl ||
+                    request.Headers.Contains("Authorization") || request.Content != null)
                     throw new Exception("Incorrect RSM version lookup request.");
-                return new System.Net.Http.HttpResponseMessage(Status) {
+                return System.Threading.Tasks.Task.FromResult(new System.Net.Http.HttpResponseMessage(Status) {
                     Content = new System.Net.Http.StringContent(Response)
-                };
+                });
             }
         }
 
@@ -82,8 +81,8 @@ namespace RsAgent
                 "https://github.com/Redsauce/firulai-windows-agent/releases/download/0.20.7/agent-update.json")
                 throw new Exception("RSM version did not select a pinned manifest.");
             foreach (var response in new[] {
-                "not-json", "[]", "{\"error\":\"denied\"}", "[{\"1990\":\"../latest\"}]",
-                "[{\"1990\":\"0.20.7-beta\"}]", "[{\"1990\":\"0.20.7\"},{\"1990\":\"0.20.8\"}]"
+                "not-json", "[]", "{\"error\":\"denied\"}", "[{\"windows\":\"../latest\"}]",
+                "[{\"windows\":\"0.20.7-beta\"}]", "[{\"windows\":\"0.20.7\"},{\"windows\":\"0.20.8\"}]"
             })
                 Reject(() => FetchWindowsAgentVersionAsync(config,
                     new VersionResponseHandler { Response = response }, endpoint).GetAwaiter().GetResult(), "invalid RSM selection");
@@ -92,20 +91,20 @@ namespace RsAgent
             Reject(() => FetchWindowsAgentVersionAsync(config,
                 new VersionResponseHandler { Status = System.Net.HttpStatusCode.ServiceUnavailable }, endpoint).GetAwaiter().GetResult(), "RSM outage");
             if (AgentReleaseSelection.ReadWindowsVersion(new System.Web.Script.Serialization.JavaScriptSerializer()
-                .DeserializeObject("{\"data\":[{\"1990\":\" v0.20.7 \"}]}")) != "v0.20.7")
-                throw new Exception("Version tag prefix or response wrapper was lost.");
+                .DeserializeObject("{\"windows\":\" v0.20.7 \",\"linux\":\"0.4.7\"}")) != "v0.20.7")
+                throw new Exception("Version tag prefix was lost.");
             var manifest = new UpdateManifest { version = "0.20.7", url =
                 "https://github.com/Redsauce/firulai-windows-agent/releases/download/v0.20.7/FirulaiAgent.exe" };
             AgentReleaseSelection.ValidateManifest("v0.20.7", manifest);
             Reject(() => AgentReleaseSelection.ValidateManifest("0.20.7", manifest), "different release tag");
             Reject(() => AgentReleaseSelection.ValidateManifest("0.20.8", manifest), "different release version");
-            Console.WriteLine("PASS: authenticated RSM version lookup, pinned release, invalid responses and manifest mismatch rejection.");
+            Console.WriteLine("PASS: public Firulai catalog lookup, pinned release, invalid responses and manifest mismatch rejection.");
         }
 
         private static async System.Threading.Tasks.Task<string> FetchWindowsAgentVersionAsync(
             AgentConfig config, System.Net.Http.HttpMessageHandler handler, string endpoint)
         {
-            return AgentReleaseSelection.ReadWindowsVersion(await RsmClient.FetchAgentVersionsAsync(config, handler, endpoint));
+            return await AgentReleaseSelection.FetchWindowsVersionAsync(handler);
         }
 
         private static void RecordCheckResult(DateTime now, bool succeeded)

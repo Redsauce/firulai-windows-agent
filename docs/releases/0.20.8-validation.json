@@ -1,12 +1,12 @@
 {
   "version": "0.20.8",
   "date": "2026-10-16",
-  "release_status": "draft_blocked_on_rsm_agent_version_read_permission",
+  "release_status": "draft_pending_public_firulai_catalog_deployment",
   "agent_compiled": true,
   "multilingual_installer_compiled": true,
   "manifest_signed_with_existing_release_key": true,
   "actual_agent_verified_signature_hash_size_and_version": true,
-  "installer_sha256": "445f7f39544e0f3f8fd501fce2566b8a4af143e715c1c6cc6dcc9041deb9669a",
+  "installer_sha256": "4b294f2ca34ceaa747e47d41382e222698865ef7cfb1c9b6916e5bbbdfa92d3c",
   "upgrade_and_scheduling_tests": "passed",
   "large_inventory_checks_passed": 28,
   "eligibility_checks_passed": 25,
@@ -21,10 +21,12 @@
   "live_automatic_upgrade_to_this_version": "not_performed",
   "power_loss_during_installation": "not_tested",
   "required_before_activation": [
-    "Agent tokens must be able to read property 1990 on the version record ID 1",
-    "Revalidate the production version query using a real agent token",
-    "Publish installer, signed manifest and signature together as the stable latest release",
-    "Set only Windows version 1990 to 0.20.8 in RSM after assets are available",
-    "Observe installation and version/inventory processing in RSM"
-  ]
+    "Deploy and verify the public Firulai catalog over HTTPS",
+    "Publish installer, signed manifest and signature together as stable latest",
+    "Set Windows version 1990 to 0.20.8 in RSM only after assets are available",
+    "Observe real installation and inventory/version processing in RSM"
+  ],
+  "local_http_catalog_with_real_rsm": "passed_without_agent_credentials",
+  "production_public_catalog": "not_yet_deployed",
+  "catalog_contract": "Public HTTPS Firulai endpoint, no account token or session"
 }

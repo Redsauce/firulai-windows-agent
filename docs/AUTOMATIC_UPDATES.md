@@ -46,15 +46,18 @@ Un fallo de descarga no bloquea
 el inventario. Solo se aceptan versiones estables superiores, destinos HTTPS
 versionados del repositorio oficial y paquetes de hasta 100 MiB.
 
-La version objetivo se lee de RSM (`items/get.php`, propiedad Windows `1990`)
-con el token local del agente y la URL de API configurada, igual que la seleccion
-de version del frontend. Ese token debe tener lectura de esta propiedad.
+La version objetivo se consulta sin credenciales en
+`https://firulai.redsauce.net/api/agents/update-catalog`. Firulai lee RSM con su
+credencial existente y expone exclusivamente Windows/Linux, con cache de 60
+segundos. No se envia el token del agente a este endpoint ni se consulta la
+propiedad global de RSM con el token de cuenta. La API de RSM y sus permisos no
+se modifican. Se valida el JSON y solo se aceptan versiones estables.
 Se descarga `releases/download/{tag}/agent-update.json` y su firma; ya no se usa
 `releases/latest`. El manifiesto firmado debe identificar exactamente la version
-y el tag seleccionados por RSM. Una version igual o inferior no se instala.
-Si RSM no responde, deniega acceso, devuelve una version invalida o versiones
-contradictorias, no se recurre a `latest`: se registra el fallo y se reintenta
-con los plazos progresivos anteriores. La firma, el hash y el limite de tamano siguen siendo obligatorios.
+y el tag seleccionados. Una version igual o inferior no se instala.
+Si el catalogo no responde o devuelve datos invalidos, no se recurre a latest:
+se registra el fallo y se reintenta con los plazos progresivos anteriores.
+La firma, el hash y el limite de tamano siguen siendo obligatorios.
 
 Un fallo de recopilacion o envio del inventario conserva su propio reintento a
 los 30 minutos y no modifica la hora de la proxima consulta de actualizaciones.
@@ -65,8 +68,8 @@ exactamente una vez. Si una recopilacion esta en curso, la comprobacion de
 actualizaciones espera a que termine para no solapar una instalacion con ella.
 
 Esta seleccion y el temporizador estan implementados y probados localmente;
-queda pendiente validar la lectura con un token real de agente en produccion,
-preparar una nueva release y publicarla. No cambia los binarios ya instalados.
+queda pendiente desplegar y validar el catalogo HTTPS de Firulai en produccion
+y publicar la nueva release despues. No cambia los binarios ya instalados.
 
 La release debe contener:
 

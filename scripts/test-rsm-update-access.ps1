@@ -7,10 +7,9 @@ $assembly = [Reflection.Assembly]::LoadFile((Resolve-Path -LiteralPath $AgentPat
 $config = $assembly.GetType('RsAgent.AgentConfig', $true).GetMethod('Load').Invoke($null, @())
 $client = $assembly.GetType('RsAgent.RsmClient', $true)
 $flags = [Reflection.BindingFlags]'Static,NonPublic'
-$task = $client.GetMethod('FetchAgentVersionsAsync', $flags).Invoke($null, @($config, $null, $null))
-$response = $task.GetAwaiter().GetResult()
 $selection = $assembly.GetType('RsAgent.AgentReleaseSelection', $true)
-$tag = $selection.GetMethod('ReadWindowsVersion', $flags).Invoke($null, @($response))
+$task = $selection.GetMethod('FetchWindowsVersionAsync', $flags).Invoke($null, @($null))
+$tag = $task.GetAwaiter().GetResult()
 $task = $client.GetMethod('ValidateSystemUuidExistsAsync').Invoke($null, @($config, $false, $null))
 $task.GetAwaiter().GetResult() | Out-Null
-Write-Host "PASS: existing agent token can read Windows version $tag and validate this covered, active system."
+Write-Host "PASS: public Firulai catalog selects Windows $tag; the existing agent token separately validates this covered, active system."

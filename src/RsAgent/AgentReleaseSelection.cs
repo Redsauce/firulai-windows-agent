@@ -1,43 +1,53 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace RsAgent
 {
     internal static class AgentReleaseSelection
     {
-        internal static string ReadWindowsVersion(object response)
+        internal const string CatalogUrl = "https://firulai.redsauce.net/api/agents/update-catalog";
+
+        internal static async Task<string> FetchWindowsVersionAsync(HttpMessageHandler handler = null)
         {
-            var versions = new HashSet<string>(StringComparer.Ordinal);
-            Collect(response, versions);
-            if (versions.Count != 1)
-                throw new InvalidOperationException("Missing, invalid or conflicting Windows agent version in RSM.");
-            foreach (var version in versions) return version;
-            throw new InvalidOperationException("Missing Windows agent version in RSM.");
+            using (var client = new HttpClient(handler ?? new HttpClientHandler { AllowAutoRedirect = false }))
+            {
+                client.Timeout = TimeSpan.FromSeconds(20);
+                using (var response = await client.GetAsync(CatalogUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.Content.Headers.ContentLength > 32768)
+                        throw new InvalidOperationException("Oversized update catalog.");
+                    using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (var data = new System.IO.MemoryStream())
+                    using (var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(20)))
+                    {
+                        var buffer = new byte[4096];
+                        int count;
+                        while ((count = await stream.ReadAsync(buffer, 0, buffer.Length, timeout.Token).ConfigureAwait(false)) > 0)
+                        {
+                            if (data.Length + count > 32768) throw new InvalidOperationException("Oversized update catalog.");
+                            data.Write(buffer, 0, count);
+                        }
+                        return ReadWindowsVersion(new JavaScriptSerializer().DeserializeObject(
+                            new System.Text.UTF8Encoding(false, true).GetString(data.ToArray())));
+                    }
+                }
+            }
         }
 
-        private static void Collect(object value, HashSet<string> versions)
+        internal static string ReadWindowsVersion(object response)
         {
-            var rows = value as object[];
-            if (rows != null)
-            {
-                foreach (var row in rows) Collect(row, versions);
-                return;
-            }
-            var fields = value as Dictionary<string, object>;
-            if (fields == null) return;
-            if (fields.ContainsKey("error") || fields.ContainsKey("errors"))
-                throw new InvalidOperationException("RSM agent version lookup failed.");
-            object version;
-            if (fields.TryGetValue("1990", out version) && version != null)
-            {
-                var tag = Convert.ToString(version).Trim();
-                if (tag.Length > 0) { ValidateTag(tag); versions.Add(tag); }
-            }
-            foreach (var key in new[] { "items", "data", "result" })
-            {
-                object wrapped;
-                if (fields.TryGetValue(key, out wrapped)) Collect(wrapped, versions);
-            }
+            var fields = response as Dictionary<string, object>;
+            if (fields == null || fields.Count != 2 || !fields.ContainsKey("windows") || !fields.ContainsKey("linux") ||
+                !(fields["windows"] is string) || !(fields["linux"] is string))
+                throw new InvalidOperationException("Invalid Firulai update catalog.");
+            var tag = ((string)fields["windows"]).Trim();
+            ValidateTag(tag);
+            ValidateTag(((string)fields["linux"]).Trim());
+            return tag;
         }
 
         internal static string ValidateTag(string tag)

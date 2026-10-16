@@ -143,7 +143,7 @@ namespace RsAgent
             }
             using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
             {
-                var releaseTag = AgentReleaseSelection.ReadWindowsVersion(await RsmClient.FetchAgentVersionsAsync(config).ConfigureAwait(false));
+                var releaseTag = await AgentReleaseSelection.FetchWindowsVersionAsync().ConfigureAwait(false);
                 if (!InstallerUpgrade.IsNewer(AgentReleaseSelection.ValidateTag(releaseTag), AgentConfig.AgentVersion))
                     return false;
                 var manifestUrl = AgentReleaseSelection.ManifestUrl(releaseTag);

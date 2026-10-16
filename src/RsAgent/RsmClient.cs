@@ -39,14 +39,6 @@ namespace RsAgent
             SystemEligibility.Validate(matches[0], config, installing);
         }
 
-        internal static async Task<object> FetchAgentVersionsAsync(AgentConfig config, HttpMessageHandler handler = null, string apiUrlOverride = null)
-        {
-            var payload = new JavaScriptSerializer().Serialize(new Dictionary<string, object> {
-                { "propertyIDs", new[] { "1990" } }, { "translateIDs", false }
-            });
-            return await RequestItemsAsync(config, payload, apiUrlOverride, handler).ConfigureAwait(false);
-        }
-
         private static async Task<object> RequestItemsAsync(AgentConfig config, string payload, string apiUrlOverride = null, HttpMessageHandler handler = null)
         {
             const string apiSuffix = "/api.php";
