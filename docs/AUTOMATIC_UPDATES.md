@@ -40,8 +40,7 @@ persista el fallo. Una consulta correcta restablece el intervalo normal y la
 secuencia de reintentos. Cada equipo agrega entre 0 y 60 segundos a los plazos,
 calculados de forma estable a partir de su nombre, para repartir las consultas.
 Al reanudarse Windows vuelve a comprobar si ha vencido ese plazo. Cada consulta
-correcta registra la hora de la siguiente comprobacion. Este cambio esta pendiente
-de publicacion; las versiones 0.20.6 y 0.20.7 mantienen la espera de 24 horas.
+correcta registra la hora de la siguiente comprobacion. Este cambio se incluye en 0.20.8; las versiones 0.20.6 y 0.20.7 mantienen la espera de 24 horas.
 Un fallo de descarga no bloquea
 el inventario. Solo se aceptan versiones estables superiores, destinos HTTPS
 versionados del repositorio oficial y paquetes de hasta 100 MiB.
@@ -67,9 +66,10 @@ puede haber recibido un envio cuya respuesta se perdio; no se garantiza entrega
 exactamente una vez. Si una recopilacion esta en curso, la comprobacion de
 actualizaciones espera a que termine para no solapar una instalacion con ella.
 
-Esta seleccion y el temporizador estan implementados y probados localmente;
-queda pendiente desplegar y validar el catalogo HTTPS de Firulai en produccion
-y publicar la nueva release despues. No cambia los binarios ya instalados.
+Esta seleccion y el temporizador estan implementados y probados. El catalogo
+HTTPS de Firulai esta desplegado desde 2026-10-16 Build 01, y el binario real
+consulta la version en produccion sin credenciales. Los binarios instalados
+conservan el comportamiento anterior hasta actualizarse.
 
 La release debe contener:
 

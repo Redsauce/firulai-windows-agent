@@ -1,7 +1,7 @@
 {
   "version": "0.20.8",
   "date": "2026-10-16",
-  "release_status": "draft_pending_public_firulai_catalog_deployment",
+  "release_status": "validated_for_publication",
   "agent_compiled": true,
   "multilingual_installer_compiled": true,
   "manifest_signed_with_existing_release_key": true,
@@ -21,12 +21,12 @@
   "live_automatic_upgrade_to_this_version": "not_performed",
   "power_loss_during_installation": "not_tested",
   "required_before_activation": [
-    "Deploy and verify the public Firulai catalog over HTTPS",
-    "Publish installer, signed manifest and signature together as stable latest",
-    "Set Windows version 1990 to 0.20.8 in RSM only after assets are available",
-    "Observe real installation and inventory/version processing in RSM"
+    "Publish all signed assets together as stable latest",
+    "Update the selected Windows version in RSM after publication"
   ],
   "local_http_catalog_with_real_rsm": "passed_without_agent_credentials",
-  "production_public_catalog": "not_yet_deployed",
-  "catalog_contract": "Public HTTPS Firulai endpoint, no account token or session"
+  "production_public_catalog": "passed_https_no_credentials_using_actual_agent",
+  "catalog_contract": "Public HTTPS Firulai endpoint, no account token or session",
+  "backend_tag": "firulai-v2026.10.16-01",
+  "backend_pipeline": "https://gitlab.redsauce.net/apps/spec-kit-web-apps/-/pipelines/6657"
 }
