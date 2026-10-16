@@ -9,6 +9,7 @@ namespace RsAgent
     {
         private static int Main()
         {
+            ReleaseSelectionTests();
             Check("0.19.10", "0.19.3", true);
             Check("0.20.0", "0.19.99", true);
             Check("1.0.0", "0.99.99", true);
@@ -54,10 +55,85 @@ namespace RsAgent
             throw new Exception("Accepted " + name);
         }
 
+        private sealed class VersionResponseHandler : System.Net.Http.HttpMessageHandler
+        {
+            internal string Response = "{\"items\":[{\"1990\":\"0.20.7\"}]}";
+            internal System.Net.HttpStatusCode Status = System.Net.HttpStatusCode.OK;
+            protected override async System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendAsync(
+                System.Net.Http.HttpRequestMessage request, System.Threading.CancellationToken cancel)
+            {
+                var body = await request.Content.ReadAsStringAsync();
+                if (request.Method != System.Net.Http.HttpMethod.Post ||
+                    request.RequestUri.AbsoluteUri != "https://example.test/AppController/commands_RSM/api/v2/items/get.php" ||
+                    !request.Headers.Contains("Authorization") || !body.Contains("1990") || body.Contains("itemTypeID"))
+                    throw new Exception("Incorrect RSM version lookup request.");
+                return new System.Net.Http.HttpResponseMessage(Status) {
+                    Content = new System.Net.Http.StringContent(Response)
+                };
+            }
+        }
+
+        private static void ReleaseSelectionTests()
+        {
+            var config = new AgentConfig { token = "test-token" };
+            const string endpoint = "https://example.test/AppController/commands_RSM/api/api.php";
+            var tag = FetchWindowsAgentVersionAsync(config, new VersionResponseHandler(), endpoint).GetAwaiter().GetResult();
+            if (tag != "0.20.7" || AgentReleaseSelection.ManifestUrl(tag) !=
+                "https://github.com/Redsauce/firulai-windows-agent/releases/download/0.20.7/agent-update.json")
+                throw new Exception("RSM version did not select a pinned manifest.");
+            foreach (var response in new[] {
+                "not-json", "[]", "{\"error\":\"denied\"}", "[{\"1990\":\"../latest\"}]",
+                "[{\"1990\":\"0.20.7-beta\"}]", "[{\"1990\":\"0.20.7\"},{\"1990\":\"0.20.8\"}]"
+            })
+                Reject(() => FetchWindowsAgentVersionAsync(config,
+                    new VersionResponseHandler { Response = response }, endpoint).GetAwaiter().GetResult(), "invalid RSM selection");
+            Reject(() => FetchWindowsAgentVersionAsync(config,
+                new VersionResponseHandler { Status = System.Net.HttpStatusCode.Forbidden }, endpoint).GetAwaiter().GetResult(), "RSM permission denial");
+            Reject(() => FetchWindowsAgentVersionAsync(config,
+                new VersionResponseHandler { Status = System.Net.HttpStatusCode.ServiceUnavailable }, endpoint).GetAwaiter().GetResult(), "RSM outage");
+            if (AgentReleaseSelection.ReadWindowsVersion(new System.Web.Script.Serialization.JavaScriptSerializer()
+                .DeserializeObject("{\"data\":[{\"1990\":\" v0.20.7 \"}]}")) != "v0.20.7")
+                throw new Exception("Version tag prefix or response wrapper was lost.");
+            var manifest = new UpdateManifest { version = "0.20.7", url =
+                "https://github.com/Redsauce/firulai-windows-agent/releases/download/v0.20.7/FirulaiAgent.exe" };
+            AgentReleaseSelection.ValidateManifest("v0.20.7", manifest);
+            Reject(() => AgentReleaseSelection.ValidateManifest("0.20.7", manifest), "different release tag");
+            Reject(() => AgentReleaseSelection.ValidateManifest("0.20.8", manifest), "different release version");
+            Console.WriteLine("PASS: authenticated RSM version lookup, pinned release, invalid responses and manifest mismatch rejection.");
+        }
+
+        private static async System.Threading.Tasks.Task<string> FetchWindowsAgentVersionAsync(
+            AgentConfig config, System.Net.Http.HttpMessageHandler handler, string endpoint)
+        {
+            return AgentReleaseSelection.ReadWindowsVersion(await RsmClient.FetchAgentVersionsAsync(config, handler, endpoint));
+        }
+
+        private static void RecordCheckResult(DateTime now, bool succeeded)
+        {
+            AgentUpdater.RecordCheckResult(now, succeeded, 0);
+        }
+
         private static void UpdateRetryTests()
         {
             var now = DateTime.UtcNow;
-            AgentUpdater.RecordCheckResult(now, false);
+            RecordCheckResult(now, true);
+            foreach (var minutes in new[] { 5, 10, 20, 60, 60 })
+            {
+                RecordCheckResult(now, false);
+                if (AgentUpdater.NextCheckUtc != now.AddMinutes(minutes))
+                    throw new Exception("Incorrect progressive update retry interval.");
+            }
+            RecordCheckResult(now, true);
+            if (AgentUpdater.NextCheckUtc != now.AddHours(1))
+                throw new Exception("Successful lookup must schedule the next hourly check.");
+            AgentUpdater.RecordCheckResult(now, true, 45);
+            if (AgentUpdater.NextCheckUtc != now.AddHours(1).AddSeconds(45))
+                throw new Exception("Host jitter was not included in the next check.");
+            AgentUpdater.RecordCheckResult(now, true);
+            if (AgentUpdater.NextCheckUtc < now.AddHours(1) || AgentUpdater.NextCheckUtc > now.AddHours(1).AddMinutes(1))
+                throw new Exception("Production host jitter is outside the allowed range.");
+            RecordCheckResult(now, true);
+            RecordCheckResult(now, false);
             if (AgentUpdater.RetryAtUtc != now.AddMinutes(5))
                 throw new Exception("Failed check must retry after five minutes, not 24 hours.");
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
@@ -69,7 +145,7 @@ namespace RsAgent
                 int attempts = 0;
                 service.UpdateCheck = () => {
                     attempts++;
-                    AgentUpdater.RecordCheckResult(now, attempts > 1);
+                    RecordCheckResult(now, attempts > 1);
                     return System.Threading.Tasks.Task.FromResult(false);
                 };
                 type.GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
@@ -82,10 +158,10 @@ namespace RsAgent
                     if (!Object.ReferenceEquals(type.GetField("_timer", flags).GetValue(service), inventoryTimer))
                         throw new Exception("Update retry replaced the inventory schedule.");
                     bool retryScheduled = type.GetField("_updateRetryTimer", flags).GetValue(service) != null;
-                    if (retryScheduled != (attempt == 0))
-                        throw new Exception("Retry must continue after failure and stop after success.");
+                    if (!retryScheduled)
+                        throw new Exception("Independent update polling must continue after failure and success.");
                 }
-                AgentUpdater.RecordCheckResult(now, false);
+                RecordCheckResult(now, false);
                 type.GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
                 type.GetMethod("StopService", flags).Invoke(service, new object[] { "Isolated retry test stopped." });
                 if (type.GetField("_updateRetryTimer", flags).GetValue(service) != null)
@@ -94,45 +170,66 @@ namespace RsAgent
                 if (attempts != 2 || type.GetField("_updateRetryTimer", flags).GetValue(service) != null)
                     throw new Exception("Stopped service still checks or schedules updates.");
             }
-            AgentUpdater.RecordCheckResult(now, true);
+            RecordCheckResult(now, true);
             if (AgentUpdater.RetryAtUtc != DateTime.MinValue)
                 throw new Exception("Successful check retained a network retry.");
             using (var fired = new System.Threading.ManualResetEvent(false))
             using (var service = new RsAgentService())
             {
                 service.UpdateCheck = () => {
-                    AgentUpdater.RecordCheckResult(DateTime.UtcNow, true);
+                    RecordCheckResult(DateTime.UtcNow, true);
                     fired.Set();
                     return System.Threading.Tasks.Task.FromResult(false);
                 };
-                // Expired retry is accelerated to one second: exercise the real timer.
-                AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddMinutes(-5), false);
+                // A successful check must also trigger the next poll without inventory.
+                // Expired poll is accelerated to one second: exercise the real timer.
+                RecordCheckResult(DateTime.UtcNow.AddHours(-2), true);
                 typeof(RsAgentService).GetMethod("ScheduleUpdateRetry", flags).Invoke(service, null);
                 if (!fired.WaitOne(TimeSpan.FromSeconds(10)))
-                    throw new Exception("Retry never ran independently of an inventory execution.");
+                    throw new Exception("Successful check never polled again independently of inventory.");
             }
             using (var resumed = new System.Threading.ManualResetEvent(false))
             using (var service = new RsAgentService())
             {
                 service.DailyRunDue = ignored => false;
                 service.UpdateCheck = () => {
-                    AgentUpdater.RecordCheckResult(DateTime.UtcNow, true);
+                    RecordCheckResult(DateTime.UtcNow, true);
                     resumed.Set();
                     return System.Threading.Tasks.Task.FromResult(false);
                 };
-                AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddMinutes(-10), false);
+                RecordCheckResult(DateTime.UtcNow.AddHours(-2), true);
                 typeof(RsAgentService).GetMethod("OnPowerEvent", flags).Invoke(service,
                     new object[] { System.ServiceProcess.PowerBroadcastStatus.ResumeAutomatic });
                 if (!resumed.WaitOne(TimeSpan.FromSeconds(10)))
                     throw new Exception("Resume lost the update retry when inventory was already sent.");
             }
-            Console.WriteLine("PASS: five-minute update retries, repeated failure, inventory timer preservation and stopped service.");
+            using (var service = new RsAgentService())
+            {
+                var type = typeof(RsAgentService);
+                RecordCheckResult(DateTime.UtcNow, true);
+                service.UpdateCheck = () => System.Threading.Tasks.Task.FromResult(false);
+                service.InventoryRun = trigger => {
+                    var failed = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                    failed.SetException(new System.Net.Http.HttpRequestException("Simulated inventory upload failure"));
+                    return failed.Task;
+                };
+                var nextUpdate = AgentUpdater.NextCheckUtc;
+                var before = DateTime.Now;
+                ((System.Threading.Tasks.Task)type.GetMethod("ExecuteManagedRunAsync", flags).Invoke(service,
+                    new object[] { "isolated-upload-failure", before.AddDays(1) })).GetAwaiter().GetResult();
+                var nextInventory = (DateTime)type.GetField("_nextRunAtLocal", flags).GetValue(service);
+                if (nextInventory < before.AddMinutes(30) || nextInventory > DateTime.Now.AddMinutes(30) ||
+                    AgentUpdater.NextCheckUtc != nextUpdate || type.GetField("_updateRetryTimer", flags).GetValue(service) == null)
+                    throw new Exception("Failed inventory did not retain its 30-minute retry and independent hourly update timer.");
+                type.GetMethod("StopService", flags).Invoke(service, new object[] { "Isolated upload test stopped." });
+            }
+            Console.WriteLine("PASS: hourly polling, 5/10/20/60-minute retries, host jitter, inventory timer preservation and stopped service.");
         }
 
         private static void UpdateCheckLifecycleTests()
         {
             var now = new DateTime(2035, 1, 1, 8, 0, 0, DateTimeKind.Utc);
-            AgentUpdater.RecordCheckResult(now.AddDays(-2), true);
+            RecordCheckResult(now.AddDays(-2), true);
             int attempts = 0;
             Func<System.Threading.Tasks.Task<bool>> check = () => {
                 attempts++;
@@ -145,34 +242,34 @@ namespace RsAgent
                 else completion.SetResult(true);
                 return completion.Task;
             };
-            Func<bool> run = () => AgentUpdater.CheckAsync(check, () => now).GetAwaiter().GetResult();
+            Func<bool> run = () => AgentUpdater.CheckAsync(check, () => now, 0).GetAwaiter().GetResult();
             if (run() || attempts != 1 || AgentUpdater.RetryAtUtc != now.AddMinutes(5))
                 throw new Exception("Offline startup did not schedule the short retry.");
             now = now.AddMinutes(4).AddSeconds(59);
             if (run() || attempts != 1) throw new Exception("Retry bypassed backoff.");
             now = now.AddSeconds(1);
-            if (run() || attempts != 2 || AgentUpdater.RetryAtUtc != now.AddMinutes(5))
+            if (run() || attempts != 2 || AgentUpdater.RetryAtUtc != now.AddMinutes(10))
                 throw new Exception("Timeout stopped further short retries.");
-            now = now.AddMinutes(5);
+            now = now.AddMinutes(10);
             if (!run() || attempts != 3 || AgentUpdater.RetryAtUtc != DateTime.MinValue)
                 throw new Exception("Restored network did not allow launching the update.");
-            now = now.AddHours(23);
+            now = now.AddMinutes(59).AddSeconds(59);
             if (run() || attempts != 3) throw new Exception("Successful checks ignored the normal cooldown.");
-            now = now.AddHours(1);
+            now = now.AddSeconds(1);
             if (!run() || attempts != 4) throw new Exception("Cooldown never expired.");
 
             // Two overlapping checks must not download or launch two installers.
-            AgentUpdater.RecordCheckResult(now.AddDays(-2), true);
+            RecordCheckResult(now.AddDays(-2), true);
             var blocked = new System.Threading.Tasks.TaskCompletionSource<bool>();
             int overlappingCalls = 0;
             Func<System.Threading.Tasks.Task<bool>> slowCheck = () => { overlappingCalls++; return blocked.Task; };
-            var first = AgentUpdater.CheckAsync(slowCheck, () => now);
-            var second = AgentUpdater.CheckAsync(slowCheck, () => now);
+            var first = AgentUpdater.CheckAsync(slowCheck, () => now, 0);
+            var second = AgentUpdater.CheckAsync(slowCheck, () => now, 0);
             if (overlappingCalls != 1) throw new Exception("Update checks overlapped.");
             blocked.SetResult(true);
             if (!first.GetAwaiter().GetResult() || second.GetAwaiter().GetResult() || overlappingCalls != 1)
                 throw new Exception("Concurrent requests launched duplicate updates.");
-            AgentUpdater.RecordCheckResult(DateTime.UtcNow.AddDays(-2), true);
+            RecordCheckResult(DateTime.UtcNow.AddDays(-2), true);
             Console.WriteLine("PASS: offline startup, DNS failure, download timeout, online recovery, cooldown and concurrent checks.");
         }
 

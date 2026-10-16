@@ -19,6 +19,7 @@ namespace RsAgent
         private Timer _timer;
         private Timer _updateRetryTimer;
         internal Func<Task<bool>> UpdateCheck = AgentUpdater.CheckAsync;
+        internal Func<string, Task> InventoryRun = RunInventoryOnceAsync;
         internal Func<DateTime, bool> DailyRunDue = IsDailyRunDue;
         private volatile bool _stopping;
         private DateTime _nextRunAtLocal;
@@ -103,7 +104,7 @@ namespace RsAgent
                     Logger.Info(AgentText.T("service.noDailyPendingAfterResume"));
                 }
                 // A successful inventory must not suppress an outstanding update retry.
-                if (AgentUpdater.RetryAtUtc != DateTime.MinValue)
+                if (AgentUpdater.NextCheckUtc != DateTime.MinValue)
                     Task.Run(() => RetryUpdateAsync());
             }
 
@@ -202,7 +203,7 @@ namespace RsAgent
 
                 try
                 {
-                    await RunInventoryOnceAsync(trigger).ConfigureAwait(false);
+                    await InventoryRun(trigger).ConfigureAwait(false);
                     ScheduleNextRun();
                 }
                 catch (Exception)
@@ -226,8 +227,8 @@ namespace RsAgent
                     _updateRetryTimer.Dispose();
                     _updateRetryTimer = null;
                 }
-                if (_stopping || AgentUpdater.RetryAtUtc == DateTime.MinValue) return;
-                var delay = AgentUpdater.RetryAtUtc - DateTime.UtcNow;
+                if (_stopping || AgentUpdater.NextCheckUtc == DateTime.MinValue) return;
+                var delay = AgentUpdater.NextCheckUtc - DateTime.UtcNow;
                 var timer = new Timer(Math.Max(1000, delay.TotalMilliseconds));
                 timer.AutoReset = false;
                 timer.Elapsed += async (sender, args) =>

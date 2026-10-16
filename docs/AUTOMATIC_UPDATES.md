@@ -33,10 +33,40 @@ defecto. `"auto_update": false` permite desactivarla localmente como administrad
 El interruptor del detalle de equipo en Firulai queda pendiente para el final,
 por decision del usuario: recordar esta opcion tras validar el funcionamiento.
 
-El servicio comprueba al arrancar y en sus ejecuciones programadas, como maximo
-una vez cada 24 horas dentro del mismo proceso. Un fallo de descarga no bloquea
+El servicio comprueba inmediatamente al arrancar y cada hora mediante un temporizador
+independiente del inventario. Si la consulta falla, los plazos entre intentos son
+5, 10, 20 y despues 60 minutos; se mantiene el intervalo de 60 minutos mientras
+persista el fallo. Una consulta correcta restablece el intervalo normal y la
+secuencia de reintentos. Cada equipo agrega entre 0 y 60 segundos a los plazos,
+calculados de forma estable a partir de su nombre, para repartir las consultas.
+Al reanudarse Windows vuelve a comprobar si ha vencido ese plazo. Cada consulta
+correcta registra la hora de la siguiente comprobacion. Este cambio esta pendiente
+de publicacion; las versiones 0.20.6 y 0.20.7 mantienen la espera de 24 horas.
+Un fallo de descarga no bloquea
 el inventario. Solo se aceptan versiones estables superiores, destinos HTTPS
 versionados del repositorio oficial y paquetes de hasta 100 MiB.
+
+La version objetivo se lee de RSM (`items/get.php`, propiedad Windows `1990`)
+con el token local del agente y la URL de API configurada, igual que la seleccion
+de version del frontend. Ese token debe tener lectura de esta propiedad.
+Se descarga `releases/download/{tag}/agent-update.json` y su firma; ya no se usa
+`releases/latest`. El manifiesto firmado debe identificar exactamente la version
+y el tag seleccionados por RSM. Una version igual o inferior no se instala.
+Si RSM no responde, deniega acceso, devuelve una version invalida o versiones
+contradictorias, no se recurre a `latest`: se registra el fallo y se reintenta
+con los plazos progresivos anteriores. La firma, el hash y el limite de tamano siguen siendo obligatorios.
+
+Un fallo de recopilacion o envio del inventario conserva su propio reintento a
+los 30 minutos y no modifica la hora de la proxima consulta de actualizaciones.
+El siguiente intento vuelve a recopilar y enviar el inventario. El estado de
+ultimo envio correcto solo avanza cuando el envio finaliza sin error. El servidor
+puede haber recibido un envio cuya respuesta se perdio; no se garantiza entrega
+exactamente una vez. Si una recopilacion esta en curso, la comprobacion de
+actualizaciones espera a que termine para no solapar una instalacion con ella.
+
+Esta seleccion y el temporizador estan implementados y probados localmente;
+queda pendiente validar la lectura con un token real de agente en produccion,
+preparar una nueva release y publicarla. No cambia los binarios ya instalados.
 
 La release debe contener:
 

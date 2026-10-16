@@ -1,0 +1,30 @@
+{
+  "version": "0.20.8",
+  "date": "2026-10-16",
+  "release_status": "draft_blocked_on_rsm_agent_version_read_permission",
+  "agent_compiled": true,
+  "multilingual_installer_compiled": true,
+  "manifest_signed_with_existing_release_key": true,
+  "actual_agent_verified_signature_hash_size_and_version": true,
+  "installer_sha256": "445f7f39544e0f3f8fd501fce2566b8a4af143e715c1c6cc6dcc9041deb9669a",
+  "upgrade_and_scheduling_tests": "passed",
+  "large_inventory_checks_passed": 28,
+  "eligibility_checks_passed": 25,
+  "http_redirect_tests": "passed",
+  "native_installer_endpoint_tests": "passed",
+  "production_backend_token_version_read": "passed",
+  "production_agent_token_version_read_http_status": 403,
+  "production_agent_token_system_eligibility_read": "passed",
+  "production_windows_version_before_release": "0.20.6",
+  "production_linux_version_before_release": "0.4.5",
+  "installed_service_modified": false,
+  "live_automatic_upgrade_to_this_version": "not_performed",
+  "power_loss_during_installation": "not_tested",
+  "required_before_activation": [
+    "Agent tokens must be able to read property 1990 on the version record ID 1",
+    "Revalidate the production version query using a real agent token",
+    "Publish installer, signed manifest and signature together as the stable latest release",
+    "Set only Windows version 1990 to 0.20.8 in RSM after assets are available",
+    "Observe installation and version/inventory processing in RSM"
+  ]
+}

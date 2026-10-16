@@ -19,12 +19,6 @@ namespace RsAgent
     {
         public static async Task ValidateSystemUuidExistsAsync(AgentConfig config, bool installing = false, string apiUrlOverride = null)
         {
-            const string apiSuffix = "/api.php";
-            var apiUrl = apiUrlOverride ?? ApiEndpoint.Url;
-            if (!apiUrl.EndsWith(apiSuffix, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException(AgentText.T("rsm.invalidUrl"));
-
-            var itemsUrl = apiUrl.Substring(0, apiUrl.Length - apiSuffix.Length) + "/v2/items/get.php";
             var serializer = new JavaScriptSerializer();
             var payload = serializer.Serialize(new Dictionary<string, object>
             {
@@ -35,9 +29,35 @@ namespace RsAgent
                     { { "propertyID", "1780" }, { "value", config.Uuid }, { "operation", "=" } } } }
             });
 
+            var decoded = await RequestItemsAsync(config, payload, apiUrlOverride).ConfigureAwait(false);
+            var matches = new List<Dictionary<string, object>>();
+            SystemEligibility.CollectRows(decoded, config.Uuid, matches);
+            if (matches.Count == 0)
+                throw new InvalidOperationException(AgentText.T("rsm.inventoryUuidMissing", config.Uuid));
+            if (matches.Count != 1)
+                throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", 200, "ambiguous UUID"));
+            SystemEligibility.Validate(matches[0], config, installing);
+        }
+
+        internal static async Task<object> FetchAgentVersionsAsync(AgentConfig config, HttpMessageHandler handler = null, string apiUrlOverride = null)
+        {
+            var payload = new JavaScriptSerializer().Serialize(new Dictionary<string, object> {
+                { "propertyIDs", new[] { "1990" } }, { "translateIDs", false }
+            });
+            return await RequestItemsAsync(config, payload, apiUrlOverride, handler).ConfigureAwait(false);
+        }
+
+        private static async Task<object> RequestItemsAsync(AgentConfig config, string payload, string apiUrlOverride = null, HttpMessageHandler handler = null)
+        {
+            const string apiSuffix = "/api.php";
+            var apiUrl = apiUrlOverride ?? ApiEndpoint.Url;
+            if (!apiUrl.EndsWith(apiSuffix, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(AgentText.T("rsm.invalidUrl"));
+            var itemsUrl = apiUrl.Substring(0, apiUrl.Length - apiSuffix.Length) + "/v2/items/get.php";
+            var serializer = new JavaScriptSerializer();
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            using (var handler = new HttpClientHandler { AllowAutoRedirect = false })
-            using (var client = new HttpClient(handler))
+            using (var client = new HttpClient(handler ?? new HttpClientHandler { AllowAutoRedirect = false }))
             {
                 client.Timeout = TimeSpan.FromSeconds(20);
                 string body = null;
@@ -77,13 +97,7 @@ namespace RsAgent
                 {
                     throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "invalid response"));
                 }
-                var matches = new List<Dictionary<string, object>>();
-                SystemEligibility.CollectRows(decoded, config.Uuid, matches);
-                if (matches.Count == 0)
-                    throw new InvalidOperationException(AgentText.T("rsm.inventoryUuidMissing", config.Uuid));
-                if (matches.Count != 1)
-                    throw new InvalidOperationException(AgentText.T("rsm.uuidSearchFailed", (int)status, "ambiguous UUID"));
-                SystemEligibility.Validate(matches[0], config, installing);
+            return decoded;
             }
         }
 

@@ -10,13 +10,27 @@ namespace RsAgent
 {
     internal static class AgentUpdater
     {
-        private const string ManifestUrl = "https://github.com/Redsauce/firulai-windows-agent/releases/latest/download/agent-update.json";
         private static DateTime nextCheckUtc;
+        internal static DateTime NextCheckUtc { get { return nextCheckUtc; } }
         internal static DateTime RetryAtUtc { get; private set; }
+        private static int consecutiveFailures;
+        private static readonly int HostJitterSeconds = GetHostJitterSeconds();
 
-        internal static void RecordCheckResult(DateTime nowUtc, bool succeeded)
+        private static int GetHostJitterSeconds()
         {
-            nextCheckUtc = nowUtc.Add(succeeded ? TimeSpan.FromHours(24) : TimeSpan.FromMinutes(5));
+            using (var hash = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Environment.MachineName));
+                return (bytes[0] * 256 + bytes[1]) % 61;
+            }
+        }
+
+        internal static void RecordCheckResult(DateTime nowUtc, bool succeeded, int? jitterSeconds = null)
+        {
+            consecutiveFailures = succeeded ? 0 : Math.Min(consecutiveFailures + 1, 4);
+            var minutes = succeeded || consecutiveFailures >= 4 ? 60 :
+                consecutiveFailures == 1 ? 5 : consecutiveFailures == 2 ? 10 : 20;
+            nextCheckUtc = nowUtc.AddMinutes(minutes).AddSeconds(jitterSeconds ?? HostJitterSeconds);
             RetryAtUtc = succeeded ? DateTime.MinValue : nextCheckUtc;
         }
         private static readonly string Stage = Path.Combine(AgentConfig.DataDir, "updates");
@@ -84,7 +98,7 @@ namespace RsAgent
             return CheckAsync(CheckForUpdateAsync, () => DateTime.UtcNow);
         }
 
-        internal static async Task<bool> CheckAsync(Func<Task<bool>> check, Func<DateTime> utcNow)
+        internal static async Task<bool> CheckAsync(Func<Task<bool>> check, Func<DateTime> utcNow, int? jitterSeconds = null)
         {
             await CheckLock.WaitAsync().ConfigureAwait(false);
             try
@@ -93,15 +107,17 @@ namespace RsAgent
                 try
                 {
                     var launched = await check().ConfigureAwait(false);
-                    RecordCheckResult(utcNow(), true);
+                    RecordCheckResult(utcNow(), true, jitterSeconds);
+                    Logger.Info("Automatic update check completed. Next check at " + NextCheckUtc.ToLocalTime().ToString("o") + ".");
                     return launched;
                 }
                 catch (Exception ex)
                 {
-                    RecordCheckResult(utcNow(), false);
+                    RecordCheckResult(utcNow(), false, jitterSeconds);
                     var networkError = ex.InnerException as System.Net.WebException;
                     Logger.Warn("Automatic update check failed; inventory continues. " + ex.GetType().Name +
                         (networkError == null ? "" : " NetworkStatus=" + networkError.Status) +
+                        ". Reason=" + ex.Message.Replace('\r', ' ').Replace('\n', ' ') +
                         ". Update retry at " + RetryAtUtc.ToLocalTime().ToString("o") + ".");
                     return false;
                 }
@@ -127,10 +143,15 @@ namespace RsAgent
             }
             using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
             {
+                var releaseTag = AgentReleaseSelection.ReadWindowsVersion(await RsmClient.FetchAgentVersionsAsync(config).ConfigureAwait(false));
+                if (!InstallerUpgrade.IsNewer(AgentReleaseSelection.ValidateTag(releaseTag), AgentConfig.AgentVersion))
+                    return false;
+                var manifestUrl = AgentReleaseSelection.ManifestUrl(releaseTag);
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("Firulai-Windows-Agent/" + AgentConfig.AgentVersion);
-                var json = await DownloadAsync(client, ManifestUrl, 32768).ConfigureAwait(false);
-                var signature = System.Text.Encoding.ASCII.GetString(await DownloadAsync(client, ManifestUrl + ".sig", 8192).ConfigureAwait(false));
+                var json = await DownloadAsync(client, manifestUrl, 32768).ConfigureAwait(false);
+                var signature = System.Text.Encoding.ASCII.GetString(await DownloadAsync(client, manifestUrl + ".sig", 8192).ConfigureAwait(false));
                 var manifest = UpdateManifest.Verify(json, signature, publicKey);
+                AgentReleaseSelection.ValidateManifest(releaseTag, manifest);
                 if (!InstallerUpgrade.IsNewer(manifest.version, AgentConfig.AgentVersion))
                     return false;
                 SecureStage();
