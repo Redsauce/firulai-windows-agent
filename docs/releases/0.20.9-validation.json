@@ -1,7 +1,7 @@
 {
   "version": "0.20.9",
   "date": "2026-10-19",
-  "status": "validated_for_publication",
+  "status": "published_downloads_verified_rsm_selection_pending",
   "native_startup_probe": "passed before app initialization without installation",
   "native_endpoint_probe": "passed",
   "upgrade_and_scheduling": "passed",
@@ -14,5 +14,8 @@
   "installer_sha256": "545f7669b30f7f48aa9c89cfb9b07181454c3cbf6d4c9105dbd56b34a677a017",
   "real_reinstallation_with_same_uuid": "pending user validation",
   "service_installation_or_restart_performed_by_this_validation": false,
-  "rsm_selection": "set Windows current version to 0.20.9 after publication"
+  "rsm_selection": "set Windows current version to 0.20.9 after publication",
+  "release_url": "https://github.com/Redsauce/firulai-windows-agent/releases/tag/0.20.9",
+  "public_assets_match_local": true,
+  "public_package_verified_by_actual_agent": true
 }
