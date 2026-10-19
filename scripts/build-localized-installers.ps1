@@ -29,6 +29,13 @@ if (-not $iscc) {
     throw 'ISCC.exe was not found. Install Inno Setup before building installers.'
 }
 
+# Always rebuild the embedded agent; a matching version alone does not prove
+# that an existing bin/Release executable contains the current source changes.
+& (Join-Path $PSScriptRoot 'build-agent.ps1')
+if ($LASTEXITCODE -ne 0) {
+    throw 'Agent compilation failed; installer was not built.'
+}
+
 $installers = @(
     @{ Language = 'english'; Suffix = 'en' },
     @{ Language = 'spanish'; Suffix = 'es' },
