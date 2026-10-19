@@ -10,6 +10,16 @@ namespace RsAgent
         private static int Main()
         {
             ReleaseSelectionTests();
+            var missingSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+            if (!RsmClient.IsVerifiedMissingResponse(missingSerializer.DeserializeObject("{\"missing\":true,\"verified\":true}")))
+                throw new Exception("Verified missing System rejected");
+            foreach (var invalidMissing in new[] { "{}", "[]", "null", "{\"error\":\"denied\"}",
+                "{\"missing\":true}", "{\"missing\":false,\"verified\":true}",
+                "{\"missing\":true,\"verified\":false}", "{\"missing\":\"true\",\"verified\":true}",
+                "{\"missing\":true,\"verified\":true,\"error\":\"denied\"}" })
+                if (RsmClient.IsVerifiedMissingResponse(missingSerializer.DeserializeObject(invalidMissing)))
+                    throw new Exception("Unverified missing System accepted: " + invalidMissing);
+            Console.WriteLine("PASS: missing System requires independent authenticated confirmation; empty, denied and malformed responses rejected.");
             Check("0.19.10", "0.19.3", true);
             Check("0.20.0", "0.19.99", true);
             Check("1.0.0", "0.99.99", true);

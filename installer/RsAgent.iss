@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.9"
+#define MyAppVersion "0.20.10"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")

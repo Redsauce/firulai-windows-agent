@@ -220,8 +220,45 @@ namespace RsAgent
                 {
                     if (!response.IsSuccessStatusCode) throw new InvalidOperationException("Uninstallation confirmation unavailable.");
                     var rows = new List<Dictionary<string, object>>();
-                    SystemEligibility.CollectRows(serializer.DeserializeObject(await response.Content.ReadAsStringAsync().ConfigureAwait(false)), config.Uuid, rows);
-                    return rows.Count == 0 ? 2 : (rows.Count == 1 && IsUninstalledRow(rows[0]) ? 1 : 0);
+                    var decoded = serializer.DeserializeObject(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                    SystemEligibility.CollectRows(decoded, config.Uuid, rows);
+                    var fields = decoded as Dictionary<string, object>;
+                    var array = decoded as object[];
+                    if (rows.Count == 0 && ((fields != null && fields.Count == 0) || (array != null && array.Length == 0)))
+                        return await VerifyMissingSystemAsync(config).ConfigureAwait(false) ? 2 : 0;
+                    return rows.Count == 1 && IsUninstalledRow(rows[0]) ? 1 : 0;
+                }
+            }
+        }
+
+        internal static bool IsVerifiedMissingResponse(object decoded)
+        {
+            var fields = decoded as Dictionary<string, object>;
+            object missing, verified;
+            return fields != null && fields.Count == 2 &&
+                fields.TryGetValue("missing", out missing) && missing is bool && (bool)missing &&
+                fields.TryGetValue("verified", out verified) && verified is bool && (bool)verified;
+        }
+
+        private static async Task<bool> VerifyMissingSystemAsync(AgentConfig config)
+        {
+            var serializer = new JavaScriptSerializer();
+            using (var handler = new HttpClientHandler { AllowAutoRedirect = false })
+            using (var client = new HttpClient(handler))
+            using (var request = new HttpRequestMessage(HttpMethod.Post,
+                "https://firulai.redsauce.net/api/agents/uninstall/missing-system"))
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+                request.Headers.TryAddWithoutValidation("Authorization", config.Token);
+                request.Content = new StringContent(serializer.Serialize(new Dictionary<string, string> {
+                    { "uuid", config.Uuid }
+                }), Encoding.UTF8, "application/json");
+                using (var response = await client.SendAsync(request).ConfigureAwait(false))
+                {
+                    if (response.StatusCode != HttpStatusCode.OK)
+                        throw new InvalidOperationException("Missing System could not be independently verified.");
+                    return IsVerifiedMissingResponse(serializer.DeserializeObject(
+                        await response.Content.ReadAsStringAsync().ConfigureAwait(false)));
                 }
             }
         }
