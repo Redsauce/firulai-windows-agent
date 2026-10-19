@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.8"
+#define MyAppVersion "0.20.9"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
@@ -1011,21 +1011,7 @@ begin
   Result := ResultCode = 0;
 end;
 
-function IsLocalAgentInstalled(): Boolean;
-begin
-  Result :=
-    IsServiceInstalled() or
-    FileExists(ExpandConstant('{app}\{#MyAppExeName}')) or
-    FileExists(ExpandConstant('{app}\unins000.exe')) or
-    FileExists(ExpandConstant('{commonappdata}\RSAgent\config.json'));
-end;
-
-function HasLocalAgentExecutableOrUninstaller(): Boolean;
-begin
-  Result :=
-    FileExists(ExpandConstant('{app}\{#MyAppExeName}')) or
-    FileExists(ExpandConstant('{app}\unins000.exe'));
-end;
+#include "LocalInstallation.iss"
 
 function CleanupOrphanedLocalAgentInstallation(): string;
 var
@@ -1062,11 +1048,6 @@ end;
 function AppRegistryKey(): string;
 begin
   Result := 'SOFTWARE\Redsauce\RSAgent';
-end;
-
-function AppUninstallRegistryKey(): string;
-begin
-  Result := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}_is1';
 end;
 
 function InstalledLocaleFromRegistry(): string;
@@ -1197,7 +1178,7 @@ begin
 
   Result := Result + #13#10#13#10 +
     T('reinstallAdvice') + #13#10 +
-    ExpandConstant('{app}\unins000.exe');
+    AddBackslash(ExistingAgentDirectory()) + 'unins000.exe';
 end;
 
 function LocalHostname(): string;
