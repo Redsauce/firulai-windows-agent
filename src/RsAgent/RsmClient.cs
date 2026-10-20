@@ -173,6 +173,16 @@ namespace RsAgent
                 { "RStoken", config.Token }
             });
             var body = await SendEventAsync(config, "changeSystemStatus", payload).ConfigureAwait(false);
+            return await WaitForUninstallationAsync(body,
+                () => GetUninstallationConfirmationAsync(config),
+                () => Task.Delay(1000)).ConfigureAwait(false);
+        }
+
+        // Keep timing and transport injectable for isolated lifecycle tests.
+        internal static async Task<UninstallStatusUpdateResult> WaitForUninstallationAsync(
+            string body, Func<Task<int>> confirm, Func<Task> wait)
+        {
+            var serializer = new JavaScriptSerializer();
 
             // Acknowledging a queued event is not a confirmation of uninstallation.
             if (!string.IsNullOrWhiteSpace(body))
@@ -184,10 +194,10 @@ namespace RsAgent
             }
             for (int attempt = 0; attempt < 20; attempt++)
             {
-                var confirmation = await GetUninstallationConfirmationAsync(config).ConfigureAwait(false);
+                var confirmation = await confirm().ConfigureAwait(false);
                 if (confirmation != 0)
                     return new UninstallStatusUpdateResult { SystemFound = confirmation == 1, Message = "Agent uninstalled or system already deleted; no coverage retained." };
-                await Task.Delay(1000).ConfigureAwait(false);
+                await wait().ConfigureAwait(false);
             }
             throw new InvalidOperationException(AgentText.T("rsm.disconnectResponseInvalid", "Uninstallation was not confirmed by RSM."));
         }

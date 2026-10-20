@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.10"
+#define MyAppVersion "0.20.11"
 #define MyAppPublisher "Redsauce"
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
@@ -2108,6 +2108,8 @@ begin
   ApplyLocalizedInstallingPage();
 end;
 
+function StageUninstallRecovery(): Boolean; forward;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
@@ -2124,6 +2126,8 @@ begin
   if CurStep = ssDone then
   begin
     ConfigureLocalizedUninstallEntry();
+    if not StageUninstallRecovery() then
+      RaiseException('Could not preserve private uninstall recovery files.');
     if UpgradePrepared then
     begin
       if not Exec(UpgradeHelper, '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then RaiseException(UpgradeFailureText());
@@ -2303,6 +2307,18 @@ begin
   Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ConfigPath + '" /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:R', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
+#include "UninstallRecovery.iss"
+
+function StageUninstallRecovery(): Boolean;
+var
+  RecoveryDir: string;
+begin
+  Result := False;
+  RecoveryDir := ExpandConstant('{commonappdata}\RSAgentUninstallRecovery');
+  Result := PreparePrivateUninstallRecovery(ExpandConstant('{app}'),
+    ExpandConstant('{commonappdata}\RSAgent'), RecoveryDir);
+end;
+
 function MarkSystemDisconnectedInRsm(): Boolean; forward;
 
 function InitializeUninstall(): Boolean;
@@ -2329,12 +2345,22 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ResultCode: Integer;
+  RecoveryDir, DataDir, AppDir, RetryCommand: string;
 begin
+  RecoveryDir := ExpandConstant('{commonappdata}\RSAgentUninstallRecovery');
+  DataDir := ExpandConstant('{commonappdata}\RSAgent');
+  AppDir := ExpandConstant('{app}');
   if CurUninstallStep = usUninstall then
   begin
     if not MarkSystemDisconnectedInRsm() then
     begin
       MsgBox(T('uninstallUpdateFailed'), mbError, MB_OK);
+      Abort;
+    end;
+    // Keep a private copy before Inno removes its own executable/log or agent.
+    if not StageUninstallRecovery() then
+    begin
+      Log('Uninstall recovery backup failed; local files retained.');
       Abort;
     end;
     Exec(ExpandConstant('{app}\{#MyAppExeName}'), '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
@@ -2343,7 +2369,22 @@ begin
 
   if CurUninstallStep = usPostUninstall then
   begin
-    Exec(ExpandConstant('{sys}\icacls.exe'), '"' + ExpandConstant('{commonappdata}\RSAgent') + '" /grant:r *S-1-5-32-544:F /T /C', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    DelTree(ExpandConstant('{commonappdata}\RSAgent'), True, True, True);
+    ResultCode := FinalizePrivateUninstallRecovery(AppDir, DataDir, RecoveryDir);
+    if ResultCode <> 0 then
+    begin
+      // Keep the retry discoverable even if Inno already removed its registry key.
+      RetryCommand := '"' + AddBackslash(AppDir) + 'unins000.exe"';
+      if ResultCode = 1 then
+      begin
+        if not RestoreUninstallEntry(HKEY_LOCAL_MACHINE, AppUninstallRegistryKey(), AppDir,
+          '{#MyAppDisplayName}', '{#MyAppVersion}') then
+          Log('Could not restore Apps entry; use the retained uninstaller directly.');
+      end;
+      Log('Local uninstall incomplete. Remote state remains uninstalled. Retry: ' + RetryCommand + '. Backup: ' + RecoveryDir);
+      if AgentLocale = 'es_ES' then
+        MsgBox('No se han podido eliminar todos los archivos. Firulai conserva la baja y la plaza liberada. Se ha guardado lo necesario para reintentar. Cierra los programas que bloqueen los archivos y vuelve a ejecutar: ' + RetryCommand + '. Copia de recuperacion: ' + RecoveryDir, mbError, MB_OK)
+      else
+        MsgBox('Some local files could not be removed. Firulai retains the uninstalled state and released seat. Retry files were preserved. Close programs locking the files and run: ' + RetryCommand + '. Recovery backup: ' + RecoveryDir, mbError, MB_OK);
+    end;
   end;
 end;

@@ -10,6 +10,11 @@ namespace RsAgent
         private static int Main()
         {
             ReleaseSelectionTests();
+            UninstallationDelayTests();
+            if (!Program.IsMissingUninstallService(new InvalidOperationException("missing", new System.ComponentModel.Win32Exception(1060))) ||
+                Program.IsMissingUninstallService(new InvalidOperationException("denied", new System.ComponentModel.Win32Exception(5))) ||
+                Program.IsMissingUninstallService(new InvalidOperationException("unknown")))
+                throw new Exception("Uninstall retry confused absent service with access denied or unknown errors");
             var missingSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
             if (!RsmClient.IsVerifiedMissingResponse(missingSerializer.DeserializeObject("{\"missing\":true,\"verified\":true}")))
                 throw new Exception("Verified missing System rejected");
@@ -56,6 +61,36 @@ namespace RsAgent
                 throw new Exception("Default update preference or opt-out is incorrect.");
             Console.WriteLine("PASS: numeric upgrade ordering, downgrade rejection, malformed and prerelease versions.");
             return 0;
+        }
+
+        private static void UninstallationDelayTests()
+        {
+            foreach (var readyAfter in new[] { 4, 20 })
+            {
+                int calls = 0, waits = 0;
+                var result = RsmClient.WaitForUninstallationAsync("{\"queued\":true}",
+                    () => System.Threading.Tasks.Task.FromResult(++calls >= readyAfter ? 1 : 0),
+                    () => { waits++; return System.Threading.Tasks.Task.FromResult(0); }).GetAwaiter().GetResult();
+                if (!result.SystemFound || calls != readyAfter || waits != readyAfter - 1)
+                    throw new Exception("Delayed uninstall confirmation failed");
+            }
+            int polls = 0;
+            Func<System.Threading.Tasks.Task<int>> later = () => System.Threading.Tasks.Task.FromResult(++polls >= 21 ? 1 : 0);
+            Func<System.Threading.Tasks.Task> wait = () => System.Threading.Tasks.Task.FromResult(0);
+            Reject(() => RsmClient.WaitForUninstallationAsync("{}", later, wait).GetAwaiter().GetResult(), "unconfirmed queued uninstall");
+            if (polls != 20) throw new Exception("Uninstall did not exhaust the confirmation limit");
+            if (!RsmClient.WaitForUninstallationAsync("{}", later, wait).GetAwaiter().GetResult().SystemFound || polls != 21)
+                throw new Exception("Retry did not recognize late confirmation");
+            int deniedCalls = 0;
+            Reject(() => RsmClient.WaitForUninstallationAsync("{\"error\":\"denied\"}",
+                () => { deniedCalls++; return System.Threading.Tasks.Task.FromResult(1); }, wait).GetAwaiter().GetResult(), "denied event");
+            if (deniedCalls != 0) throw new Exception("Denied event continued to polling");
+            Reject(() => RsmClient.WaitForUninstallationAsync("{}",
+                () => { throw new System.Net.Http.HttpRequestException("offline"); }, wait).GetAwaiter().GetResult(), "offline confirmation");
+            var missing = RsmClient.WaitForUninstallationAsync("{\"error\":\"system_not_found\"}",
+                () => System.Threading.Tasks.Task.FromResult(2), wait).GetAwaiter().GetResult();
+            if (missing.SystemFound) throw new Exception("Verified missing System mistaken for existing System");
+            Console.WriteLine("PASS: uninstall delayed/final confirmation, timeout, late retry, rejected event and offline polling.");
         }
 
         private static void Reject(Action action, string name)

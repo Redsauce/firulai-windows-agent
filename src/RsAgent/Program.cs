@@ -118,7 +118,15 @@ private static int ValidateForInstaller(string mode, string configPath, string r
             UninstallStatusUpdateResult result;
             using (var service = new ServiceController("RSAgent"))
             {
-                var wasRunning = service.Status == ServiceControllerStatus.Running;
+                bool wasRunning;
+                try { wasRunning = service.Status == ServiceControllerStatus.Running; }
+                catch (InvalidOperationException error)
+                {
+                    // Inno may already have removed the service before local file
+                    // deletion failed. A retry still needs remote confirmation.
+                    if (!IsMissingUninstallService(error)) throw;
+                    wasRunning = false;
+                }
                 try
                 {
                     if (wasRunning)
@@ -145,6 +153,12 @@ private static int ValidateForInstaller(string mode, string configPath, string r
             Logger.Info(AgentText.T("program.uninstallDisconnectedLog", config.Uuid, result.Message));
             if (Environment.UserInteractive) Console.WriteLine(AgentText.T("program.uninstallDisconnectedConsole", config.Uuid));
             return 0;
+        }
+
+        internal static bool IsMissingUninstallService(Exception error)
+        {
+            var native = error.InnerException as System.ComponentModel.Win32Exception;
+            return error is InvalidOperationException && native != null && native.NativeErrorCode == 1060;
         }
 
         private static int LaunchLocalizedUninstaller(string[] args)
