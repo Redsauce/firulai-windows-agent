@@ -48,6 +48,7 @@
     <Compile Include="InstallerUpgrade.cs" />
     <Compile Include="UpdateManifest.cs" />
     <Compile Include="AgentUpdater.cs" />
+    <Compile Include="CollectionReporter.cs" />
     <Compile Include="AgentReleaseSelection.cs" />
     <EmbeddedResource Include="UpdatePublicKey.xml">
       <LogicalName>RsAgent.UpdatePublicKey.xml</LogicalName>

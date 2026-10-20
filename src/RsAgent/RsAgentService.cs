@@ -122,6 +122,7 @@ namespace RsAgent
             var executionId = Guid.NewGuid().ToString("N").Substring(0, 8);
             var stopwatch = Stopwatch.StartNew();
             var phase = AgentText.T("service.phasePreparation");
+            CollectionReporter collectionReporter = null;
             Logger.EventInfo(1100, AgentText.T("service.executionStarted", executionId, trigger));
 
             try
@@ -134,6 +135,8 @@ namespace RsAgent
                 Logger.Info(AgentText.T("service.configLoaded", executionId, config.Uuid, GetSafeDestination(ApiEndpoint.Url), config.Locale));
 
                 await RsmClient.ValidateSystemUuidExistsAsync(config).ConfigureAwait(false);
+
+                collectionReporter = new CollectionReporter(config);
 
                 try
                 {
@@ -173,6 +176,10 @@ namespace RsAgent
                     AgentText.T("service.executionFailed", executionId, trigger, phase, stopwatch.ElapsedMilliseconds),
                     ex);
                 throw;
+            }
+            finally
+            {
+                if (collectionReporter != null) collectionReporter.Dispose();
             }
         }
 

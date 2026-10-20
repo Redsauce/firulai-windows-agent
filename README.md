@@ -1,5 +1,18 @@
 # Firulai Inventory Agent para Windows
 
+## Aviso de recopilación (0.20.12)
+
+El flujo común de ejecución manual (`--run-once`) y del servicio informa del
+inicio, renueva cada 45 segundos y retira el aviso al terminar el envío o fallar.
+La web muestra «Recopilando datos» mientras dura ese trabajo. Si el proceso se
+interrumpe, el aviso caduca a los tres minutos sin heartbeat.
+
+El reporte es opcional: un backend antiguo o sin conexión no bloquea el
+inventario. Utiliza `https://firulai.redsauce.net/api/agents/collection-status`;
+`RS_AGENT_COLLECTION_URL` permite un destino HTTPS de prueba, sin redirecciones
+con credenciales. Necesita el backend de Firulai con los endpoints de recopilación. No requiere
+cambios adicionales en scripts RSM.
+
 Agente de inventario para equipos Windows. Recopila información técnica del sistema, software instalado y componentes relevantes para análisis de vulnerabilidades, y envía el inventario a Firulai para su correlación con CVEs.
 
 Este repositorio se usa como punto de descarga y documentación pública del agente Windows. El instalador oficial se publica como archivo adjunto en la sección **Releases**.
