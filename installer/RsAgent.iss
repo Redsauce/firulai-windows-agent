@@ -1,7 +1,11 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.12"
+#define MyAppVersion "0.20.13"
 #define MyAppPublisher "Redsauce"
+#if GetEnv("PUBLISHER_NAME") != ""
+  #undef MyAppPublisher
+  #define MyAppPublisher GetEnv("PUBLISHER_NAME")
+#endif
 #define MyAppExeName "RsAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
 #if ApiEndpointHandle == 0
@@ -23,6 +27,9 @@ AppName={#MyAppDisplayName}
 AppVersion={#MyAppVersion}
 AppVerName={cm:NameAndVersion,{#MyAppDisplayName},{#MyAppVersion}}
 AppPublisher={#MyAppPublisher}
+#if GetEnv("PUBLISHER_URL") != ""
+AppPublisherURL={#GetEnv("PUBLISHER_URL")}
+#endif
 DefaultDirName={autopf}\RSAgent
 DisableDirPage=yes
 DisableProgramGroupPage=yes
@@ -42,6 +49,10 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Firulai inventory agent
 VersionInfoProductName={#MyAppDisplayName}
+#if GetEnv("FIRULAI_SIGN_INSTALLER") == "1"
+SignTool=as
+SignedUninstaller=yes
+#endif
 LicenseFile=LICENSE-en.txt
 ShowLanguageDialog=no
 UsePreviousLanguage=no
