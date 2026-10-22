@@ -1,0 +1,12 @@
+{
+  "release": "0.20.14",
+  "release_id": 420590104,
+  "code_commit": "c61d7239b420121823e0b3eae69462ecdf6dbf0f",
+  "authenticode_workflow": 39763862753,
+  "authenticode_status": "Valid",
+  "public_rsa_manifest_verification": "passed",
+  "public_assets_match_local": true,
+  "installer_sha256": "02dcfeaa0c3c71642a478f02897e16028148dc98d87098b6f9cbc3d5597b2cc5",
+  "installer_bytes": 2331280,
+  "catalog_update": "requires_user_write_permission"
+}

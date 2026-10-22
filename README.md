@@ -386,7 +386,7 @@ Comprueba que la cuenta del servicio pueda leer la ruta donde reside la aplicaci
 
 ## Versión actual
 
-Versión del agente: `0.19.1`
+Versión del agente: `0.20.14`
 
 Nombre del instalador publicado:
 
