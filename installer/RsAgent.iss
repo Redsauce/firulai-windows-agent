@@ -1,6 +1,6 @@
 #define MyAppName "RSAgent"
 #define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.13"
+#define MyAppVersion "0.20.14"
 #define MyAppPublisher "Redsauce"
 #if GetEnv("PUBLISHER_NAME") != ""
   #undef MyAppPublisher
