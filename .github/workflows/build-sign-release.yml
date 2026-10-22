@@ -1,0 +1,197 @@
+name: Build, sign and verify Windows release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing stable release tag (X.Y.Z)
+        required: false
+        type: string
+      include_update_manifest:
+        description: Include the signed automatic-update manifest in the downloadable bundle
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  release:
+    runs-on: windows-2025
+    environment: release
+    env:
+      AS_ACCOUNT_NAME: ${{ vars.AS_ACCOUNT_NAME }}
+      AS_CERT_PROFILE: ${{ vars.AS_CERT_PROFILE }}
+      PUBLISHER_NAME: ${{ vars.PUBLISHER_NAME }}
+      PUBLISHER_URL: ${{ vars.PUBLISHER_URL }}
+      AS_ENDPOINT: https://weu.codesigning.azure.net
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Validate version and configuration
+        id: version
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          INCLUDE_UPDATE_MANIFEST: ${{ inputs.include_update_manifest }}
+        run: |
+          $agentSource = Get-Content 'src/RsAgent/AgentConfig.cs' -Raw
+          if ($agentSource -notmatch 'AgentVersion = "(\d+\.\d+\.\d+)"') { throw 'Agent version was not found.' }
+          $version = $Matches[1]
+          if ($env:RELEASE_TAG) {
+            if ($env:RELEASE_TAG -notmatch '^\d+\.\d+\.\d+$' -or $env:RELEASE_TAG -ne $version) { throw 'Tag must match the X.Y.Z agent version.' }
+          } elseif ($env:INCLUDE_UPDATE_MANIFEST -eq 'true') {
+            throw 'A tag is required to create the automatic-update manifest.'
+          }
+          if ((Get-Content 'installer/RsAgent.iss' -Raw) -notmatch ('#define MyAppVersion "' + [regex]::Escape($version) + '"')) { throw 'Tag differs from installer version.' }
+          foreach ($name in 'AS_ACCOUNT_NAME','AS_CERT_PROFILE','PUBLISHER_NAME','PUBLISHER_URL') {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "$name is missing." }
+          }
+          "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Build agent
+        shell: pwsh
+        run: |
+          ./scripts/build-agent.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Agent compilation failed.' }
+          if (-not (Test-Path 'src/RsAgent/bin/Release/RsAgent.exe')) { throw 'Agent payload is missing.' }
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Sign agent payload
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ env.AS_ENDPOINT }}
+          signing-account-name: ${{ env.AS_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ env.AS_CERT_PROFILE }}
+          files-folder: ${{ github.workspace }}\src\RsAgent\bin\Release
+          files-folder-filter: exe,dll
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: ${{ env.PUBLISHER_NAME }}
+          description-url: ${{ env.PUBLISHER_URL }}
+          exclude-environment-credential: true
+          exclude-managed-identity-credential: true
+          exclude-workload-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+      - name: Prepare Inno signing tool
+        shell: pwsh
+        run: |
+          $asDir = 'C:\as'
+          New-Item -ItemType Directory -Force -Path $asDir | Out-Null
+          $package = Join-Path $env:RUNNER_TEMP 'Microsoft.ArtifactSigning.Client.1.0.128.zip'
+          $extracted = Join-Path $env:RUNNER_TEMP 'ArtifactSigningClient'
+          Invoke-WebRequest -Uri 'https://api.nuget.org/v3-flatcontainer/microsoft.artifactsigning.client/1.0.128/microsoft.artifactsigning.client.1.0.128.nupkg' -OutFile $package
+          Expand-Archive -LiteralPath $package -DestinationPath $extracted -Force
+          $dlibDir = Join-Path $extracted 'bin\x64'
+          if (-not (Test-Path -LiteralPath (Join-Path $dlibDir 'Azure.CodeSigning.Dlib.dll'))) { throw 'Artifact Signing x64 dlib was not found in the NuGet package.' }
+          Copy-Item -Path (Join-Path $dlibDir '*') -Destination $asDir -Recurse -Force
+          $sdk = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+          $signtool = Get-ChildItem -LiteralPath $sdk -Filter signtool.exe -Recurse -File | Where-Object FullName -Match '\\x64\\' | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw 'signtool.exe was not found.' }
+          $metadata = [ordered]@{
+            Endpoint = $env:AS_ENDPOINT
+            CodeSigningAccountName = $env:AS_ACCOUNT_NAME
+            CertificateProfileName = $env:AS_CERT_PROFILE
+            ExcludeCredentials = @('EnvironmentCredential','ManagedIdentityCredential','WorkloadIdentityCredential','SharedTokenCacheCredential','VisualStudioCredential','VisualStudioCodeCredential','AzurePowerShellCredential','AzureDeveloperCliCredential','InteractiveBrowserCredential')
+          }
+          [IO.File]::WriteAllText((Join-Path $asDir 'metadata.json'), ($metadata | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding($false)))
+          $command = "`$q$($signtool.FullName)`$q sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib C:\as\Azure.CodeSigning.Dlib.dll /dmdf C:\as\metadata.json /d `$q$env:PUBLISHER_NAME`$q /du `$q$env:PUBLISHER_URL`$q `$f"
+          "AS_SIGN_COMMAND=$command" >> $env:GITHUB_ENV
+      - name: Build signed installer
+        shell: pwsh
+        env:
+          WINDOWS_UPDATE_PRIVATE_KEY_XML_B64: ${{ secrets.WINDOWS_UPDATE_PRIVATE_KEY_XML_B64 }}
+          INCLUDE_UPDATE_MANIFEST: ${{ inputs.include_update_manifest }}
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          if ($env:INCLUDE_UPDATE_MANIFEST -eq 'true') {
+            if (-not $env:WINDOWS_UPDATE_PRIVATE_KEY_XML_B64) { throw 'WINDOWS_UPDATE_PRIVATE_KEY_XML_B64 is required for an automatic-update bundle.' }
+          }
+          try {
+            $env:FIRULAI_SIGN_INSTALLER = '1'
+            $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 7\ISCC.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+            if (-not $iscc) { throw 'ISCC.exe was not found.' }
+            New-Item -ItemType Directory -Force -Path Output | Out-Null
+            & $iscc "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation or signing failed.' }
+            ./scripts/Verify-SignedInstaller.ps1 -Path Output/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
+            ./scripts/Verify-SignedInstaller.ps1 -Path src/RsAgent/bin/Release/RsAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
+            if ($env:INCLUDE_UPDATE_MANIFEST -eq 'true') {
+              $privateKey = Join-Path $env:RUNNER_TEMP 'windows-update-private.xml'
+              [IO.File]::WriteAllBytes($privateKey, [Convert]::FromBase64String($env:WINDOWS_UPDATE_PRIVATE_KEY_XML_B64))
+              ./scripts/sign-update-manifest.ps1 -PrivateKeyPath $privateKey -InstallerPath Output/FirulaiAgent.exe -Version $version -OutputDir Output
+              & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory Output -AgentPath src/RsAgent/bin/Release/RsAgent.exe
+              if ($LASTEXITCODE -ne 0) { throw 'RSA update package verification failed.' }
+              Copy-Item Output/RELEASE_CHECKSUMS.txt Output/SHA256SUMS.txt
+            } else {
+              $hash = (Get-FileHash Output/FirulaiAgent.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  FirulaiAgent.exe" | Set-Content Output/SHA256SUMS.txt -Encoding ascii
+            }
+          }
+          finally { if ($privateKey) { Remove-Item -LiteralPath $privateKey -Force -ErrorAction SilentlyContinue } }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.include_update_manifest && 'signed-firulai-release' || 'signed-firulai-installer' }}
+          path: |
+            Output/FirulaiAgent.exe
+            Output/agent-update.json
+            Output/agent-update.json.sig
+            Output/SHA256SUMS.txt
+          if-no-files-found: error
+  verify_artifact:
+    needs: release
+    runs-on: windows-2025
+    environment: release
+    env:
+      PUBLISHER_NAME: ${{ vars.PUBLISHER_NAME }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.include_update_manifest && 'signed-firulai-release' || 'signed-firulai-installer' }}
+          path: dist
+      - name: Verify downloaded signed installer
+        shell: pwsh
+        run: |
+          $line = (Get-Content dist/SHA256SUMS.txt | Where-Object { $_ -match '  FirulaiAgent\.exe$' } | Select-Object -First 1)
+          if ($line -notmatch '^([a-fA-F0-9]{64})  FirulaiAgent\.exe$') { throw 'Installer checksum missing.' }
+          ./scripts/Verify-SignedInstaller.ps1 -Path dist/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME -ExpectedSha256 $Matches[1]
+      - name: Verify downloaded update bundle
+        if: ${{ inputs.include_update_manifest }}
+        shell: pwsh
+        env:
+          VERIFY_UUID: ${{ secrets.VERIFY_UUID }}
+          VERIFY_TOKEN: ${{ secrets.VERIFY_TOKEN }}
+        run: |
+          foreach ($name in 'FirulaiAgent.exe','agent-update.json','agent-update.json.sig','SHA256SUMS.txt') {
+            if (-not (Test-Path -LiteralPath (Join-Path dist $name))) { throw "Missing bundle asset: $name" }
+          }
+          $checksums = Get-Content dist/SHA256SUMS.txt
+          if ($checksums.Count -ne 3) { throw 'The update bundle must contain three checksums.' }
+          foreach ($line in $checksums) {
+            if ($line -notmatch '^([a-fA-F0-9]{64})  (.+)$') { throw 'Invalid checksum line.' }
+            $file = Join-Path dist $Matches[2]
+            if (-not (Test-Path -LiteralPath $file)) { throw "Missing published asset: $file" }
+            if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $Matches[1]) { throw "Checksum mismatch: $file" }
+          }
+          ./scripts/build-agent.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Agent compilation for manifest verification failed.' }
+          & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory dist -AgentPath src/RsAgent/bin/Release/RsAgent.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Downloaded RSA update bundle verification failed.' }
+          if ($env:VERIFY_UUID -and $env:VERIFY_TOKEN) {
+            ./scripts/Verify-SignedInstaller.ps1 -Path dist/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME -InstallTest -TestUuid $env:VERIFY_UUID -TestToken $env:VERIFY_TOKEN
+          } else {
+            Write-Warning 'Silent install/uninstall test awaits VERIFY_UUID and VERIFY_TOKEN.'
+          }
