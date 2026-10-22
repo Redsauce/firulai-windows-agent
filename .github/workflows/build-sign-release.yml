@@ -122,7 +122,7 @@ jobs:
             $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 7\ISCC.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
             if (-not $iscc) { throw 'ISCC.exe was not found.' }
             New-Item -ItemType Directory -Force -Path Output | Out-Null
-            & $iscc -ni "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
+            & $iscc "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
             if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation or signing failed.' }
             ./scripts/Verify-SignedInstaller.ps1 -Path Output/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
             ./scripts/Verify-SignedInstaller.ps1 -Path src/RsAgent/bin/Release/RsAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
