@@ -105,7 +105,7 @@ jobs:
             ExcludeCredentials = @('EnvironmentCredential','ManagedIdentityCredential','WorkloadIdentityCredential','SharedTokenCacheCredential','VisualStudioCredential','VisualStudioCodeCredential','AzurePowerShellCredential','AzureDeveloperCliCredential','InteractiveBrowserCredential')
           }
           [IO.File]::WriteAllText((Join-Path $asDir 'metadata.json'), ($metadata | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding($false)))
-          $command = "`"$($signtool.FullName)`" sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib C:\as\Azure.CodeSigning.Dlib.dll /dmdf C:\as\metadata.json /d `$q$env:PUBLISHER_NAME`$q /du `$q$env:PUBLISHER_URL`$q `$f"
+          $command = "`$q$($signtool.FullName)`$q sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib C:\as\Azure.CodeSigning.Dlib.dll /dmdf C:\as\metadata.json /d `$q$env:PUBLISHER_NAME`$q /du `$q$env:PUBLISHER_URL`$q `$f"
           "AS_SIGN_COMMAND=$command" >> $env:GITHUB_ENV
       - name: Build signed installer
         shell: pwsh
@@ -122,7 +122,7 @@ jobs:
             $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 7\ISCC.exe") | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
             if (-not $iscc) { throw 'ISCC.exe was not found.' }
             New-Item -ItemType Directory -Force -Path Output | Out-Null
-            & $iscc -ni "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
+            & $iscc "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
             if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation or signing failed.' }
             ./scripts/Verify-SignedInstaller.ps1 -Path Output/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
             ./scripts/Verify-SignedInstaller.ps1 -Path src/RsAgent/bin/Release/RsAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
