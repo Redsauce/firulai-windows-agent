@@ -88,41 +88,13 @@ jobs:
         run: |
           $asDir = 'C:\as'
           New-Item -ItemType Directory -Force -Path $asDir | Out-Null
-          function Find-Dlib {
-            $roots = @(
-              (Join-Path $env:LOCALAPPDATA 'Microsoft\MicrosoftArtifactSigningClientTools'),
-              (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\ArtifactSigningClientTools'),
-              (Join-Path $env:ProgramFiles 'Microsoft\ArtifactSigningClientTools')
-            )
-            foreach ($root in $roots | Where-Object { Test-Path -LiteralPath $_ }) {
-              $file = Get-ChildItem -LiteralPath $root -Filter Azure.CodeSigning.Dlib.dll -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch '\\x86\\' } | Select-Object -First 1
-              if ($file) { return $file }
-            }
-          }
-          $dlib = Find-Dlib
-          if (-not $dlib) {
-            $installer = Join-Path $env:RUNNER_TEMP 'ArtifactSigningClientTools.msi'
-            $installLog = Join-Path $env:RUNNER_TEMP 'ArtifactSigningClientTools-install.log'
-            Invoke-WebRequest -Uri 'https://download.microsoft.com/download/a3c24ba9-ff1f-444f-b626-eff710f345c3/ArtifactSigningClientTools.msi' -OutFile $installer
-            $signature = Get-AuthenticodeSignature -LiteralPath $installer
-            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'Microsoft') {
-              throw 'Artifact Signing tools MSI does not have a valid Microsoft signature.'
-            }
-            $arguments = "/i `"$installer`" /qn /norestart /L*v `"$installLog`""
-            $process = Start-Process msiexec.exe -ArgumentList $arguments -PassThru
-            if (-not $process.WaitForExit(300000)) {
-              Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-              if (Test-Path -LiteralPath $installLog) { Get-Content -LiteralPath $installLog -Tail 80 }
-              throw "Artifact Signing tools MSI timed out after 5 minutes. See $installLog."
-            }
-            if ($process.ExitCode -notin @(0, 3010)) {
-              if (Test-Path -LiteralPath $installLog) { Get-Content -LiteralPath $installLog -Tail 80 }
-              throw "Artifact Signing tools MSI failed with exit code $($process.ExitCode). See $installLog."
-            }
-            $dlib = Find-Dlib
-          }
-          if (-not $dlib) { throw "Artifact Signing dlib was not found under LOCALAPPDATA or Program Files. LOCALAPPDATA=$env:LOCALAPPDATA" }
-          Copy-Item -Path (Join-Path $dlib.Directory.FullName '*') -Destination $asDir -Recurse -Force
+          $package = Join-Path $env:RUNNER_TEMP 'Microsoft.ArtifactSigning.Client.1.0.128.zip'
+          $extracted = Join-Path $env:RUNNER_TEMP 'ArtifactSigningClient'
+          Invoke-WebRequest -Uri 'https://api.nuget.org/v3-flatcontainer/microsoft.artifactsigning.client/1.0.128/microsoft.artifactsigning.client.1.0.128.nupkg' -OutFile $package
+          Expand-Archive -LiteralPath $package -DestinationPath $extracted -Force
+          $dlibDir = Join-Path $extracted 'bin\x64'
+          if (-not (Test-Path -LiteralPath (Join-Path $dlibDir 'Azure.CodeSigning.Dlib.dll'))) { throw 'Artifact Signing x64 dlib was not found in the NuGet package.' }
+          Copy-Item -Path (Join-Path $dlibDir '*') -Destination $asDir -Recurse -Force
           $sdk = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
           $signtool = Get-ChildItem -LiteralPath $sdk -Filter signtool.exe -Recurse -File | Where-Object FullName -Match '\\x64\\' | Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw 'signtool.exe was not found.' }
