@@ -105,7 +105,7 @@ jobs:
             ExcludeCredentials = @('EnvironmentCredential','ManagedIdentityCredential','WorkloadIdentityCredential','SharedTokenCacheCredential','VisualStudioCredential','VisualStudioCodeCredential','AzurePowerShellCredential','AzureDeveloperCliCredential','InteractiveBrowserCredential')
           }
           [IO.File]::WriteAllText((Join-Path $asDir 'metadata.json'), ($metadata | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding($false)))
-          $command = "`"$($signtool.FullName)`" sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib C:\as\Azure.CodeSigning.Dlib.dll /dmdf C:\as\metadata.json /d `$q$env:PUBLISHER_NAME`$q /du `$q$env:PUBLISHER_URL`$q `$f"
+          $command = "`$q$($signtool.FullName)`$q sign /v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib C:\as\Azure.CodeSigning.Dlib.dll /dmdf C:\as\metadata.json /d `$q$env:PUBLISHER_NAME`$q /du `$q$env:PUBLISHER_URL`$q `$f"
           "AS_SIGN_COMMAND=$command" >> $env:GITHUB_ENV
       - name: Build signed installer
         shell: pwsh
