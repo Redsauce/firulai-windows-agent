@@ -8,5 +8,5 @@
   "public_assets_match_local": true,
   "installer_sha256": "02dcfeaa0c3c71642a478f02897e16028148dc98d87098b6f9cbc3d5597b2cc5",
   "installer_bytes": 2331280,
-  "catalog_update": "requires_user_write_permission"
+  "catalog_update": "selected by user and verified in RSM and public HTTPS endpoint"
 }
