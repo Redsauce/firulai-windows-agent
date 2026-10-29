@@ -37,6 +37,7 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ApiEndpoint.cs" />
     <EmbeddedResource Include="ApiEndpoint.txt">
       <LogicalName>RsAgent.ApiEndpoint.txt</LogicalName>

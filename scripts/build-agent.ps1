@@ -9,4 +9,12 @@ $sources = Get-ChildItem -LiteralPath $sourceDir -Filter '*.cs' | ForEach-Object
     "/resource:$sourceDir\UpdatePublicKey.xml,RsAgent.UpdatePublicKey.xml" `
     /r:System.Management.dll /r:System.Net.Http.dll /r:System.ServiceProcess.dll /r:System.Web.Extensions.dll $sources
 if ($LASTEXITCODE -ne 0) { throw 'Agent compilation failed' }
+$agentSource = Get-Content -LiteralPath (Join-Path $sourceDir 'AgentConfig.cs') -Raw
+if ($agentSource -notmatch 'AgentVersion = "(\d+\.\d+\.\d+)"') { throw 'Agent version was not found.' }
+$expectedVersion = $Matches[1]
+$metadata = (Get-Item -LiteralPath (Join-Path $outputDir 'RsAgent.exe')).VersionInfo
+if ($metadata.ProductVersion -ne $expectedVersion -or
+    $metadata.FileVersion -ne $expectedVersion) {
+    throw "Agent executable metadata must match AgentVersion $expectedVersion."
+}
 Write-Host "Agent generated: $outputDir\RsAgent.exe"
