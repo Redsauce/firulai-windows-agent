@@ -3,7 +3,7 @@
 Version preparada: 0.19.0.
 
 El instalador escribe la cadena `ApiBaseUrl` en
-`HKLM\SOFTWARE\Redsauce\RSAgent` (vista de 64 bits en Windows de 64 bits).
+`HKLM\SOFTWARE\Redsauce\firulaiAgent` (vista de 64 bits en Windows de 64 bits).
 Su valor inicial es `https://rsm1.redsauce.net/AppController/`.
 `config.json` guarda token, UUID e idioma; ya no se utiliza `api_url`.
 Las instalaciones antiguas sin el valor de registro utilizan la base predeterminada.
@@ -25,9 +25,9 @@ instalador la base permanente se retiene y se escribe al proceder la instalacion
 En PowerShell como administrador, sin mostrar el token:
 
 ```powershell
-$config = Get-Content "$env:ProgramData\RSAgent\config.json" -Raw -ErrorAction Stop | ConvertFrom-Json
+$config = Get-Content "$env:ProgramData\firulaiAgent\config.json" -Raw -ErrorAction Stop | ConvertFrom-Json
 $config.PSObject.Properties.Name -contains 'api_url'
-reg.exe query "HKLM\SOFTWARE\Redsauce\RSAgent" /v ApiBaseUrl /reg:64
+reg.exe query "HKLM\SOFTWARE\Redsauce\firulaiAgent" /v ApiBaseUrl /reg:64
 ```
 
 Antigua: True y valor de registro ausente. Nueva: False y base en registro.

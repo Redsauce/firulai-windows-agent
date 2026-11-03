@@ -84,7 +84,7 @@ paquete antes de ejecutarlo. Los archivos temporales ejecutables quedan
 restringidos a administradores y SYSTEM.
 
 La version intentada se guarda en
-`C:\ProgramData\RSAgent\updates\attempted-version.txt` antes de ejecutar el
+`C:\ProgramData\firulaiAgent\updates\attempted-version.txt` antes de ejecutar el
 instalador, para evitar bucles tras fallos o reinicios. Un administrador puede
 eliminar ese archivo para reintentar una version despues de investigar su fallo.
 La ejecucion silenciosa usa `/NORESTART`: el agente no reinicia Windows.

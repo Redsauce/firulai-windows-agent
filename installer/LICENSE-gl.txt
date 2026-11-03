@@ -5,7 +5,7 @@ Version do acordo: 20 de xullo de 2026
 Lea atentamente este documento antes de instalar ou utilizar o software.
 
 Este Acordo de licenza e aviso de uso ("Acordo") regula a instalacion e o uso
-de Firulai Inventory Agent para Windows ("Axente"), publicado por Redsauce para
+de Firulai Security Agent para Windows ("Axente"), publicado por Redsauce para
 o seu uso coa plataforma Firulai.
 
 Ao aceptar este Acordo e continuar coa instalacion, confirma que leu e acepta

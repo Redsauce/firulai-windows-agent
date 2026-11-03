@@ -7,7 +7,7 @@ namespace RsAgent
 {
     internal static class Logger
     {
-        public const string WindowsEventSource = "RSAgent";
+        public const string WindowsEventSource = "firulaiAgent";
         private const long MaxBytes = 5L * 1024L * 1024L;
         private static readonly object Sync = new object();
 

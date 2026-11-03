@@ -27,7 +27,7 @@ namespace RsAgent
 
         public RsAgentService()
         {
-            ServiceName = "RSAgent";
+            ServiceName = "firulaiAgent";
             CanStop = true;
             CanShutdown = true;
             CanHandlePowerEvent = true;

@@ -1,4 +1,6 @@
-# Firulai Inventory Agent para Windows
+# Firulai Security Agent para Windows
+
+El servicio, el ejecutable instalado y los directorios nuevos se llaman `firulaiAgent`, `FirulaiAgent.exe` y `firulaiAgent`, respectivamente. El instalador firmado detecta una instalación anterior `RSAgent` y la migra conservando UUID, configuración y estado; no ejecuta el desinstalador ni marca el System como desconectado.
 
 ## Aviso de recopilación (0.20.12)
 
@@ -68,7 +70,7 @@ https://rsm1.redsauce.net
 5. Introduce el UUID y el token que se te han facilitado en Firulai.
 6. Finaliza la instalación.
 
-Al terminar, el instalador crea y arranca automáticamente el servicio Windows `RSAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
+Al terminar, el instalador crea y arranca automáticamente el servicio Windows `firulaiAgent`. A partir de ese momento, los datos del equipo se enviarán a Firulai y el inventario se actualizará automáticamente cada noche.
 
 En una instalacion nueva, el asistente valida el token y el UUID en Firulai. Si
 encuentra una instalacion valida y el instalador tiene una version superior,
@@ -91,12 +93,12 @@ El instalador `FirulaiAgent.exe`, tambien cuando se descarga con sufijo de idiom
 4. Detecta una instalacion existente y comprueba si corresponde actualizarla.
 5. Valida en Firulai que el UUID existe y está disponible para este equipo.
 6. Solicita al receptor que active el System asociado al UUID.
-7. Instala `RsAgent.exe` en `C:\Program Files\RSAgent\`.
-8. Crea los directorios de datos en `C:\ProgramData\RSAgent\`.
+7. Instala `FirulaiAgent.exe` en `C:\Program Files\firulaiAgent\`.
+8. Crea los directorios de datos en `C:\ProgramData\firulaiAgent\`.
 9. Genera `config.json` con la configuración local del agente, incluyendo el token facilitado por Firulai.
 10. Restringe los permisos de `config.json` a `SYSTEM` y `Administrators`.
-11. Registra el servicio Windows `RSAgent` con inicio automático.
-12. Registra el origen `RSAgent` en el log Aplicación de Windows.
+11. Registra el servicio Windows `firulaiAgent` con inicio automático.
+12. Registra el origen `firulaiAgent` en el log Aplicación de Windows.
 13. Configura la recuperación del servicio ante fallos.
 14. Arranca el servicio y ejecuta el primer inventario.
 15. Registra el desinstalador en "Aplicaciones instaladas" de Windows.
@@ -105,7 +107,7 @@ Si ya existe una instalacion valida y la nueva version es superior, el instalado
 actualiza los archivos conservando la identidad y la configuracion. Si se desea
 cambiar el UUID del equipo, se mantiene el procedimiento de desinstalar e instalar.
 
-La instalación se considera existente si aparece cualquiera de estas señales: servicio `RSAgent`, `RsAgent.exe`, `unins000.exe` o `C:\ProgramData\RSAgent\config.json`.
+La instalación se considera existente si aparece cualquiera de estas señales: servicio `firulaiAgent`, `FirulaiAgent.exe`, `unins000.exe` o `C:\ProgramData\firulaiAgent\config.json`.
 
 ---
 
@@ -113,8 +115,8 @@ La instalación se considera existente si aparece cualquiera de estas señales: 
 
 El agente funciona como servicio Windows:
 
-- Nombre del servicio: `RSAgent`.
-- Nombre visible: `Firulai Inventory Agent`.
+- Nombre del servicio: `firulaiAgent`.
+- Nombre visible: `Firulai Security Agent`.
 - Inicio: automático con Windows.
 - Primera ejecución: al arrancar el servicio.
 - Ejecución programada: una vez al día, por la noche, a las `03:00` hora local del equipo.
@@ -209,13 +211,13 @@ Ejemplo simplificado:
 
 | Ruta | Descripción |
 | --- | --- |
-| `C:\Program Files\RSAgent\RsAgent.exe` | Ejecutable principal del agente |
-| `C:\Program Files\RSAgent\unins000.exe` | Desinstalador |
-| `C:\ProgramData\RSAgent\config.json` | Configuración local del agente |
-| `C:\ProgramData\RSAgent\state.json` | Fecha UTC de la última ejecución enviada correctamente |
-| `C:\ProgramData\RSAgent\inventory.json` | Último inventario generado |
-| `C:\ProgramData\RSAgent\logs\rs_agent.log` | Log principal |
-| `C:\ProgramData\RSAgent\logs\rs_agent.log.1` | Logs rotados |
+| `C:\Program Files\firulaiAgent\FirulaiAgent.exe` | Ejecutable principal del agente |
+| `C:\Program Files\firulaiAgent\unins000.exe` | Desinstalador |
+| `C:\ProgramData\firulaiAgent\config.json` | Configuración local del agente |
+| `C:\ProgramData\firulaiAgent\state.json` | Fecha UTC de la última ejecución enviada correctamente |
+| `C:\ProgramData\firulaiAgent\inventory.json` | Último inventario generado |
+| `C:\ProgramData\firulaiAgent\logs\rs_agent.log` | Log principal |
+| `C:\ProgramData\firulaiAgent\logs\rs_agent.log.1` | Logs rotados |
 
 El log rota automáticamente al superar 5 MB y conserva hasta tres ficheros rotados.
 
@@ -226,7 +228,7 @@ El log rota automáticamente al superar 5 MB y conserva hasta tres ficheros rota
 ### Desde la interfaz gráfica
 
 1. Abre `services.msc`.
-2. Busca el servicio `RSAgent`.
+2. Busca el servicio `firulaiAgent`.
 3. Comprueba que está iniciado y configurado con inicio automático.
 
 ### Desde PowerShell
@@ -234,30 +236,30 @@ El log rota automáticamente al superar 5 MB y conserva hasta tres ficheros rota
 Ver estado del servicio:
 
 ```powershell
-Get-Service RSAgent
+Get-Service firulaiAgent
 ```
 
 Ver las últimas líneas del log:
 
 ```powershell
-Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 50
+Get-Content "C:\ProgramData\firulaiAgent\logs\rs_agent.log" -Tail 50
 ```
 
 Comprobar que existe el último inventario:
 
 ```powershell
-Get-Item "C:\ProgramData\RSAgent\inventory.json"
+Get-Item "C:\ProgramData\firulaiAgent\inventory.json"
 ```
 
 Comprobar la última ejecución correcta guardada:
 
 ```powershell
-Get-Content "C:\ProgramData\RSAgent\state.json"
+Get-Content "C:\ProgramData\firulaiAgent\state.json"
 ```
 
 ### Registro de eventos de Windows
 
-El instalador registra el origen `RSAgent` en **Visor de eventos > Registros de Windows > Aplicación**. El agente publica estos eventos:
+El instalador registra el origen `firulaiAgent` en **Visor de eventos > Registros de Windows > Aplicación**. El agente publica estos eventos:
 
 | ID | Nivel | Significado |
 | --- | --- | --- |
@@ -273,7 +275,7 @@ Consultar los últimos eventos desde PowerShell:
 ```powershell
 Get-WinEvent -FilterHashtable @{
   LogName = 'Application'
-  ProviderName = 'RSAgent'
+  ProviderName = 'firulaiAgent'
   StartTime = (Get-Date).AddDays(-7)
 } | Select-Object TimeCreated, Id, LevelDisplayName, Message
 ```
@@ -281,7 +283,7 @@ Get-WinEvent -FilterHashtable @{
 Seguir el fichero de log detallado en tiempo real:
 
 ```powershell
-Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 100 -Wait
+Get-Content "C:\ProgramData\firulaiAgent\logs\rs_agent.log" -Tail 100 -Wait
 ```
 
 Una ejecución correcta deja en el log una línea similar a:
@@ -297,7 +299,7 @@ Ejecución completada correctamente.
 Aunque normalmente se ejecuta como servicio, también puede lanzarse una ejecución puntual desde PowerShell con permisos de Administrador:
 
 ```powershell
-& "C:\Program Files\RSAgent\RsAgent.exe" --run-once
+& "C:\Program Files\firulaiAgent\FirulaiAgent.exe" --run-once
 ```
 
 Esto genera `inventory.json`, intenta enviarlo a Firulai, actualiza `state.json` si el envío termina correctamente y escribe el resultado tanto en el fichero de log como en el registro Aplicación de Windows.
@@ -309,13 +311,13 @@ Esto genera `inventory.json`, intenta enviarlo a Firulai, actualiza `state.json`
 La desinstalación puede iniciarse desde Windows:
 
 ```text
-Configuración -> Apps -> Aplicaciones instaladas -> Firulai Inventory Agent -> Desinstalar
+Configuración -> Apps -> Aplicaciones instaladas -> Firulai Security Agent -> Desinstalar
 ```
 
 También puede iniciarse desde PowerShell con permisos de Administrador:
 
 ```powershell
-& "C:\Program Files\RSAgent\unins000.exe"
+& "C:\Program Files\firulaiAgent\unins000.exe"
 ```
 
 Durante la desinstalación aparecerá una única confirmación indicando que solo se eliminarán los archivos locales del agente junto al instalador. No se borrarán los datos de Firulai. El sistema quedará como inactivo en Firulai y, desde Firulai, se podrán eliminar definitivamente sus datos o volver a instalar el agente más adelante enlazándolo al System y al inventario ya guardados.
@@ -323,7 +325,7 @@ Durante la desinstalación aparecerá una única confirmación indicando que sol
 Si confirmas la operación, el desinstalador:
 
 1. Lee el UUID configurado para este equipo.
-2. Detiene el servicio `RSAgent`.
+2. Detiene el servicio `firulaiAgent`.
 3. Envía `changeSystemStatus` con el UUID y `action=disconnect` al receptor de Firulai.
 4. El receptor localiza el System y aplica el estado desconectado mediante su configuración interna.
 5. Elimina el servicio y los archivos locales del agente tanto si Firulai confirma la actualización como si falla la comunicación.
@@ -334,8 +336,8 @@ Si no se puede contactar con Firulai o la actualización de estado falla, la des
 Una desinstalación completada elimina:
 
 ```text
-C:\Program Files\RSAgent\
-C:\ProgramData\RSAgent\
+C:\Program Files\firulaiAgent\
+C:\ProgramData\firulaiAgent\
 ```
 
 ---
@@ -347,7 +349,7 @@ C:\ProgramData\RSAgent\
 Ejecuta:
 
 ```powershell
-Get-Service RSAgent
+Get-Service firulaiAgent
 ```
 
 Si no existe, reinstala `FirulaiAgent.exe` como Administrador.
@@ -357,7 +359,7 @@ Si no existe, reinstala `FirulaiAgent.exe` como Administrador.
 Revisa el log:
 
 ```powershell
-Get-Content "C:\ProgramData\RSAgent\logs\rs_agent.log" -Tail 100
+Get-Content "C:\ProgramData\firulaiAgent\logs\rs_agent.log" -Tail 100
 ```
 
 Comprueba especialmente:

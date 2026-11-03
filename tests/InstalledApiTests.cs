@@ -65,7 +65,7 @@ internal static class InstalledApiTests
     public static int Main(string[] args)
     {
         bool child = args.Length == 4;
-        string keyPath = child ? args[2] : @"SOFTWARE\Redsauce\RSAgentTests\" + Guid.NewGuid().ToString("N");
+        string keyPath = child ? args[2] : @"SOFTWARE\Redsauce\firulaiAgentTests\" + Guid.NewGuid().ToString("N");
         try
         {
             Assembly assembly = Assembly.LoadFrom(args[0]);

@@ -12,7 +12,7 @@ namespace RsAgent
     {
         public static readonly string DefaultBase;
         public static readonly string Path;
-        public static readonly ApiBaseStore Store = new ApiBaseStore(RegistryHive.LocalMachine, @"SOFTWARE\Redsauce\RSAgent");
+        public static readonly ApiBaseStore Store = new ApiBaseStore(RegistryHive.LocalMachine, @"SOFTWARE\Redsauce\firulaiAgent");
 
         static ApiEndpoint()
         {

@@ -15,7 +15,7 @@ restores the Apps entry and handles retry when the service is already absent.
 Recovery configurations use a protected Administrators/SYSTEM-only DACL.
 The upgrade regressions and full installer compilation pass. The native Inno
 recovery tests previously passed in isolation, including the administrator test
-manually run and confirmed by the user. No real RSAgent service was changed by
+manually run and confirmed by the user. No real firulaiAgent service was changed by
 these tests; this is not a claim of a new manual uninstall of a monitored system.
 
 The Firulai minimum warning threshold remains Windows 0.20.9. Old public assets

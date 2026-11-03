@@ -30,8 +30,8 @@ catch {
     Write-Warning "Could not start transcript: $($_.Exception.Message)"
 }
 
-$installDir = 'C:\Program Files\RSAgent'
-$dataDir = 'C:\ProgramData\RSAgent'
+$installDir = 'C:\Program Files\firulaiAgent'
+$dataDir = 'C:\ProgramData\firulaiAgent'
 $allowedDeleteRoots = @($installDir, $dataDir) | ForEach-Object {
     [System.IO.Path]::GetFullPath($_).TrimEnd('\')
 }
@@ -41,7 +41,7 @@ function Assert-AllowedDeleteRoot {
 
     $fullPath = [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
     if ($allowedDeleteRoots -notcontains $fullPath) {
-        throw "Refusing recursive delete outside RSAgent directories: $Path"
+        throw "Refusing recursive delete outside firulaiAgent directories: $Path"
     }
 }
 
@@ -68,7 +68,7 @@ public static extern bool MoveFileEx(string existingFileName, string newFileName
     [Firulai.NativeMethods]::MoveFileEx($Path, $null, 4) | Out-Null
 }
 
-function Grant-RSAgentDeletePermissions {
+function Grant-firulaiAgentDeletePermissions {
     param([Parameter(Mandatory = $true)][string]$Path)
 
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -89,7 +89,7 @@ function Grant-RSAgentDeletePermissions {
         }
 }
 
-function Remove-RSAgentDirectory {
+function Remove-firulaiAgentDirectory {
     param([Parameter(Mandatory = $true)][string]$Path)
 
     Assert-AllowedDeleteRoot -Path $Path
@@ -98,7 +98,7 @@ function Remove-RSAgentDirectory {
         return $false
     }
 
-    Grant-RSAgentDeletePermissions -Path $Path
+    Grant-firulaiAgentDeletePermissions -Path $Path
 
     try {
         Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
@@ -111,12 +111,12 @@ function Remove-RSAgentDirectory {
     }
 }
 
-Write-Host '== Closing RSAgent processes and broken uninstallers =='
-Stop-Service -Name 'RSAgent' -Force -ErrorAction SilentlyContinue
+Write-Host '== Closing firulaiAgent processes and broken uninstallers =='
+Stop-Service -Name 'firulaiAgent' -Force -ErrorAction SilentlyContinue
 
 Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
     Where-Object {
-        ($_.Name -ieq 'RsAgent.exe') -or
+        ($_.Name -ieq 'FirulaiAgent.exe') -or
         ($_.Name -ieq '_unins.tmp') -or
         ($_.CommandLine -and $_.CommandLine.IndexOf('unins000', [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or
         ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($installDir, [System.StringComparison]::OrdinalIgnoreCase))
@@ -133,19 +133,19 @@ Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
 Start-Sleep -Seconds 2
 
 Write-Host '== Removing service =='
-sc.exe delete RSAgent | Out-Null
+sc.exe delete firulaiAgent | Out-Null
 
 Write-Host '== Removing files =='
 $needsReboot = $false
-$needsReboot = (Remove-RSAgentDirectory -Path $installDir) -or $needsReboot
-$needsReboot = (Remove-RSAgentDirectory -Path $dataDir) -or $needsReboot
+$needsReboot = (Remove-firulaiAgentDirectory -Path $installDir) -or $needsReboot
+$needsReboot = (Remove-firulaiAgentDirectory -Path $dataDir) -or $needsReboot
 
 Write-Host '== Removing registry entries =='
 $registryKeys = @(
     'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}_is1',
     'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}_is1',
-    'HKLM:\SOFTWARE\Redsauce\RSAgent',
-    'HKLM:\SOFTWARE\WOW6432Node\Redsauce\RSAgent'
+    'HKLM:\SOFTWARE\Redsauce\firulaiAgent',
+    'HKLM:\SOFTWARE\WOW6432Node\Redsauce\firulaiAgent'
 )
 
 foreach ($registryKey in $registryKeys) {
@@ -159,13 +159,13 @@ foreach ($registryRoot in @(
     Get-ChildItem -LiteralPath $registryRoot -ErrorAction SilentlyContinue |
         Where-Object {
             $properties = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
-            $properties.DisplayName -eq 'Firulai Inventory Agent'
+            $properties.DisplayName -eq 'Firulai Security Agent'
         } |
         Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host '== Check =='
-sc.exe query RSAgent
+sc.exe query firulaiAgent
 Write-Host "Program Files exists: $(Test-Path -LiteralPath $installDir)"
 Write-Host "ProgramData exists: $(Test-Path -LiteralPath $dataDir)"
 Write-Host "Log: $logPath"
@@ -176,5 +176,5 @@ if ($needsReboot) {
     exit 3010
 }
 
-Write-Host 'RSAgent local cleanup completed.'
+Write-Host 'firulaiAgent local cleanup completed.'
 try { Stop-Transcript | Out-Null } catch {}

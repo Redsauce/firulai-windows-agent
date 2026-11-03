@@ -54,7 +54,7 @@ jobs:
         run: |
           ./scripts/build-agent.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Agent compilation failed.' }
-          if (-not (Test-Path 'src/RsAgent/bin/Release/RsAgent.exe')) { throw 'Agent payload is missing.' }
+          if (-not (Test-Path 'src/RsAgent/bin/Release/FirulaiAgent.exe')) { throw 'Agent payload is missing.' }
       - uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -125,12 +125,12 @@ jobs:
             & $iscc "-sas=$env:AS_SIGN_COMMAND" installer/RsAgent.iss
             if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation or signing failed.' }
             ./scripts/Verify-SignedInstaller.ps1 -Path Output/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
-            ./scripts/Verify-SignedInstaller.ps1 -Path src/RsAgent/bin/Release/RsAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
+            ./scripts/Verify-SignedInstaller.ps1 -Path src/RsAgent/bin/Release/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME
             if ($env:INCLUDE_UPDATE_MANIFEST -eq 'true') {
               $privateKey = Join-Path $env:RUNNER_TEMP 'windows-update-private.xml'
               [IO.File]::WriteAllBytes($privateKey, [Convert]::FromBase64String($env:WINDOWS_UPDATE_PRIVATE_KEY_XML_B64))
               ./scripts/sign-update-manifest.ps1 -PrivateKeyPath $privateKey -InstallerPath Output/FirulaiAgent.exe -Version $version -OutputDir Output
-              & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory Output -AgentPath src/RsAgent/bin/Release/RsAgent.exe
+              & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory Output -AgentPath src/RsAgent/bin/Release/FirulaiAgent.exe
               if ($LASTEXITCODE -ne 0) { throw 'RSA update package verification failed.' }
               Copy-Item Output/RELEASE_CHECKSUMS.txt Output/SHA256SUMS.txt
             } else {
@@ -188,7 +188,7 @@ jobs:
           }
           ./scripts/build-agent.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Agent compilation for manifest verification failed.' }
-          & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory dist -AgentPath src/RsAgent/bin/Release/RsAgent.exe
+          & powershell.exe -NoProfile -NonInteractive -File scripts/test-release-package.ps1 -PackageDirectory dist -AgentPath src/RsAgent/bin/Release/FirulaiAgent.exe
           if ($LASTEXITCODE -ne 0) { throw 'Downloaded RSA update bundle verification failed.' }
           if ($env:VERIFY_UUID -and $env:VERIFY_TOKEN) {
             ./scripts/Verify-SignedInstaller.ps1 -Path dist/FirulaiAgent.exe -ExpectedPublisher $env:PUBLISHER_NAME -InstallTest -TestUuid $env:VERIFY_UUID -TestToken $env:VERIFY_TOKEN

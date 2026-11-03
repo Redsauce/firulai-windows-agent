@@ -1,5 +1,5 @@
 { API URL construction and redirect handling for installation. The uninstaller
-  calls RsAgent.exe, which reads the same HKLM ApiBaseUrl value. }
+  calls FirulaiAgent.exe, which reads the same HKLM ApiBaseUrl value. }
 var
   PendingApiBaseUrl: string;
 
@@ -24,7 +24,9 @@ begin
   Result := PendingApiBaseUrl;
   if Result = '' then
     if not RegQueryStringValue(HKEY_LOCAL_MACHINE, AppRegistryKey(), 'ApiBaseUrl', Result) then
-      Result := '{#DefaultApiBaseUrl}';
+      if (not LegacyDetected) or
+         (not RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Redsauce\RSAgent', 'ApiBaseUrl', Result)) then
+        Result := '{#DefaultApiBaseUrl}';
   if Copy(Result, Length(Result), 1) <> '/' then Result := Result + '/';
   Result := ApiBaseFromUrl(Result + '{#ApiPath}');
 end;

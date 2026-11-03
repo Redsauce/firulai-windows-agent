@@ -6,10 +6,10 @@ using Microsoft.Win32;
 
 namespace RsAgent
 {
-    // Runs from the installer's temporary directory, independently of RSAgent.
+    // Runs from the installer's temporary directory, independently of firulaiAgent.
     internal static class InstallerUpgrade
     {
-        private const string RecoveryKey = @"SOFTWARE\Redsauce\RSAgent\UpgradeRecovery";
+        private const string RecoveryKey = @"SOFTWARE\Redsauce\firulaiAgent\UpgradeRecovery";
         private const string RecoveryTask = "FirulaiAgentUpgradeRecovery";
 
         private static int RunTaskCommand(string arguments)
@@ -35,8 +35,8 @@ namespace RsAgent
             {
                 ParseVersion(installed);
                 appDir = Path.GetFullPath(appDir);
-                var binary = Path.Combine(appDir, "RsAgent.exe");
-                using (var serviceKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\RSAgent"))
+                var binary = Path.Combine(appDir, "FirulaiAgent.exe");
+                using (var serviceKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\firulaiAgent"))
                 {
                     var imagePath = serviceKey == null ? "" : Environment.ExpandEnvironmentVariables(Convert.ToString(serviceKey.GetValue("ImagePath"))).Trim().Trim('"');
                     if (!string.Equals(imagePath, binary, StringComparison.OrdinalIgnoreCase)) return 1;
@@ -105,7 +105,7 @@ namespace RsAgent
                     installed = Convert.ToString(key.GetValue("Version"));
                 }
                 ParseVersion(installed);
-                var binary = Path.Combine(appDir, "RsAgent.exe");
+                var binary = Path.Combine(appDir, "FirulaiAgent.exe");
                 if (ServiceAction("stop") != 0) return 1;
                 bool restored = false;
                 for (int attempt = 0; attempt < 30 && !restored; attempt++)
@@ -157,7 +157,7 @@ namespace RsAgent
         {
             try
             {
-                using (var service = new ServiceController("RSAgent"))
+                using (var service = new ServiceController("firulaiAgent"))
                 {
                     service.Refresh();
                     if (action == "stop")

@@ -5,7 +5,7 @@ Agreement version: 20 July 2026
 Please read this document carefully before installing or using the software.
 
 This License Agreement and Usage Notice ("Agreement") governs the installation
-and use of Firulai Inventory Agent for Windows ("Agent"), published by Redsauce
+and use of Firulai Security Agent for Windows ("Agent"), published by Redsauce
 for use with the Firulai platform.
 
 By accepting this Agreement and continuing with the installation, you confirm

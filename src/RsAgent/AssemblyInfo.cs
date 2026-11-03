@@ -1,7 +1,7 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("Firulai Inventory Agent")]
-[assembly: AssemblyProduct("Firulai Inventory Agent")]
+[assembly: AssemblyTitle("Firulai Security Agent")]
+[assembly: AssemblyProduct("Firulai Security Agent")]
 [assembly: AssemblyCompany("Redsauce Engineering Services S.L.")]
 [assembly: AssemblyVersion(RsAgent.AgentConfig.AgentVersion)]
 [assembly: AssemblyFileVersion(RsAgent.AgentConfig.AgentVersion)]

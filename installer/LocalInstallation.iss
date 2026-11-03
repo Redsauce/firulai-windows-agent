@@ -8,7 +8,7 @@ function ExistingAgentDirectory(): string;
 var
   RegisteredDirectory: string;
 begin
-  Result := ExpandConstant('{autopf}\RSAgent');
+  Result := ExpandConstant('{autopf}\firulaiAgent');
   if RegQueryStringValue(HKEY_LOCAL_MACHINE, AppUninstallRegistryKey(),
     'InstallLocation', RegisteredDirectory) then
   begin
@@ -20,7 +20,7 @@ end;
 function HasLocalAgentExecutableOrUninstaller(): Boolean;
 begin
   Result :=
-    FileExists(AddBackslash(ExistingAgentDirectory()) + 'RsAgent.exe') or
+    FileExists(AddBackslash(ExistingAgentDirectory()) + 'FirulaiAgent.exe') or
     FileExists(AddBackslash(ExistingAgentDirectory()) + 'unins000.exe');
 end;
 
@@ -29,5 +29,5 @@ begin
   Result :=
     IsServiceInstalled() or
     HasLocalAgentExecutableOrUninstaller() or
-    FileExists(ExpandConstant('{commonappdata}\RSAgent\config.json'));
+    FileExists(ExpandConstant('{commonappdata}\firulaiAgent\config.json'));
 end;

@@ -84,7 +84,7 @@ begin
       GetSHA256OfFile(AddBackslash(AppDir) + 'unins000.exe');
   if MatchingLogBackup then
     MatchingLogBackup := SavedHash = GetSHA256OfFile(AddBackslash(RecoveryDir) + 'unins000.dat');
-  if not FileCopy(AddBackslash(AppDir) + 'RsAgent.exe', AddBackslash(RecoveryDir) + 'RsAgent.exe', False) then
+  if not FileCopy(AddBackslash(AppDir) + 'FirulaiAgent.exe', AddBackslash(RecoveryDir) + 'FirulaiAgent.exe', False) then
   begin Log('Cannot back up agent'); Exit; end;
   if not FileCopy(AddBackslash(AppDir) + 'unins000.exe', AddBackslash(RecoveryDir) + 'unins000.exe', False) then
   begin Log('Cannot back up uninstaller'); Exit; end;
@@ -114,7 +114,7 @@ begin
   // A locked surviving executable must not be overwritten. rm does not modify
   // file contents; restore only files which the partial deletion removed.
   Result :=
-    CopyRecoveryFile(AddBackslash(RecoveryDir) + 'RsAgent.exe', AddBackslash(AppDir) + 'RsAgent.exe') and
+    CopyRecoveryFile(AddBackslash(RecoveryDir) + 'FirulaiAgent.exe', AddBackslash(AppDir) + 'FirulaiAgent.exe') and
     CopyRecoveryFile(AddBackslash(RecoveryDir) + 'unins000.exe', AddBackslash(AppDir) + 'unins000.exe') and
     CopyRecoveryFile(AddBackslash(RecoveryDir) + 'unins000.dat', AddBackslash(AppDir) + 'unins000.dat') and
     CopyRecoveryFile(AddBackslash(RecoveryDir) + 'config.json', AddBackslash(DataDir) + 'config.json');
@@ -124,7 +124,7 @@ function FinalizeUninstallRecovery(AppDir, DataDir, RecoveryDir: string): Intege
 begin
   // 0 = complete, 1 = retry essentials restored, 2 = external backup retained.
   Result := 0;
-  if not FileExists(AddBackslash(AppDir) + 'RsAgent.exe') then
+  if not FileExists(AddBackslash(AppDir) + 'FirulaiAgent.exe') then
     if DelTree(DataDir, True, True, True) then
     begin
       if not DelTree(RecoveryDir, True, True, True) then

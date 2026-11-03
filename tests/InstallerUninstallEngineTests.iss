@@ -19,7 +19,7 @@ DisableProgramGroupPage=yes
 UninstallRestartComputer=no
 
 [Files]
-Source: "RecoveryAgent.fixture"; DestDir: "{app}"; DestName: "RsAgent.exe"
+Source: "RecoveryAgent.fixture"; DestDir: "{app}"; DestName: "FirulaiAgent.exe"
 
 [Code]
 var
@@ -88,7 +88,7 @@ begin
     end;
     if ExpandConstant('{param:FAIL|0}') = '1' then
     begin
-      Lock := CreateLockedFile(AppDir + '\RsAgent.exe', $80000000, 1, 0, 3, $80, 0);
+      Lock := CreateLockedFile(AppDir + '\FirulaiAgent.exe', $80000000, 1, 0, 3, $80, 0);
       if Lock = -1 then RaiseException('Cannot lock fixture');
     end;
   end;

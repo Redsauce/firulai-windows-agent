@@ -5,7 +5,7 @@
 ソフトウェアをインストールまたは使用する前に、この文書をよくお読みください。
 
 このライセンス契約および利用通知 (「本契約」) は、Redsauce が Firulai
-プラットフォーム向けに提供する Firulai Inventory Agent for Windows
+プラットフォーム向けに提供する Firulai Security Agent for Windows
 (「エージェント」) のインストールおよび使用を定めるものです。
 
 本契約に同意してインストールを続行することにより、お客様は本条件を読み、

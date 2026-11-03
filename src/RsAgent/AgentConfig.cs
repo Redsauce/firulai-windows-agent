@@ -8,7 +8,7 @@ namespace RsAgent
 {
     internal sealed class AgentConfig
     {
-        public const string AgentVersion = "0.20.14";
+        public const string AgentVersion = "0.20.15";
 
 
         public string token { get; set; }
@@ -23,7 +23,7 @@ namespace RsAgent
 
         public static string DataDir
         {
-            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "RSAgent"); }
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "firulaiAgent"); }
         }
 
         public static string LogDir

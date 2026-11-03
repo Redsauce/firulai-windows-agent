@@ -33,7 +33,7 @@ begin
   Status := 'PASS'; Lock := 0;
   try
     Check(ForceDirectories(AppDir) and ForceDirectories(DataDir), 'fixture directories');
-    Check(SaveStringToFile(AppDir + '\RsAgent.exe', 'agent-fixture', False), 'agent fixture');
+    Check(SaveStringToFile(AppDir + '\FirulaiAgent.exe', 'agent-fixture', False), 'agent fixture');
     Check(SaveStringToFile(AppDir + '\unins000.exe', 'uninstaller-fixture', False), 'uninstaller fixture');
     Check(SaveStringToFile(AppDir + '\unins000.dat', 'log-fixture', False), 'log fixture');
     Check(SaveStringToFile(DataDir + '\config.json', 'private-fixture-token', False), 'config fixture');
@@ -50,7 +50,7 @@ begin
     Check(FinalizeUninstallRecovery(AppDir, DataDir, BackupDir) = 1, 'failed data deletion must restore retry');
     Check(LoadStringFromFile(DataDir + '\config.json', Contents), 'config not restored');
     Check(Contents = 'private-fixture-token', 'config changed');
-    Check(FileExists(AppDir + '\RsAgent.exe'), 'agent not restored for confirmation retry');
+    Check(FileExists(AppDir + '\FirulaiAgent.exe'), 'agent not restored for confirmation retry');
     CloseLockedFile(Lock); Lock := 0;
     // Retry: the uninstall engine removes the restored application, then finalize.
     Check(DelTree(AppDir, True, True, True), 'retry app cleanup');
