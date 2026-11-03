@@ -11,7 +11,7 @@ internal static class UuidPreflightTests
 
     public static int Main(string[] args)
     {
-        if (args.Length != 1) throw new ArgumentException("Expected RsAgent.exe path.");
+        if (args.Length != 1) throw new ArgumentException("Expected FirulaiAgent.exe path.");
         var assembly = Assembly.LoadFrom(args[0]);
         var client = assembly.GetType("RsAgent.RsmClient", true);
         var count = client.GetMethod("CountSystemUuidMatches", BindingFlags.NonPublic | BindingFlags.Static);

@@ -20,6 +20,10 @@ namespace RsAgent
 
         private static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--prepare-legacy-migration") return LegacyMigration.Prepare();
+            if (args.Length == 1 && args[0] == "--complete-legacy-migration") return LegacyMigration.Complete();
+            if (args.Length == 1 && args[0] == "--rollback-legacy-migration") return LegacyMigration.Rollback();
+            if (args.Length == 1 && args[0] == "--cleanup-legacy-migration") return LegacyMigration.Cleanup();
             if (args.Length == 1 && args[0] == "--apply-update") return AgentUpdater.Apply();
             if (args.Length == 3 && args[0] == "--inspect-upgrade")
                 return InstallerUpgrade.Inspect(args[1], args[2]);
@@ -57,7 +61,7 @@ namespace RsAgent
                 if (Environment.UserInteractive)
                 {
                     AgentText.SetLocale(AgentConfig.LoadLocaleOrDefault());
-                    Console.WriteLine("RSAgent Windows " + AgentConfig.AgentVersion);
+                    Console.WriteLine("firulaiAgent Windows " + AgentConfig.AgentVersion);
                     Console.WriteLine(AgentText.T("program.usageRunOnce"));
                     Console.WriteLine(AgentText.T("program.usageService"));
                     return 0;
@@ -116,7 +120,7 @@ private static int ValidateForInstaller(string mode, string configPath, string r
             var config = AgentConfig.Load();
 
             UninstallStatusUpdateResult result;
-            using (var service = new ServiceController("RSAgent"))
+            using (var service = new ServiceController("firulaiAgent"))
             {
                 bool wasRunning;
                 try { wasRunning = service.Status == ServiceControllerStatus.Running; }
@@ -204,38 +208,38 @@ private static int ValidateForInstaller(string mode, string configPath, string r
         private static string UninstallTitleForLocale(string locale)
         {
             var language = (locale ?? string.Empty).Trim().ToLowerInvariant();
-            if (language.StartsWith("es")) return "Desinstalar - Firulai Inventory Agent";
-            if (language.StartsWith("ca")) return "Desinstal·lar - Firulai Inventory Agent";
-            if (language.StartsWith("eu")) return "Desinstalatu - Firulai Inventory Agent";
-            if (language.StartsWith("gl")) return "Desinstalar - Firulai Inventory Agent";
-            if (language.StartsWith("fr")) return "Désinstaller - Firulai Inventory Agent";
-            if (language.StartsWith("de")) return "Deinstallieren - Firulai Inventory Agent";
-            if (language.StartsWith("it")) return "Disinstallare - Firulai Inventory Agent";
-            if (language.StartsWith("ja")) return "Firulai Inventory Agent のアンインストール";
-            if (language.StartsWith("zh")) return "卸载 - Firulai Inventory Agent";
-            return "Uninstall - Firulai Inventory Agent";
+            if (language.StartsWith("es")) return "Desinstalar - Firulai Security Agent";
+            if (language.StartsWith("ca")) return "Desinstal·lar - Firulai Security Agent";
+            if (language.StartsWith("eu")) return "Desinstalatu - Firulai Security Agent";
+            if (language.StartsWith("gl")) return "Desinstalar - Firulai Security Agent";
+            if (language.StartsWith("fr")) return "Désinstaller - Firulai Security Agent";
+            if (language.StartsWith("de")) return "Deinstallieren - Firulai Security Agent";
+            if (language.StartsWith("it")) return "Disinstallare - Firulai Security Agent";
+            if (language.StartsWith("ja")) return "Firulai Security Agent のアンインストール";
+            if (language.StartsWith("zh")) return "卸载 - Firulai Security Agent";
+            return "Uninstall - Firulai Security Agent";
         }
 
         private static string UninstallConfirmationForLocale(string locale)
         {
             var language = (locale ?? string.Empty).Trim().ToLowerInvariant();
-            if (language.StartsWith("es")) return "Se va a desinstalar Firulai Inventory Agent.\r\n\r\nEsta acción solo eliminará los archivos locales del agente y el instalador. Los datos de Firulai no se borrarán.\r\n\r\n¿Quieres continuar?";
-            if (language.StartsWith("ca")) return "Es desinstal·larà Firulai Inventory Agent.\r\n\r\nAquesta acció només eliminarà els fitxers locals de l'agent i l'instal·lador. Les dades de Firulai no s'eliminaran.\r\n\r\nVols continuar?";
-            if (language.StartsWith("eu")) return "Firulai Inventory Agent desinstalatuko da.\r\n\r\nEkintza honek agentearen fitxategi lokalak eta instalatzailea bakarrik kenduko ditu. Firulaiko datuak ez dira ezabatuko.\r\r\n\r\nJarraitu nahi duzu?";
-            if (language.StartsWith("gl")) return "Vaise desinstalar Firulai Inventory Agent.\r\n\r\nEsta acción só eliminará os ficheiros locais do axente e o instalador. Os datos de Firulai non se borrarán.\r\n\r\nQueres continuar?";
-            if (language.StartsWith("fr")) return "Firulai Inventory Agent va être désinstallé.\r\n\r\nCette action supprimera uniquement les fichiers locaux de l'agent et l'installateur. Les données Firulai ne seront pas supprimées.\r\n\r\nVoulez-vous continuer ?";
-            if (language.StartsWith("de")) return "Firulai Inventory Agent wird deinstalliert.\r\n\r\nDiese Aktion entfernt nur die lokalen Agent-Dateien und das Installationsprogramm. Firulai-Daten werden nicht gelöscht.\r\n\r\nMöchten Sie fortfahren?";
-            if (language.StartsWith("it")) return "Firulai Inventory Agent verrà disinstallato.\r\n\r\nQuesta azione rimuoverà solo i file locali dell'agente e il programma di installazione. I dati Firulai non verranno eliminati.\r\n\r\nVuoi continuare?";
-            if (language.StartsWith("ja")) return "Firulai Inventory Agent をアンインストールします。\r\n\r\nこの操作では、ローカルのエージェント ファイルとインストーラーのみを削除します。Firulai のデータは削除されません。\r\n\r\n続行しますか?";
-            if (language.StartsWith("zh")) return "即将卸载 Firulai Inventory Agent。\r\n\r\n此操作只会删除本地代理文件和安装程序。Firulai 数据不会被删除。\r\n\r\n是否继续?";
-            return "Firulai Inventory Agent will be uninstalled.\r\n\r\nThis action will only remove the local agent files and the installer. Firulai data will not be deleted.\r\n\r\nDo you want to continue?";
+            if (language.StartsWith("es")) return "Se va a desinstalar Firulai Security Agent.\r\n\r\nEsta acción solo eliminará los archivos locales del agente y el instalador. Los datos de Firulai no se borrarán.\r\n\r\n¿Quieres continuar?";
+            if (language.StartsWith("ca")) return "Es desinstal·larà Firulai Security Agent.\r\n\r\nAquesta acció només eliminarà els fitxers locals de l'agent i l'instal·lador. Les dades de Firulai no s'eliminaran.\r\n\r\nVols continuar?";
+            if (language.StartsWith("eu")) return "Firulai Security Agent desinstalatuko da.\r\n\r\nEkintza honek agentearen fitxategi lokalak eta instalatzailea bakarrik kenduko ditu. Firulaiko datuak ez dira ezabatuko.\r\r\n\r\nJarraitu nahi duzu?";
+            if (language.StartsWith("gl")) return "Vaise desinstalar Firulai Security Agent.\r\n\r\nEsta acción só eliminará os ficheiros locais do axente e o instalador. Os datos de Firulai non se borrarán.\r\n\r\nQueres continuar?";
+            if (language.StartsWith("fr")) return "Firulai Security Agent va être désinstallé.\r\n\r\nCette action supprimera uniquement les fichiers locaux de l'agent et l'installateur. Les données Firulai ne seront pas supprimées.\r\n\r\nVoulez-vous continuer ?";
+            if (language.StartsWith("de")) return "Firulai Security Agent wird deinstalliert.\r\n\r\nDiese Aktion entfernt nur die lokalen Agent-Dateien und das Installationsprogramm. Firulai-Daten werden nicht gelöscht.\r\n\r\nMöchten Sie fortfahren?";
+            if (language.StartsWith("it")) return "Firulai Security Agent verrà disinstallato.\r\n\r\nQuesta azione rimuoverà solo i file locali dell'agente e il programma di installazione. I dati Firulai non verranno eliminati.\r\n\r\nVuoi continuare?";
+            if (language.StartsWith("ja")) return "Firulai Security Agent をアンインストールします。\r\n\r\nこの操作では、ローカルのエージェント ファイルとインストーラーのみを削除します。Firulai のデータは削除されません。\r\n\r\n続行しますか?";
+            if (language.StartsWith("zh")) return "即将卸载 Firulai Security Agent。\r\n\r\n此操作只会删除本地代理文件和安装程序。Firulai 数据不会被删除。\r\n\r\n是否继续?";
+            return "Firulai Security Agent will be uninstalled.\r\n\r\nThis action will only remove the local agent files and the installer. Firulai data will not be deleted.\r\n\r\nDo you want to continue?";
         }
 
         private static string ReadInstalledLocale()
         {
             try
             {
-                using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Redsauce\RSAgent"))
+                using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Redsauce\firulaiAgent"))
                 {
                     var value = key == null ? null : key.GetValue("Locale") as string;
                     if (!string.IsNullOrWhiteSpace(value)) return value.Trim();

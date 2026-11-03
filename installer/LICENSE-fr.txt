@@ -6,7 +6,7 @@ Veuillez lire attentivement ce document avant d'installer ou d'utiliser le
 logiciel.
 
 Cet Accord de licence et avis d'utilisation ("Accord") regit l'installation et
-l'utilisation de Firulai Inventory Agent pour Windows ("Agent"), publie par
+l'utilisation de Firulai Security Agent pour Windows ("Agent"), publie par
 Redsauce pour une utilisation avec la plateforme Firulai.
 
 En acceptant cet Accord et en poursuivant l'installation, vous confirmez avoir

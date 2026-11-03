@@ -1,10 +1,10 @@
-param([string]$AgentPath = "$env:ProgramFiles\RSAgent\RsAgent.exe")
+param([string]$AgentPath = "$env:ProgramFiles\firulaiAgent\FirulaiAgent.exe")
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath $AgentPath)) { throw "Agent executable not found: $AgentPath" }
 $probeDir = Join-Path ([IO.Path]::GetTempPath()) ('rsagent-installed-test-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $probeDir | Out-Null
-$copy = Join-Path $probeDir 'RsAgent.exe'
+$copy = Join-Path $probeDir 'FirulaiAgent.exe'
 $probe = Join-Path $probeDir 'InstalledApiTests.exe'
 try {
     Copy-Item -LiteralPath $AgentPath -Destination $copy

@@ -11,14 +11,14 @@ $backupDir = $null
 try {
     $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Run this test as administrator.' }
-    $appDir = 'C:\Program Files\RSAgent'
-    $dataDir = Join-Path $env:ProgramData 'RSAgent'
+    $appDir = 'C:\Program Files\firulaiAgent'
+    $dataDir = Join-Path $env:ProgramData 'firulaiAgent'
     $registryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A2B3E8CC-81AC-49DD-B2FB-8078A01D76D9}_is1'
     $configPath = Join-Path $dataDir 'config.json'
     $oldVersion = (Get-ItemProperty -LiteralPath $registryPath).DisplayVersion
     if ([version]$ExpectedVersion -le [version]$oldVersion) { throw 'This live test requires a strictly newer installer.' }
     $configHash = (Get-FileHash -LiteralPath $configPath).Hash
-    $baseUrl = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Redsauce\RSAgent' -Name ApiBaseUrl -ErrorAction SilentlyContinue).ApiBaseUrl
+    $baseUrl = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Redsauce\firulaiAgent' -Name ApiBaseUrl -ErrorAction SilentlyContinue).ApiBaseUrl
     $backupDir = Join-Path $dataDir ('upgrade-test-backup-' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $backupDir | Out-Null
     $acl = New-Object Security.AccessControl.DirectorySecurity
@@ -27,7 +27,7 @@ try {
         $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule((New-Object Security.Principal.SecurityIdentifier($sid)), 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')))
     }
     Set-Acl -LiteralPath $backupDir -AclObject $acl
-    foreach ($name in @('RsAgent.exe', 'unins000.exe', 'unins000.dat')) {
+    foreach ($name in @('FirulaiAgent.exe', 'unins000.exe', 'unins000.dat')) {
         $path = Join-Path $appDir $name
         if (Test-Path -LiteralPath $path) { Copy-Item -LiteralPath $path -Destination (Join-Path $backupDir $name) }
     }
@@ -48,7 +48,7 @@ try {
             Copy-Item -LiteralPath (Join-Path $packageDir $name) -Destination (Join-Path $stage $name) -Force
         }
         $worker = Join-Path $stage 'update-worker.exe'
-        Copy-Item -LiteralPath (Join-Path $appDir 'RsAgent.exe') -Destination $worker -Force
+        Copy-Item -LiteralPath (Join-Path $appDir 'FirulaiAgent.exe') -Destination $worker -Force
         $report.automaticWorker = $true
         $process = Start-Process -FilePath $worker -ArgumentList '--apply-update' -WindowStyle Hidden -PassThru
     }
@@ -60,14 +60,14 @@ try {
     if (-not $process.WaitForExit(10 * 60 * 1000)) { throw 'Installer timed out; check its log and recovery journal before retrying.' }
     $report.installerExitCode = $process.ExitCode
     if ($process.ExitCode -ne 0) { throw ('Installer failed: ' + $process.ExitCode) }
-    $service = Get-Service RSAgent
+    $service = Get-Service firulaiAgent
     $service.WaitForStatus('Running', [TimeSpan]::FromSeconds(60))
     $report.serviceRunning = $true
     $report.configurationPreserved = (Get-FileHash -LiteralPath $configPath).Hash -eq $configHash
-    $report.binaryMatchesBuild = (Get-FileHash -LiteralPath (Join-Path $appDir 'RsAgent.exe')).Hash -eq (Get-FileHash -LiteralPath $ExpectedBinaryPath).Hash
+    $report.binaryMatchesBuild = (Get-FileHash -LiteralPath (Join-Path $appDir 'FirulaiAgent.exe')).Hash -eq (Get-FileHash -LiteralPath $ExpectedBinaryPath).Hash
     $report.installedVersion = (Get-ItemProperty -LiteralPath $registryPath).DisplayVersion
-    $report.apiBasePreserved = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Redsauce\RSAgent' -Name ApiBaseUrl -ErrorAction SilentlyContinue).ApiBaseUrl -eq $baseUrl
-    $report.recoveryJournalCleared = -not (Test-Path -LiteralPath 'HKLM:\SOFTWARE\Redsauce\RSAgent\UpgradeRecovery')
+    $report.apiBasePreserved = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Redsauce\firulaiAgent' -Name ApiBaseUrl -ErrorAction SilentlyContinue).ApiBaseUrl -eq $baseUrl
+    $report.recoveryJournalCleared = -not (Test-Path -LiteralPath 'HKLM:\SOFTWARE\Redsauce\firulaiAgent\UpgradeRecovery')
     if (-not $report.configurationPreserved -or -not $report.binaryMatchesBuild -or $report.installedVersion -ne $ExpectedVersion -or -not $report.apiBasePreserved -or -not $report.recoveryJournalCleared) {
         throw 'Upgrade verification failed. The complete original installation backup is retained.'
     }

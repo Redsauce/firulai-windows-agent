@@ -79,7 +79,7 @@ namespace RsAgent
                 return;
             }
             bool live = args.Length > 0 && args[0] == "--live";
-            string keyPath = @"SOFTWARE\Redsauce\RSAgentTests\" + Guid.NewGuid().ToString("N");
+            string keyPath = @"SOFTWARE\Redsauce\firulaiAgentTests\" + Guid.NewGuid().ToString("N");
             var store = new ApiBaseStore(RegistryHive.CurrentUser, keyPath);
             Console.WriteLine("Isolated test registry: HKCU\\" + keyPath);
             try

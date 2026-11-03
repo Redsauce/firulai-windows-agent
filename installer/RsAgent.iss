@@ -1,12 +1,12 @@
-#define MyAppName "RSAgent"
-#define MyAppDisplayName "Firulai Inventory Agent"
-#define MyAppVersion "0.20.14"
+#define MyAppName "firulaiAgent"
+#define MyAppDisplayName "Firulai Security Agent"
+#define MyAppVersion "0.20.15"
 #define MyAppPublisher "Redsauce"
 #if GetEnv("PUBLISHER_NAME") != ""
   #undef MyAppPublisher
   #define MyAppPublisher GetEnv("PUBLISHER_NAME")
 #endif
-#define MyAppExeName "RsAgent.exe"
+#define MyAppExeName "FirulaiAgent.exe"
 #define ApiEndpointHandle FileOpen(AddBackslash(SourcePath) + "..\src\RsAgent\ApiEndpoint.txt")
 #if ApiEndpointHandle == 0
   #error "Cannot read ApiEndpoint.txt"
@@ -30,7 +30,8 @@ AppPublisher={#MyAppPublisher}
 #if GetEnv("PUBLISHER_URL") != ""
 AppPublisherURL={#GetEnv("PUBLISHER_URL")}
 #endif
-DefaultDirName={autopf}\RSAgent
+DefaultDirName={autopf}\firulaiAgent
+UsePreviousAppDir=no
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir=..\Output
@@ -47,7 +48,7 @@ ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayName={#MyAppDisplayName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Firulai inventory agent
+VersionInfoDescription=Firulai Security Agent
 VersionInfoProductName={#MyAppDisplayName}
 #if GetEnv("FIRULAI_SIGN_INSTALLER") == "1"
 SignTool=as
@@ -299,7 +300,7 @@ chinesesimplified.UninstallStatusLabel=请稍候，正在从计算机中删除 %
 chinesesimplified.StatusUninstalling=正在卸载 %1...
 
 [Files]
-Source: "..\src\RsAgent\bin\Release\RsAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src\RsAgent\bin\Release\FirulaiAgent.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-ca.txt"; Flags: dontcopy
 Source: "LICENSE-de.txt"; Flags: dontcopy
 Source: "LICENSE-en.txt"; Flags: dontcopy
@@ -312,24 +313,24 @@ Source: "LICENSE-ja.txt"; Flags: dontcopy
 Source: "LICENSE-zh-CN.txt"; Flags: dontcopy
 
 [Dirs]
-Name: "{commonappdata}\RSAgent"; Permissions: admins-full system-full
-Name: "{commonappdata}\RSAgent\logs"; Permissions: admins-full system-full
+Name: "{commonappdata}\firulaiAgent"; Permissions: admins-full system-full
+Name: "{commonappdata}\firulaiAgent\logs"; Permissions: admins-full system-full
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\Redsauce\RSAgent"; ValueType: string; ValueName: "ApiBaseUrl"; ValueData: "{code:ApiBaseUrlValue}"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "SOFTWARE\Redsauce\RSAgent"; ValueType: string; ValueName: "Locale"; ValueData: "{code:AgentLocaleValue}"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: expandsz; ValueName: "EventMessageFile"; ValueData: "{win}\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\RSAgent"; ValueType: dword; ValueName: "TypesSupported"; ValueData: "7"
+Root: HKLM; Subkey: "SOFTWARE\Redsauce\firulaiAgent"; ValueType: string; ValueName: "ApiBaseUrl"; ValueData: "{code:ApiBaseUrlValue}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "SOFTWARE\Redsauce\firulaiAgent"; ValueType: string; ValueName: "Locale"; ValueData: "{code:AgentLocaleValue}"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\firulaiAgent"; ValueType: expandsz; ValueName: "EventMessageFile"; ValueData: "{win}\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Services\EventLog\Application\firulaiAgent"; ValueType: dword; ValueName: "TypesSupported"; ValueData: "7"
 
 [Run]
-Filename: "{sys}\sc.exe"; Parameters: "create RSAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|registeringService}"; Check: IsNewInstallation
-Filename: "{sys}\sc.exe"; Parameters: "description RSAgent ""{code:InstallerText|serviceDescription}"""; Flags: runhidden waituntilterminated
-Filename: "{sys}\sc.exe"; Parameters: "failure RSAgent reset= 86400 actions= restart/60000/restart/60000/""""/60000"; Flags: runhidden waituntilterminated
-Filename: "{sys}\sc.exe"; Parameters: "start RSAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|startingService}"; Check: IsNewInstallation
+Filename: "{sys}\sc.exe"; Parameters: "create firulaiAgent binPath= ""{app}\{#MyAppExeName}"" start= auto DisplayName= ""{#MyAppDisplayName}"""; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|registeringService}"; Check: IsNewInstallation
+Filename: "{sys}\sc.exe"; Parameters: "description firulaiAgent ""{code:InstallerText|serviceDescription}"""; Flags: runhidden waituntilterminated
+Filename: "{sys}\sc.exe"; Parameters: "failure firulaiAgent reset= 86400 actions= restart/60000/restart/60000/""""/60000"; Flags: runhidden waituntilterminated
+Filename: "{sys}\sc.exe"; Parameters: "start firulaiAgent"; Flags: runhidden waituntilterminated; StatusMsg: "{code:InstallerText|startingService}"; Check: IsNewInstallation
 
 [UninstallRun]
-Filename: "{sys}\sc.exe"; Parameters: "stop RSAgent"; Flags: runhidden waituntilterminated; RunOnceId: "StopRSAgent"
-Filename: "{sys}\sc.exe"; Parameters: "delete RSAgent"; Flags: runhidden waituntilterminated; RunOnceId: "DeleteRSAgent"
+Filename: "{sys}\sc.exe"; Parameters: "stop firulaiAgent"; Flags: runhidden waituntilterminated; RunOnceId: "StopfirulaiAgent"
+Filename: "{sys}\sc.exe"; Parameters: "delete firulaiAgent"; Flags: runhidden waituntilterminated; RunOnceId: "DeletefirulaiAgent"
 
 [Code]
 var
@@ -345,6 +346,8 @@ var
   UpgradeInstalledUuid: string;
   UpgradeInstalledLocale: string;
   UpgradeInstalledVersion: string;
+  LegacyDetected: Boolean;
+  LegacyPrepared: Boolean;
 
 function IsUuid(Value: string): Boolean;
 var
@@ -475,7 +478,7 @@ begin
   if AgentLocale = 'es_ES' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Para realizar una instalación silenciosa debes leer y aceptar el Acuerdo de licencia y aviso de uso incluido con el instalador.' + #13#10#13#10 + 'Si lo aceptas, vuelve a ejecutar el instalador añadiendo /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configuración de RSAgent'
+    else if Key = 'configTitle' then Result := 'Configuración de firulaiAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce los datos facilitados por Firulai'
     else if Key = 'configDescription' then Result := 'Copia el UUID y el token que se te han facilitado en Firulai.'
     else if Key = 'registeringService' then Result := 'Registrando servicio...'
@@ -523,7 +526,7 @@ begin
   if AgentLocale = 'ca_ES' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Per fer una instal.lacio silenciosa has de llegir i acceptar acord de llicencia i avis dus inclosos amb instal.lador.' + #13#10#13#10 + 'Si ho acceptes, torna a executar instal.lador afegint /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configuracio de RSAgent'
+    else if Key = 'configTitle' then Result := 'Configuracio de firulaiAgent'
     else if Key = 'configSubtitle' then Result := 'Introdueix les dades facilitades per Firulai'
     else if Key = 'configDescription' then Result := 'Copia UUID i token facilitats per Firulai.'
     else if Key = 'registeringService' then Result := 'Registrant servei...'
@@ -571,7 +574,7 @@ begin
   if AgentLocale = 'eu_ES' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Instalazio isila egiteko, instalatzailearekin datorren lizentzia-akordioa eta erabilera-oharra irakurri eta onartu behar dituzu.' + #13#10#13#10 + 'Onartzen baduzu, exekutatu berriro instalatzailea /ACCEPTLICENSE=yes gehituta.'
-    else if Key = 'configTitle' then Result := 'RSAgent konfigurazioa'
+    else if Key = 'configTitle' then Result := 'firulaiAgent konfigurazioa'
     else if Key = 'configSubtitle' then Result := 'Sartu Firulaik emandako datuak'
     else if Key = 'configDescription' then Result := 'Kopiatu Firulaik emandako UUIDa eta tokena.'
     else if Key = 'registeringService' then Result := 'Zerbitzua erregistratzen...'
@@ -619,7 +622,7 @@ begin
   if AgentLocale = 'gl_ES' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Para realizar unha instalacion silenciosa debes ler e aceptar o acordo de licenza e aviso de uso incluido co instalador.' + #13#10#13#10 + 'Se o aceptas, executa de novo o instalador engadindo /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configuracion de RSAgent'
+    else if Key = 'configTitle' then Result := 'Configuracion de firulaiAgent'
     else if Key = 'configSubtitle' then Result := 'Introduce os datos facilitados por Firulai'
     else if Key = 'configDescription' then Result := 'Copia o UUID e o token facilitados por Firulai.'
     else if Key = 'registeringService' then Result := 'Rexistrando servizo...'
@@ -667,7 +670,7 @@ begin
   if AgentLocale = 'fr_FR' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Pour une installation silencieuse, vous devez lire et accepter le contrat de licence et la notice utilisation inclus avec le programme.' + #13#10#13#10 + 'Si vous acceptez, relancez le programme avec /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configuration de RSAgent'
+    else if Key = 'configTitle' then Result := 'Configuration de firulaiAgent'
     else if Key = 'configSubtitle' then Result := 'Saisissez les informations fournies par Firulai'
     else if Key = 'configDescription' then Result := 'Copiez le UUID et le token fournis par Firulai.'
     else if Key = 'registeringService' then Result := 'Enregistrement du service...'
@@ -715,7 +718,7 @@ begin
   if AgentLocale = 'de_DE' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Fuer eine unbeaufsichtigte Installation muessen Sie die Lizenzvereinbarung und den Nutzungshinweis im Installer lesen und akzeptieren.' + #13#10#13#10 + 'Wenn Sie akzeptieren, starten Sie den Installer erneut mit /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'RSAgent-Konfiguration'
+    else if Key = 'configTitle' then Result := 'firulaiAgent-Konfiguration'
     else if Key = 'configSubtitle' then Result := 'Geben Sie die von Firulai bereitgestellten Daten ein'
     else if Key = 'configDescription' then Result := 'Kopieren Sie UUID und Token von Firulai.'
     else if Key = 'registeringService' then Result := 'Dienst wird registriert...'
@@ -763,7 +766,7 @@ begin
   if AgentLocale = 'it_IT' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'Per eseguire una installazione silenziosa devi leggere e accettare il contratto di licenza e avviso di utilizzo incluso nel programma.' + #13#10#13#10 + 'Se accetti, esegui di nuovo il programma aggiungendo /ACCEPTLICENSE=yes.'
-    else if Key = 'configTitle' then Result := 'Configurazione di RSAgent'
+    else if Key = 'configTitle' then Result := 'Configurazione di firulaiAgent'
     else if Key = 'configSubtitle' then Result := 'Inserisci i dati forniti da Firulai'
     else if Key = 'configDescription' then Result := 'Copia UUID e token forniti da Firulai.'
     else if Key = 'registeringService' then Result := 'Registrazione servizio...'
@@ -811,7 +814,7 @@ begin
   if AgentLocale = 'ja_JP' then
   begin
     if Key = 'silentLicenseRequired' then Result := 'サイレント インストールを実行するには、インストーラーに含まれるライセンス契約と使用上の注意を読み、同意する必要があります。' + #13#10#13#10 + '同意する場合は /ACCEPTLICENSE=yes を追加してインストーラーを再実行してください。'
-    else if Key = 'configTitle' then Result := 'RSAgent の設定'
+    else if Key = 'configTitle' then Result := 'firulaiAgent の設定'
     else if Key = 'configSubtitle' then Result := 'Firulai から提供された情報を入力してください'
     else if Key = 'configDescription' then Result := 'Firulai から提供された UUID と token をコピーしてください。'
     else if Key = 'registeringService' then Result := 'サービスを登録しています...'
@@ -859,7 +862,7 @@ begin
   if AgentLocale = 'zh_CN' then
   begin
     if Key = 'silentLicenseRequired' then Result := '要执行静默安装，必须阅读并接受安装程序包含的许可协议和使用说明。' + #13#10#13#10 + '如果接受，请添加 /ACCEPTLICENSE=yes 后重新运行安装程序。'
-    else if Key = 'configTitle' then Result := 'RSAgent 配置'
+    else if Key = 'configTitle' then Result := 'firulaiAgent 配置'
     else if Key = 'configSubtitle' then Result := '输入 Firulai 提供的信息'
     else if Key = 'configDescription' then Result := '复制 Firulai 提供的 UUID 和 token。'
     else if Key = 'registeringService' then Result := '正在注册服务...'
@@ -905,7 +908,7 @@ begin
   end;
 
   if Key = 'silentLicenseRequired' then Result := 'To run a silent installation, you must read and accept the license agreement and usage notice included with the installer.' + #13#10#13#10 + 'If you accept it, run the installer again adding /ACCEPTLICENSE=yes.'
-  else if Key = 'configTitle' then Result := 'RSAgent configuration'
+  else if Key = 'configTitle' then Result := 'firulaiAgent configuration'
   else if Key = 'configSubtitle' then Result := 'Enter the details provided by Firulai'
   else if Key = 'configDescription' then Result := 'Copy the UUID and token provided by Firulai.'
   else if Key = 'registeringService' then Result := 'Registering service...'
@@ -1001,9 +1004,19 @@ procedure ResolveAgentLocale(); forward;
 procedure LocalizedSetupErrorMessage(Message: string); forward;
 
 function InitializeSetup(): Boolean;
+var
+  LegacyServiceResult: Integer;
 begin
   Result := True;
   ResolveAgentLocale();
+
+  // An older installation uses the same Inno AppId but a different service,
+  // executable and data directory. Never install a second active collector.
+  Exec(ExpandConstant('{sys}\sc.exe'), 'query RSAgent', '', SW_HIDE,
+    ewWaitUntilTerminated, LegacyServiceResult);
+  LegacyDetected := (LegacyServiceResult = 0) or
+    FileExists(ExpandConstant('{autopf}\RSAgent\RsAgent.exe')) or
+    FileExists(ExpandConstant('{commonappdata}\RSAgent\config.json'));
 
   if WizardSilent() and not LicenseAcceptedFromCommandLine() then
   begin
@@ -1018,7 +1031,7 @@ function IsServiceInstalled(): Boolean;
 var
   ResultCode: Integer;
 begin
-  Exec(ExpandConstant('{sys}\sc.exe'), 'query RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\sc.exe'), 'query firulaiAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Result := ResultCode = 0;
 end;
 
@@ -1030,7 +1043,7 @@ var
   ResultCode: Integer;
 begin
   Result := '';
-  ConfigDir := ExpandConstant('{commonappdata}\RSAgent');
+  ConfigDir := ExpandConstant('{commonappdata}\firulaiAgent');
 
   if HasLocalAgentExecutableOrUninstaller() then
   begin
@@ -1042,8 +1055,8 @@ begin
     Exit;
   end;
 
-  Exec(ExpandConstant('{sys}\sc.exe'), 'stop RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec(ExpandConstant('{sys}\sc.exe'), 'delete RSAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\sc.exe'), 'stop firulaiAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\sc.exe'), 'delete firulaiAgent', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 
   if DirExists(ConfigDir) then
   begin
@@ -1058,7 +1071,7 @@ end;
 
 function AppRegistryKey(): string;
 begin
-  Result := 'SOFTWARE\Redsauce\RSAgent';
+  Result := 'SOFTWARE\Redsauce\firulaiAgent';
 end;
 
 function InstalledLocaleFromRegistry(): string;
@@ -1080,7 +1093,7 @@ var
 begin
   Result := InstalledLocaleFromRegistry();
 
-  if not LoadStringFromFile(ExpandConstant('{commonappdata}\RSAgent\config.json'), ConfigJson) then
+  if not LoadStringFromFile(ExpandConstant('{commonappdata}\firulaiAgent\config.json'), ConfigJson) then
   begin
     Exit;
   end;
@@ -1125,7 +1138,7 @@ var
 begin
   Result := '';
 
-  if not LoadStringFromFile(ExpandConstant('{commonappdata}\RSAgent\config.json'), ConfigJson) then
+  if not LoadStringFromFile(ExpandConstant('{commonappdata}\firulaiAgent\config.json'), ConfigJson) then
   begin
     Exit;
   end;
@@ -1323,6 +1336,12 @@ begin
     AgentLocale := NormalizeLocale(UpgradeInstalledLocale);
     Exit;
   end;
+  if LegacyDetected and RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\Redsauce\RSAgent', 'Locale', Locale) and (Trim(Locale) <> '') then
+  begin
+    AgentLocale := NormalizeLocale(Locale);
+    Exit;
+  end;
   Locale := Trim(CmdParam('LOCALE'));
   if Locale = '' then Locale := Trim(CmdParam('AGENTLOCALE'));
   if Locale = '' then Locale := LocaleFromInstallerFileName();
@@ -1407,8 +1426,8 @@ begin
     '', SW_HIDE, ewWaitUntilTerminated, ExitCode) or (ExitCode <> 0) then Exit;
   ConfigPath := ValidationDir + '\request.json';
   ResultPath := ValidationDir + '\result.txt';
-  AgentPath := ExpandConstant('{tmp}\RsAgent.exe');
-  ExtractTemporaryFile('RsAgent.exe');
+  AgentPath := ExpandConstant('{tmp}\FirulaiAgent.exe');
+  ExtractTemporaryFile('FirulaiAgent.exe');
   Payload := '{"uuid":"' + JsonEscape(EffectiveUuid()) + '","token":"' +
     JsonEscape(EffectiveToken()) + '","locale":"' + JsonEscape(AgentLocale) +
     '","api_url":"' + JsonEscape(ApiBaseUrlValue('') + '{#ApiPath}') + '"}';
@@ -1549,7 +1568,7 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
-  if UpgradeDetected and (PageID = ConfigPage.ID) then Result := True;
+  if (UpgradeDetected or LegacyDetected) and (PageID = ConfigPage.ID) then Result := True;
   if (PageID = ConfigPage.ID) and IsSilentWithConfig() then Result := True;
 end;
 
@@ -2074,7 +2093,7 @@ var
   ResultCode: Integer;
   ReportPath: string;
 begin
-  UpgradeDetected := IsLocalAgentInstalled();
+  UpgradeDetected := (not LegacyDetected) and IsLocalAgentInstalled();
   if UpgradeDetected then
   begin
     ExtractTemporaryFile('{#MyAppExeName}');
@@ -2144,6 +2163,11 @@ begin
       if not Exec(UpgradeHelper, '--complete-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then RaiseException(UpgradeFailureText());
       if ResultCode <> 0 then RaiseException(UpgradeFailureText());
     end;
+    if LegacyPrepared then
+    begin
+      if not Exec(UpgradeHelper, '--complete-legacy-migration', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then RaiseException('Could not complete legacy agent migration.');
+      if ResultCode <> 0 then RaiseException('Could not complete legacy agent migration.');
+    end;
     UpgradeCommitted := True;
     if UpgradePrepared then DeleteFile(ExpandConstant('{app}\{#MyAppExeName}.pre-update'));
   end;
@@ -2159,6 +2183,11 @@ begin
     if not Exec(UpgradeHelper, '--recover-upgrade', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       Log('ERROR: recovery helper could not start; startup recovery task retained.')
     else if ResultCode <> 0 then Log('ERROR: recovery failed; startup recovery task retained.');
+  end;
+  if LegacyPrepared and not UpgradeCommitted then
+  begin
+    if not Exec(UpgradeHelper, '--rollback-legacy-migration', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Log('ERROR: legacy agent rollback could not start.');
   end;
 end;
 
@@ -2208,6 +2237,17 @@ begin
   Result := '';
   PrepareInstallFailureMessage := '';
   ResolveAgentLocale();
+
+  if LegacyDetected then
+  begin
+    ExtractTemporaryFile('{#MyAppExeName}');
+    UpgradeHelper := ExpandConstant('{tmp}\{#MyAppExeName}');
+    if not Exec(UpgradeHelper, '--prepare-legacy-migration', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Result := LocalizedPrepareInstallFailure('Could not prepare RSAgent migration.')
+    else if ResultCode <> 0 then Result := LocalizedPrepareInstallFailure('Could not prepare RSAgent migration.');
+    if Result = '' then LegacyPrepared := True;
+    Exit;
+  end;
 
   if UpgradeDetected then
   begin
@@ -2287,10 +2327,10 @@ begin
     Exit;
   end;
 
-  ForceDirectories(ExpandConstant('{commonappdata}\RSAgent'));
-  ForceDirectories(ExpandConstant('{commonappdata}\RSAgent\logs'));
+  ForceDirectories(ExpandConstant('{commonappdata}\firulaiAgent'));
+  ForceDirectories(ExpandConstant('{commonappdata}\firulaiAgent\logs'));
 
-  ConfigPath := ExpandConstant('{commonappdata}\RSAgent\config.json');
+  ConfigPath := ExpandConstant('{commonappdata}\firulaiAgent\config.json');
 
   if FileExists(ConfigPath) then
   begin
@@ -2325,9 +2365,9 @@ var
   RecoveryDir: string;
 begin
   Result := False;
-  RecoveryDir := ExpandConstant('{commonappdata}\RSAgentUninstallRecovery');
+  RecoveryDir := ExpandConstant('{commonappdata}\firulaiAgentUninstallRecovery');
   Result := PreparePrivateUninstallRecovery(ExpandConstant('{app}'),
-    ExpandConstant('{commonappdata}\RSAgent'), RecoveryDir);
+    ExpandConstant('{commonappdata}\firulaiAgent'), RecoveryDir);
 end;
 
 function MarkSystemDisconnectedInRsm(): Boolean; forward;
@@ -2347,7 +2387,7 @@ begin
   Result := False;
   ResolveUninstallLocale();
   AgentPath := ExpandConstant('{app}\{#MyAppExeName}');
-  ConfigPath := ExpandConstant('{commonappdata}\RSAgent\config.json');
+  ConfigPath := ExpandConstant('{commonappdata}\firulaiAgent\config.json');
   if (not FileExists(AgentPath)) or (not FileExists(ConfigPath)) then Exit;
   if not Exec(AgentPath, '--mark-disconnected-on-uninstall', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then Exit;
   Result := (ResultCode = 0) or (ResultCode = 2);
@@ -2358,8 +2398,8 @@ var
   ResultCode: Integer;
   RecoveryDir, DataDir, AppDir, RetryCommand: string;
 begin
-  RecoveryDir := ExpandConstant('{commonappdata}\RSAgentUninstallRecovery');
-  DataDir := ExpandConstant('{commonappdata}\RSAgent');
+  RecoveryDir := ExpandConstant('{commonappdata}\firulaiAgentUninstallRecovery');
+  DataDir := ExpandConstant('{commonappdata}\firulaiAgent');
   AppDir := ExpandConstant('{app}');
   if CurUninstallStep = usUninstall then
   begin

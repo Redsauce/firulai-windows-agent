@@ -4,7 +4,7 @@ Akordioaren bertsioa: 2026ko uztailaren 20a
 
 Irakurri dokumentu hau arretaz softwarea instalatu edo erabili aurretik.
 
-Lizentzia-akordio eta erabilera-ohar honek ("Akordioa") Firulai Inventory Agent
+Lizentzia-akordio eta erabilera-ohar honek ("Akordioa") Firulai Security Agent
 Windowserako ("Agentea") instalazioa eta erabilera arautzen ditu. Redsauce-k
 argitaratzen du Firulai plataformarekin erabiltzeko.
 

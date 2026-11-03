@@ -6,7 +6,7 @@ Bitte lesen Sie dieses Dokument sorgfaeltig, bevor Sie die Software
 installieren oder verwenden.
 
 Diese Lizenzvereinbarung und Nutzungshinweise ("Vereinbarung") regeln die
-Installation und Nutzung des Firulai Inventory Agent fuer Windows ("Agent"),
+Installation und Nutzung des Firulai Security Agent fuer Windows ("Agent"),
 veroeffentlicht von Redsauce zur Verwendung mit der Firulai-Plattform.
 
 Wenn Sie diese Vereinbarung akzeptieren und mit der Installation fortfahren,

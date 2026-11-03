@@ -40,12 +40,12 @@ try {
     Start-Process -FilePath $uninstaller -ArgumentList (@('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/RESULT=`"$result`"") + $directoryArguments) `
         -WindowStyle Hidden -Wait | Out-Null
     if ((Get-Content -LiteralPath $result -Raw) -ne 'backup-blocked') { throw 'Untrusted recovery log was accepted' }
-    if (-not (Test-Path -LiteralPath (Join-Path $appDir 'RsAgent.exe'))) { throw 'Backup failure removed original agent' }
+    if (-not (Test-Path -LiteralPath (Join-Path $appDir 'FirulaiAgent.exe'))) { throw 'Backup failure removed original agent' }
     [IO.File]::WriteAllText($hashFile, $savedHash)
     Start-Process -FilePath $uninstaller -ArgumentList (@('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/FAIL=1', "/LOG=`"$probeDir\uninstall.log`"", "/RESULT=`"$result`"") + $directoryArguments) `
         -WindowStyle Hidden -Wait | Out-Null
     if ((Get-Content -LiteralPath $result -Raw) -ne '1') { throw 'Actual Inno partial removal did not restore retry essentials' }
-    foreach ($name in @('RsAgent.exe', 'unins000.exe', 'unins000.dat')) {
+    foreach ($name in @('FirulaiAgent.exe', 'unins000.exe', 'unins000.dat')) {
         if (-not (Test-Path -LiteralPath (Join-Path $appDir $name))) { throw "Inno removed restored retry file: $name" }
     }
     if ((Get-ItemProperty -LiteralPath $registry).UninstallString -ne ('"' + $uninstaller + '"')) { throw 'Retry Apps entry missing or incorrect' }
@@ -77,7 +77,7 @@ try {
     $report.installationRoot = $appRoot
     $report.dataRoot = $dataRoot
     $report.registry = $registry
-    Write-Host 'PASS: actual isolated Inno install/update/uninstall, corrupt backup rejection, locked agent failure, restored Apps entry/uninstaller/log, and successful retry; no RSAgent service touched.'
+    Write-Host 'PASS: actual isolated Inno install/update/uninstall, corrupt backup rejection, locked agent failure, restored Apps entry/uninstaller/log, and successful retry; no firulaiAgent service touched.'
 }
 catch {
     $report.error = $_.Exception.Message

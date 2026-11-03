@@ -47,6 +47,7 @@
     <Compile Include="AgentText.cs" />
     <Compile Include="InventoryCollector.cs" />
     <Compile Include="InstallerUpgrade.cs" />
+    <Compile Include="LegacyMigration.cs" />
     <Compile Include="UpdateManifest.cs" />
     <Compile Include="AgentUpdater.cs" />
     <Compile Include="CollectionReporter.cs" />

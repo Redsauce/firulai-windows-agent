@@ -5,7 +5,7 @@
 请在安装或使用本软件前仔细阅读本文件。
 
 本许可协议和使用通知（“协议”）适用于 Redsauce 发布、用于 Firulai 平台的
-Firulai Inventory Agent for Windows（“代理”）的安装和使用。
+Firulai Security Agent for Windows（“代理”）的安装和使用。
 
 接受本协议并继续安装，即表示您确认已阅读并接受这些条款，并且有足够授权在
 相应计算机和组织中安装和运行代理。如果您不同意全部条款，请勿安装或使用代理。

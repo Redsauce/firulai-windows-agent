@@ -30,7 +30,7 @@ end;
 
 function AppRegistryKey(): string;
 begin
-  Result := 'SOFTWARE\Redsauce\RSAgentTests\Unused';
+  Result := 'SOFTWARE\Redsauce\firulaiAgentTests\Unused';
 end;
 
 #include "..\installer\ApiEndpoint.iss"

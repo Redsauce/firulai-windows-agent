@@ -1,4 +1,4 @@
-param([string]$AgentPath = (Join-Path $PSScriptRoot '..\src\RsAgent\bin\Release\RsAgent.exe'))
+param([string]$AgentPath = (Join-Path $PSScriptRoot '..\src\RsAgent\bin\Release\FirulaiAgent.exe'))
 $ErrorActionPreference = 'Stop'
 # Requires permission to read the existing config.json (normally administrator).
 # Performs read-only RSM queries. Does not install, restart or send inventory.

@@ -2,7 +2,7 @@
 [Setup]
 AppName=Installer startup tests
 AppVersion=1
-DefaultDirName={autopf}\RSAgent
+DefaultDirName={autopf}\firulaiAgent
 CreateAppDir=no
 Uninstallable=no
 PrivilegesRequired=lowest
@@ -30,7 +30,7 @@ begin
     if Directory = '' then RaiseException('Empty installation directory');
     Installed := IsLocalAgentInstalled();
     if Installed <> (HasLocalAgentExecutableOrUninstaller() or
-      FileExists(ExpandConstant('{commonappdata}\RSAgent\config.json'))) then
+      FileExists(ExpandConstant('{commonappdata}\firulaiAgent\config.json'))) then
       RaiseException('Local installation detection is inconsistent');
   except
     Status := 'FAIL: ' + GetExceptionMessage;
