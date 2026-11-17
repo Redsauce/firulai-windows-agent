@@ -2078,6 +2078,8 @@ begin
   LicenseFileName := RuntimeLicenseFileName();
   LicenseFilePath := ExpandConstant('{tmp}\' + LicenseFileName);
   ExtractTemporaryFile(LicenseFileName);
+  { LICENSE-*.txt must be UTF-16 LE with BOM so Windows' ANSI code page
+    cannot corrupt the agreement in any installer language. }
   WizardForm.LicenseMemo.Lines.LoadFromFile(LicenseFilePath);
   DeleteFile(LicenseFilePath);
 
