@@ -84,7 +84,7 @@ namespace RsAgent
                 { "uuid", uuid },
                 { "os", new Dictionary<string, object>
                     {
-                        { "name", FirstNonEmpty(productName, WmiString(os, "Caption", "Windows")) },
+                        { "name", FirstNonEmpty(WmiString(os, "Caption", ""), productName, "Windows") },
                         { "version", version },
                         { "build", build },
                         { "edition", FirstNonEmpty(edition, "Unknown") },
