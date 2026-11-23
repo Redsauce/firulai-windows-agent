@@ -134,7 +134,7 @@ namespace RsAgent
                 var parent = FindParentPackage(record, registryRecords);
                 if (parent != null)
                 {
-                    AddPackage(inventory.Packages, seenPackages, parent.CanonicalName, parent.Version);
+                    AddPackage(inventory.Packages, seenPackages, parent.CanonicalName, parent.Version, parent);
                     AddComponent(inventory.Components, seenComponents, record.Name, record.Version, "registry", parent);
                 }
                 else if (record.SystemComponent)
@@ -143,14 +143,14 @@ namespace RsAgent
                 }
                 else
                 {
-                    AddPackage(inventory.Packages, seenPackages, record.CanonicalName, record.Version);
+                    AddPackage(inventory.Packages, seenPackages, record.CanonicalName, record.Version, record);
                     applicationRecords.Add(record);
                 }
             }
 
             foreach (var application in CollectFileSystemApplications(applicationRecords))
             {
-                AddPackage(inventory.Packages, seenPackages, application.CanonicalName, application.Version);
+                AddPackage(inventory.Packages, seenPackages, application.CanonicalName, application.Version, application);
                 if (!applicationRecords.Any(existing =>
                     SameValue(existing.CanonicalName, application.CanonicalName) &&
                     SameValue(existing.InstallDirectory, application.InstallDirectory)))
@@ -166,10 +166,11 @@ namespace RsAgent
                     AddComponent(
                         inventory.Components,
                         seenComponents,
-                        library.Item1,
-                        library.Item2,
+                        library["name"],
+                        library["version"],
                         "file",
-                        application);
+                        application,
+                        library);
                 }
             }
 
@@ -396,7 +397,8 @@ namespace RsAgent
             ICollection<Dictionary<string, string>> packages,
             ISet<string> seen,
             string name,
-            string version)
+            string version,
+            RegistrySoftwareRecord evidence = null)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
             var displayName = NormalizePackageDisplayName(name);
@@ -406,11 +408,19 @@ namespace RsAgent
             if (seen.Any(existing => PackageIdentitiesMatch(existing, key))) return;
             seen.Add(key);
 
-            packages.Add(new Dictionary<string, string>
+            var package = new Dictionary<string, string>
             {
                 { "name", displayName },
                 { "version", version ?? "" }
-            });
+            };
+            if (evidence != null)
+            {
+                package["publisher"] = evidence.Publisher ?? "";
+                package["source_path"] = evidence.InstallDirectory ?? "";
+                package["registry_key"] = evidence.RegistryKey ?? "";
+                package["version_source"] = string.IsNullOrWhiteSpace(evidence.RegistryKey) ? "FileMetadata" : "Registry.DisplayVersion";
+            }
+            packages.Add(package);
         }
 
         private static string NormalizePackageIdentity(string name, string version)
@@ -468,14 +478,20 @@ namespace RsAgent
             string name,
             string version,
             string manager,
-            RegistrySoftwareRecord parent)
+            RegistrySoftwareRecord parent,
+            Dictionary<string, string> evidence = null)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
             var key = name.Trim() + "|" + (version ?? "") + "|" + (manager ?? "") + "|" +
-                      (parent == null ? "" : parent.CanonicalName + "|" + parent.Version);
+                      (parent == null ? "" : parent.CanonicalName + "|" + parent.Version) + "|" +
+                      (evidence == null ? "" : GetDictionaryString(evidence, "source_path"));
             if (!seen.Add(key)) return;
 
             var component = Package(name.Trim(), version, manager);
+            if (evidence != null)
+            {
+                foreach (var field in evidence) component[field.Key] = field.Value;
+            }
             if (parent != null)
             {
                 component["source_package"] = NormalizePackageDisplayName(parent.CanonicalName);
@@ -786,15 +802,34 @@ namespace RsAgent
             return cleaned.Trim();
         }
 
-        private static string FileMetadataVersion(FileVersionInfo info)
+        internal static string SelectFileMetadataVersion(string productVersion, string fileVersion, out string source)
         {
-            return FirstNonEmpty(NormalizeFileMetadataVersion(info.ProductVersion),
-                NormalizeFileMetadataVersion(info.FileVersion));
+            var values = new[] { productVersion, fileVersion };
+            var sources = new[] { "ProductVersion", "FileVersion" };
+            for (var i = 0; i < values.Length; i++)
+            {
+                var value = NormalizeFileMetadataVersion(values[i]);
+                // Resource strings may contain a product description instead of a version.
+                // Keep meaningful suffixes; the matcher decides their ordering.
+                if (!Regex.IsMatch(value, @"^[vV]?\d+(?:[.,]\s*\d+)+(?:[A-Za-z0-9 .+()~_-]*)$")) continue;
+                if (Regex.IsMatch(value, @"^\d+(?:,\s*\d+){1,3}$"))
+                    value = Regex.Replace(value, @",\s*", ".");
+                source = sources[i];
+                return value;
+            }
+            source = "";
+            return "";
         }
 
-        private static IEnumerable<Tuple<string, string>> CollectApplicationLibraries(string root)
+        private static string FileMetadataVersion(FileVersionInfo info)
         {
-            var results = new List<Tuple<string, string>>();
+            string source;
+            return SelectFileMetadataVersion(info.ProductVersion, info.FileVersion, out source);
+        }
+
+        private static IEnumerable<Dictionary<string, string>> CollectApplicationLibraries(string root)
+        {
+            var results = new List<Dictionary<string, string>>();
             if (!IsApplicationDirectory(root)) return results;
             var pending = new Stack<string>();
             pending.Push(root);
@@ -812,10 +847,22 @@ namespace RsAgent
                         try
                         {
                             var info = FileVersionInfo.GetVersionInfo(file);
-                            var version = FileMetadataVersion(info);
+                            string versionSource;
+                            var version = SelectFileMetadataVersion(info.ProductVersion, info.FileVersion, out versionSource);
                             if (string.IsNullOrWhiteSpace(version)) continue;
                             var name = FirstNonEmpty(info.OriginalFilename, System.IO.Path.GetFileName(file));
-                            results.Add(Tuple.Create(name.Trim(), version.Trim()));
+                            results.Add(new Dictionary<string, string>
+                            {
+                                { "name", name.Trim() }, { "version", version.Trim() },
+                                { "source_path", System.IO.Path.GetFullPath(file) },
+                                { "original_filename", info.OriginalFilename ?? "" },
+                                { "product_name", info.ProductName ?? "" },
+                                { "company_name", info.CompanyName ?? "" },
+                                { "product_version", info.ProductVersion ?? "" },
+                                { "file_version", info.FileVersion ?? "" },
+                                { "name_source", string.IsNullOrWhiteSpace(info.OriginalFilename) ? "FileName" : "OriginalFilename" },
+                                { "version_source", versionSource }
+                            });
                         }
                         catch { }
                     }

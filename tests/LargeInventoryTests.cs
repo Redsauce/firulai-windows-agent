@@ -2,6 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.IO;
+using System.Reflection;
+
+[assembly: AssemblyProduct("Synthetic metadata suite")]
+[assembly: AssemblyCompany("Synthetic publisher")]
+[assembly: AssemblyFileVersion("1.2.3.4")]
 
 namespace RsAgent
 {
@@ -43,8 +49,49 @@ namespace RsAgent
             }
         }
 
+        private static void FileEvidence()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "rsagent-file-evidence-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var first = Path.Combine(directory, "first.dll");
+            var second = Path.Combine(directory, "second.dll");
+            try
+            {
+                File.Copy(Assembly.GetExecutingAssembly().Location, first);
+                File.Copy(Assembly.GetExecutingAssembly().Location, second);
+                var collect = typeof(InventoryCollector).GetMethod("CollectApplicationLibraries", BindingFlags.Static | BindingFlags.NonPublic);
+                var files = new List<Dictionary<string, string>>((IEnumerable<Dictionary<string, string>>)collect.Invoke(null, new object[] { directory }));
+                Check(files.Count == 2, "Both physical file observations must survive.");
+                Check(files.TrueForAll(item => item["product_name"] == "Synthetic metadata suite"), "ProductName must come from actual file metadata.");
+                Check(files.TrueForAll(item => item["company_name"] == "Synthetic publisher"), "Publisher evidence must survive.");
+                Check(files.TrueForAll(item => item["version"] == "1.2.3.4"), "Observed version must survive without a parent substitution.");
+                Check(files.TrueForAll(item => item["version_source"] == "ProductVersion" && item.ContainsKey("file_version")), "Both raw versions and the selected origin must survive.");
+                var components = new List<Dictionary<string, string>>();
+                var seen = new HashSet<string>();
+                var add = typeof(InventoryCollector).GetMethod("AddComponent", BindingFlags.Static | BindingFlags.NonPublic);
+                foreach (var file in files)
+                    add.Invoke(null, new object[] { components, seen, file["name"], file["version"], "file", null, file });
+                Check(components.Count == 2, "Same metadata at distinct paths must not be discarded by deduplication.");
+                Check(components.TrueForAll(item => Path.IsPathRooted(item["source_path"])), "Physical provenance must remain available in the upload payload.");
+            }
+            finally
+            {
+                // Only the exact two fixture files and empty fixture directory.
+                if (File.Exists(first)) File.Delete(first);
+                if (File.Exists(second)) File.Delete(second);
+                Directory.Delete(directory);
+            }
+        }
+
         public static int Main()
         {
+            FileEvidence();
+            string selectedSource;
+            Check(InventoryCollector.SelectFileMetadataVersion("Suite Extensions", "2.3.4.5", out selectedSource) == "2.3.4.5" && selectedSource == "FileVersion", "Text ProductVersion must not hide a valid FileVersion.");
+            Check(InventoryCollector.SelectFileMetadataVersion("1, 2, 3, 4", "9.0", out selectedSource) == "1.2.3.4" && selectedSource == "ProductVersion", "Numeric resource tuples preserve all fields.");
+            Check(InventoryCollector.SelectFileMetadataVersion("1.2.0 (2025-10-27)", "9.0", out selectedSource) == "1.2.0 (2025-10-27)", "Version metadata must survive.");
+            Check(InventoryCollector.SelectFileMetadataVersion("Extensions", "Library", out selectedSource) == "" && selectedSource == "", "No invented version for descriptions.");
+
             Check(InventoryCollector.NormalizeFileMetadataVersion("\x0e") == "", "Invalid ProductVersion must allow FileVersion fallback.");
             Check(InventoryCollector.NormalizeFileMetadataVersion("1.\x0e" + "2.3") == "1.2.3", "XML-invalid controls removed from file metadata.");
             Check(InventoryCollector.NormalizeFileMetadataVersion("1.2.3+abcdef1234567") == "1.2.3+abcdef1234567", "Valid version metadata preserved.");
