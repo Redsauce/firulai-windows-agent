@@ -6,6 +6,18 @@ Documento interno para generar, publicar y actualizar el instalador Windows.
 
 El nuevo instalador actualiza instalaciones existentes sin desinstalar y el
 servicio verifica paquetes firmados antes de actualizar automaticamente.
+
+## Versión 0.20.17 (pendiente de publicación)
+
+El inventario de Windows usa primero el nombre del sistema informado por WMI.
+El valor ProductName del registro queda como respaldo, ya que puede indicar
+Windows 10 en equipos con Windows 11.
+
+## Versión 0.20.16
+
+Los acuerdos de licencia de los diez idiomas usan UTF-16 LE con BOM para
+evitar caracteres dañados por la página de códigos de Windows. La URL de
+Redsauce en los términos es `https://www.redsauce.net`.
 Preparacion de claves, publicacion, pruebas y limites:
 [AUTOMATIC_UPDATES.md](docs/AUTOMATIC_UPDATES.md).
 
