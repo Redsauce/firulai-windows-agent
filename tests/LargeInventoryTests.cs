@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.IO;
 using System.Reflection;
+using System.IO.Compression;
+using System.Text;
+using System.Security.Cryptography;
 
 [assembly: AssemblyProduct("Synthetic metadata suite")]
 [assembly: AssemblyCompany("Synthetic publisher")]
@@ -14,6 +17,24 @@ namespace RsAgent
     internal static class LargeInventoryTests
     {
         private static int passed;
+        private static string DecodeTransport(string value)
+        {
+            var serializer = InventoryCollector.CreateInventorySerializer();
+            var parsed = serializer.Deserialize<Dictionary<string, object>>(value);
+            if (!parsed.ContainsKey("inventory_transport")) return value;
+            Check((string)parsed["inventory_transport"] == "gzip-base64-v1", "Versioned compression envelope.");
+            using (var input = new MemoryStream(Convert.FromBase64String((string)parsed["data"])))
+            using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+            using (var output = new MemoryStream())
+            {
+                gzip.CopyTo(output);
+                var raw = output.ToArray();
+                Check(raw.Length == Convert.ToInt32(parsed["uncompressed_bytes"]), "Original byte length preserved.");
+                using (var sha = SHA256.Create())
+                    Check(BitConverter.ToString(sha.ComputeHash(raw)).Replace("-", "").ToLowerInvariant() == (string)parsed["sha256"], "Original SHA256 preserved.");
+                return Encoding.UTF8.GetString(raw);
+            }
+        }
         private static void Check(bool condition, string message)
         {
             if (!condition) throw new Exception(message);
@@ -37,7 +58,9 @@ namespace RsAgent
             RsmClient.SendAsync(config, json).GetAwaiter().GetResult();
             Check(ApiEndpoint.Calls == 1, "Upload should reach transport exactly once.");
             Check(ApiEndpoint.Trigger == "newServerData", "Inventory event unchanged.");
-            var actual = serializer.Deserialize<Dictionary<string, object>>(ApiEndpoint.Json);
+            var actual = serializer.Deserialize<Dictionary<string, object>>(DecodeTransport(ApiEndpoint.Json));
+            if (characters >= 1024 * 1024)
+                Check(Encoding.UTF8.GetByteCount(ApiEndpoint.Json) < 7 * 1024 * 1024, "Large repetitive inventory fits the transport budget.");
             payload["RStoken"] = config.Token;
             Check(serializer.Serialize(actual) == serializer.Serialize(payload), "All nested fields, Unicode, arrays and upload token must survive.");
             Check((string)actual["RStoken"] == config.Token, "Configured token must replace an old payload token.");
@@ -83,8 +106,19 @@ namespace RsAgent
             }
         }
 
-        public static int Main()
+        public static int Main(string[] args)
         {
+            if (args.Length == 3 && args[0] == "--compress-inventory")
+            {
+                File.WriteAllText(args[2], RsmClient.PrepareInventoryTransport(File.ReadAllText(args[1])), new UTF8Encoding(false));
+                return 0;
+            }
+            if (args.Length == 2 && args[0] == "--export-transport")
+            {
+                var example = "{\"RStoken\":\"synthetic-token\",\"system\":{\"uuid\":\"synthetic-system\",\"hostname\":\"Synthetic\",\"fqdn\":\"synthetic.invalid\",\"os\":{}},\"components\":[{\"name\":\"" + new string('\u6f22', 2100000) + "\",\"version\":\"1.2.0 (2025-10-27)\"}]}";
+                File.WriteAllText(args[1], RsmClient.PrepareInventoryTransport(example), new UTF8Encoding(false));
+                return 0;
+            }
             FileEvidence();
             string selectedSource;
             Check(InventoryCollector.SelectFileMetadataVersion("Suite Extensions", "2.3.4.5", out selectedSource) == "2.3.4.5" && selectedSource == "FileVersion", "Text ProductVersion must not hide a valid FileVersion.");
@@ -100,6 +134,16 @@ namespace RsAgent
             Inventory(2097000);
             Inventory(2100000);
             Inventory(8 * 1024 * 1024);
+            Inventory(17587948);
+            var randomBytes = new byte[1024 * 1024];
+            new Random(19).NextBytes(randomBytes);
+            var incompressible = "{\"data\":\"" + Convert.ToBase64String(randomBytes) + "\"}";
+            Check(RsmClient.PrepareInventoryTransport(incompressible) == incompressible, "No encoded expansion for incompressible inventories.");
+            Check(RsmClient.PrepareInventoryTransport("{\"small\":true}") == "{\"small\":true}", "Small inventory contract unchanged.");
+            bool oversized = false;
+            try { RsmClient.PrepareInventoryTransport(new string('x', 64 * 1024 * 1024 + 1)); }
+            catch (InvalidOperationException) { oversized = true; }
+            Check(oversized, "Uncompressed inventory cap enforced before compression.");
             var serializer = InventoryCollector.CreateInventorySerializer();
             var records = new List<Dictionary<string, object>>();
             for (int i = 0; i < 15000; i++) records.Add(new Dictionary<string, object> {
@@ -109,19 +153,21 @@ namespace RsAgent
             Check(manyJson.Length > 2097152, "Many-record inventory must exceed the former limit.");
             ApiEndpoint.Status = 200;
             RsmClient.SendAsync(new AgentConfig { token = "fake" }, manyJson).GetAwaiter().GetResult();
-            var many = serializer.Deserialize<Dictionary<string, object>>(ApiEndpoint.Json);
+            var many = serializer.Deserialize<Dictionary<string, object>>(DecodeTransport(ApiEndpoint.Json));
             Check(((object[])serializer.DeserializeObject(serializer.Serialize(many["components"]))).Length == records.Count, "No components truncated.");
             Check(((object[])serializer.DeserializeObject(serializer.Serialize(many["packages"]))).Length == records.Count, "No packages truncated.");
             var appxJson = "[{\"name\":\"" + new string('a', 2100000) + "\",\"version\":\"1.0\"}]";
             var appx = InventoryCollector.CreateInventorySerializer().DeserializeObject(appxJson) as object[];
             Check(appx != null && appx.Length == 1, "Large Appx output must parse rather than being omitted due to the default limit.");
 
-            foreach (var status in new[] { 413, 500 }) {
+            foreach (var status in new[] { 400, 413, 500 }) {
                 ApiEndpoint.Status = status;
+                ApiEndpoint.Calls = 0;
                 bool rejected = false;
                 try { RsmClient.SendAsync(new AgentConfig { token = "fake" }, "{\"components\":[]}").GetAwaiter().GetResult(); }
                 catch (InvalidOperationException) { rejected = true; }
                 Check(rejected, "Non-success HTTP responses must still fail, including size rejection.");
+                Check(ApiEndpoint.Calls == 1, "No implicit retry or raw fallback after HTTP failure.");
             }
             ApiEndpoint.Calls = 0;
             bool malformed = false;

@@ -119,6 +119,14 @@ namespace RsAgent
                 }
                 if (!live)
                 {
+                    foreach (string payload in new[] { new string('x', (int)ApiEndpoint.MaxRequestBytes), new string('\u6f22', (int)ApiEndpoint.MaxRequestBytes / 2) })
+                    {
+                        var blocked = new Transport { Redirect = 200 };
+                        bool tooLarge = false;
+                        try { ApiEndpoint.PostAsync(ApiEndpoint.BuildUrl(Initial), "fake-token", "test-event", payload, store.Write, blocked).GetAwaiter().GetResult(); }
+                        catch (InvalidOperationException) { tooLarge = true; }
+                        Assert(tooLarge && blocked.Requests.Count == 0, "full multipart UTF8 size rejected before network");
+                    }
                     foreach (string target in new[] { "http://bad.example/" + ApiEndpoint.Path, "https://user@bad.example/" + ApiEndpoint.Path, "https://bad.example/prefix" + ApiEndpoint.Path, "https://bad.example/other.php", null })
                     {
                         store.Write(Initial);
