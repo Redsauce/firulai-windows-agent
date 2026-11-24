@@ -1,6 +1,6 @@
 #define MyAppName "firulaiAgent"
 #define MyAppDisplayName "Firulai Security Agent"
-#define MyAppVersion "0.20.20"
+#define MyAppVersion "0.20.21"
 #define MyAppPublisher "Redsauce"
 #if GetEnv("PUBLISHER_NAME") != ""
   #undef MyAppPublisher
