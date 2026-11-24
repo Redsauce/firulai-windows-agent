@@ -22,8 +22,27 @@ namespace RsAgent
             var serializer = InventoryCollector.CreateInventorySerializer();
             var parsed = serializer.Deserialize<Dictionary<string, object>>(value);
             if (!parsed.ContainsKey("inventory_transport")) return value;
-            Check((string)parsed["inventory_transport"] == "gzip-base64-v1", "Versioned compression envelope.");
-            using (var input = new MemoryStream(Convert.FromBase64String((string)parsed["data"])))
+            byte[] packed;
+            if ((string)parsed["inventory_transport"] == "gzip-base64-chunks-v1")
+            {
+                using (var joined = new MemoryStream())
+                {
+                    foreach (var frameJson in ApiEndpoint.Frames)
+                    {
+                        var frame = serializer.Deserialize<Dictionary<string, object>>(frameJson);
+                        if (!frame.ContainsKey("upload_id") || (string)frame["upload_id"] != (string)parsed["upload_id"]) continue;
+                        var part = Convert.FromBase64String((string)frame["data"]);
+                        joined.Write(part, 0, part.Length);
+                    }
+                    packed = joined.ToArray();
+                }
+            }
+            else
+            {
+                Check((string)parsed["inventory_transport"] == "gzip-base64-v1", "Versioned compression envelope.");
+                packed = Convert.FromBase64String((string)parsed["data"]);
+            }
+            using (var input = new MemoryStream(packed))
             using (var gzip = new GZipStream(input, CompressionMode.Decompress))
             using (var output = new MemoryStream())
             {
@@ -46,7 +65,7 @@ namespace RsAgent
             var config = new AgentConfig { token = "fake-upload-token", uuid = "550e8400-e29b-41d4-a716-446655440000" };
             var serializer = InventoryCollector.CreateInventorySerializer();
             var payload = new Dictionary<string, object> {
-                {"system", new Dictionary<string, object> { {"uuid", config.Uuid}, {"agent_version", "0.19.1"} }},
+                {"system", new Dictionary<string, object> { {"uuid", config.Uuid}, {"hostname", "Synthetic"}, {"fqdn", "synthetic.invalid"}, {"os", new Dictionary<string, object>()}, {"agent_version", "0.19.1"} }},
                 {"components", new object[] { new Dictionary<string, object> { {"name", new string('x', characters)}, {"version", "1.2.3"} } }},
                 {"packages", new object[] { new Dictionary<string, object> { {"name", "Aplicación 日本語 中文"}, {"version", "2.0"} } }},
                 {"RStoken", "obsolete-token"},
@@ -108,6 +127,7 @@ namespace RsAgent
 
         public static int Main(string[] args)
         {
+            InventoryUpload.TestSpoolDirectory = Path.Combine(Path.GetTempPath(), "firulai-upload-test-" + Guid.NewGuid().ToString("N"));
             if (args.Length == 3 && args[0] == "--compress-inventory")
             {
                 File.WriteAllText(args[2], RsmClient.PrepareInventoryTransport(File.ReadAllText(args[1])), new UTF8Encoding(false));
@@ -149,10 +169,10 @@ namespace RsAgent
             for (int i = 0; i < 15000; i++) records.Add(new Dictionary<string, object> {
                 {"name", "component-" + i + "-" + new string('n', 160)}, {"version", "1.0." + i}, {"installed", true}
             });
-            var manyJson = serializer.Serialize(new Dictionary<string, object> { {"components", records}, {"packages", records} });
+            var manyJson = serializer.Serialize(new Dictionary<string, object> { {"components", records}, {"packages", records}, {"system", new Dictionary<string, object> { {"uuid", "synthetic-system"}, {"hostname", "Synthetic"}, {"fqdn", "synthetic.invalid"} }} });
             Check(manyJson.Length > 2097152, "Many-record inventory must exceed the former limit.");
             ApiEndpoint.Status = 200;
-            RsmClient.SendAsync(new AgentConfig { token = "fake" }, manyJson).GetAwaiter().GetResult();
+            RsmClient.SendAsync(new AgentConfig { token = "fake", uuid = "synthetic-system" }, manyJson).GetAwaiter().GetResult();
             var many = serializer.Deserialize<Dictionary<string, object>>(DecodeTransport(ApiEndpoint.Json));
             Check(((object[])serializer.DeserializeObject(serializer.Serialize(many["components"]))).Length == records.Count, "No components truncated.");
             Check(((object[])serializer.DeserializeObject(serializer.Serialize(many["packages"]))).Length == records.Count, "No packages truncated.");
@@ -187,10 +207,12 @@ namespace RsAgent
         internal static TestBaseStore Store = new TestBaseStore();
         internal static int Calls, Status = 200;
         internal static string Json, Trigger;
+        internal static List<string> Frames = new List<string>();
         internal static Task<ApiResponse> PostAsync(string url, string token, string trigger, string json, Action<string> saveBase)
         {
             Calls++;
             Json = json;
+            Frames.Add(json);
             Trigger = trigger;
             return Task.FromResult(new ApiResponse { Status = Status, Reason = "test", Body = "" });
         }

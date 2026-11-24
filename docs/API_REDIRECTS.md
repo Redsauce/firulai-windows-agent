@@ -33,10 +33,13 @@ al tamano declarado, con maximo 64 MiB, y verifica SHA256, gzip completo y
 JSON de inventario antes de ejecutar la sincronizacion existente. Estos
 limites son cotas de esta primera implementacion, no valores leidos de PHP.
 
-La fragmentacion todavia no esta implementada. Si el cuerpo completo sigue
-superando 7 MiB, el agente falla con un error explicito antes de enviarlo.
-No envia ni procesa inventarios parciales y no reintenta el mismo contenido
-sin comprimir como alternativa a un error del servidor.
+Desde 0.20.20, los inventarios originales de mas de 6 MiB se comprimen una vez
+y se envian como fragmentos gzip-base64-chunks-v1 de hasta 3 MiB binarios.
+InventoryUpload conserva un snapshot pendiente en ProgramData para reintentar
+las mismas partes despues de una interrupcion. El receptor las reune y valida
+antes de procesar un unico inventario completo. Las peticiones completas siguen
+limitadas a 7 MiB. No se envia el contenido sin comprimir como alternativa a un
+error del servidor. Ver limites y despliegue en docs/releases/0.20.20.md.
 
 Validacion local: `scripts/test-large-inventory.ps1` y
 `scripts/test-api-redirects.ps1`, sin `-Live`. El primero admite
