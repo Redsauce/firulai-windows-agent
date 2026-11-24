@@ -12,6 +12,8 @@ namespace RsAgent
     {
         public static readonly string DefaultBase;
         public static readonly string Path;
+        // Leave room below the observed 8 MiB server cutoff. Applies to the complete form.
+        internal const long MaxRequestBytes = 7L * 1024 * 1024;
         public static readonly ApiBaseStore Store = new ApiBaseStore(RegistryHive.LocalMachine, @"SOFTWARE\Redsauce\firulaiAgent");
 
         static ApiEndpoint()
@@ -77,6 +79,8 @@ namespace RsAgent
                         form.Add(new StringContent(json, Encoding.UTF8, "application/json"), "RSdata");
                         form.Add(new StringContent(token), "RStoken");
                         request.Content = form;
+                        if (!form.Headers.ContentLength.HasValue || form.Headers.ContentLength.Value > MaxRequestBytes)
+                            throw new InvalidOperationException("Event request exceeds the 7 MiB transport budget; fragmented upload is required.");
                         using (var response = await client.SendAsync(request).ConfigureAwait(false))
                         {
                             int status = (int)response.StatusCode;

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
@@ -117,10 +120,40 @@ namespace RsAgent
 
         public static async Task SendAsync(AgentConfig config, string inventoryJson)
         {
+            if (Encoding.UTF8.GetByteCount(inventoryJson) > 64 * 1024 * 1024)
+                throw new InvalidOperationException("Inventory exceeds the 64 MiB uncompressed transport limit.");
             var serializer = InventoryCollector.CreateInventorySerializer();
             var inventory = serializer.Deserialize<Dictionary<string, object>>(inventoryJson);
             inventory["RStoken"] = config.Token;
-            await SendEventAsync(config, "newServerData", serializer.Serialize(inventory)).ConfigureAwait(false);
+            await SendEventAsync(config, "newServerData", PrepareInventoryTransport(serializer.Serialize(inventory))).ConfigureAwait(false);
+        }
+
+        // Receiver must support this versioned envelope before publishing this agent.
+        // Small inventories and incompressible data keep the existing JSON contract.
+        internal static string PrepareInventoryTransport(string json)
+        {
+            var raw = Encoding.UTF8.GetBytes(json);
+            if (raw.Length > 64 * 1024 * 1024)
+                throw new InvalidOperationException("Inventory exceeds the 64 MiB uncompressed transport limit.");
+            if (raw.Length < 1024 * 1024) return json;
+            byte[] compressed;
+            using (var output = new MemoryStream())
+            {
+                using (var gzip = new GZipStream(output, CompressionMode.Compress, true))
+                    gzip.Write(raw, 0, raw.Length);
+                compressed = output.ToArray();
+            }
+            string digest;
+            using (var sha = SHA256.Create())
+                digest = BitConverter.ToString(sha.ComputeHash(raw)).Replace("-", "").ToLowerInvariant();
+            var envelope = InventoryCollector.CreateInventorySerializer().Serialize(new Dictionary<string, object>
+            {
+                { "inventory_transport", "gzip-base64-v1" },
+                { "uncompressed_bytes", raw.Length },
+                { "sha256", digest },
+                { "data", Convert.ToBase64String(compressed) }
+            });
+            return Encoding.UTF8.GetByteCount(envelope) < raw.Length ? envelope : json;
         }
 
         internal static Dictionary<string, string> BuildAgentVersionReport(AgentConfig config)

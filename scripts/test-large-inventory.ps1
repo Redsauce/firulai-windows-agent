@@ -1,3 +1,4 @@
+param([string]$ExportTransport, [string]$CompressInventory, [string]$CompressedOutput)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $output = Join-Path ([IO.Path]::GetTempPath()) ('rsagent-large-inventory-' + [Guid]::NewGuid().ToString('N') + '.exe')
@@ -10,6 +11,15 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Large inventory test compilation failed' }
     & $output
     if ($LASTEXITCODE -ne 0) { throw 'Large inventory tests failed' }
+    if ($ExportTransport) {
+        & $output --export-transport $ExportTransport
+        if ($LASTEXITCODE -ne 0) { throw 'Transport fixture export failed' }
+    }
+    if ($CompressInventory) {
+        if (-not $CompressedOutput) { throw 'CompressedOutput is required with CompressInventory' }
+        & $output --compress-inventory $CompressInventory $CompressedOutput
+        if ($LASTEXITCODE -ne 0) { throw 'Inventory compression fixture failed' }
+    }
 }
 finally {
     if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output }
