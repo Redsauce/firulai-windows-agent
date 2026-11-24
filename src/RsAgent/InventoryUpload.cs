@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -29,6 +31,21 @@ namespace RsAgent
                 return output.ToArray();
             }
         }
+        private static void SecureSpool(string root)
+        {
+            if (TestSpoolDirectory == null && (File.GetAttributes(AgentConfig.DataDir) & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidOperationException("Inventory data directory is a reparse point.");
+            if (Directory.Exists(root) && (File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0)
+                throw new InvalidOperationException("Inventory staging directory is a reparse point.");
+            var acl = new DirectorySecurity();
+            acl.SetAccessRuleProtection(true, false);
+            var owner = TestSpoolDirectory == null ? new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) : WindowsIdentity.GetCurrent().User;
+            acl.SetOwner(owner);
+            foreach (var sid in new[] { new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null), owner })
+                acl.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            Directory.CreateDirectory(root, acl);
+            Directory.SetAccessControl(root, acl);
+        }
 
         internal static async Task SendAsync(AgentConfig config, string json, Func<string, Task> send)
         {
@@ -38,8 +55,11 @@ namespace RsAgent
             var inventory = serializer.Deserialize<Dictionary<string, object>>(json);
             var identity = config.Uuid + "|" + config.Token;
             var root = TestSpoolDirectory ?? Path.Combine(AgentConfig.DataDir, "inventory-uploads");
-            Directory.CreateDirectory(root);
+            SecureSpool(root);
             var scope = Path.Combine(root, Hash(Encoding.UTF8.GetBytes(identity)));
+            foreach (var suffix in new[] { ".lock", ".pending", ".pending.tmp" })
+                if (File.Exists(scope + suffix) && (File.GetAttributes(scope + suffix) & FileAttributes.ReparsePoint) != 0)
+                    throw new InvalidOperationException("Inventory staging file is a reparse point.");
             using (var gate = new FileStream(scope + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
                 var pending = scope + ".pending";

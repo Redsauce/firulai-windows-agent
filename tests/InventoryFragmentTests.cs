@@ -41,6 +41,7 @@ namespace RsAgent
                 }
                 catch (IOException) { failed = true; }
                 Check(failed && first.Count == 2, "Connection interruption is observable.");
+                Check(Directory.GetAccessControl(root).AreAccessRulesProtected, "Pending snapshot directory has private non-inherited permissions.");
                 Check(Directory.GetFiles(root, "*.pending").Length == 1, "Pending compressed snapshot survives an uncertain send.");
                 var replay = new List<string>();
                 InventoryUpload.SendAsync(config, json, payload => { replay.Add(payload); return Task.FromResult(0); }).GetAwaiter().GetResult();
