@@ -74,9 +74,14 @@ namespace RsAgent
                     CompleteRecovery();
                     return 1;
                 }
-                return ServiceAction("stop");
+                if (StopForReplacement(binary) == 0) return 0;
+                // No installation file has been replaced. Avoid copying onto
+                // a still-locked image when undoing a rejected preparation.
+                Logger.Warn("Upgrade preparation canceled; starting the unchanged agent.");
+                if (ServiceAction("start") == 0) CompleteRecovery();
+                return 1;
             }
-            catch { return 1; }
+            catch (Exception ex) { Logger.Error("Could not prepare agent replacement.", ex); return 1; }
         }
 
         internal static int CompleteRecovery()
@@ -106,7 +111,7 @@ namespace RsAgent
                 }
                 ParseVersion(installed);
                 var binary = Path.Combine(appDir, "FirulaiAgent.exe");
-                if (ServiceAction("stop") != 0) return 1;
+                if (StopForReplacement(binary, true) != 0) return 1;
                 bool restored = false;
                 for (int attempt = 0; attempt < 30 && !restored; attempt++)
                 {
@@ -120,7 +125,81 @@ namespace RsAgent
                 if (ServiceAction("start") != 0) return 1;
                 return CompleteRecovery();
             }
-            catch { return 1; }
+            catch (Exception ex) { Logger.Error("Could not restore the previous agent; recovery remains pending.", ex); return 1; }
+        }
+
+        private static int StopForReplacement(string binary, bool allowMissing = false)
+        {
+            if (ServiceAction("stop") != 0)
+            {
+                Logger.Warn("Could not stop firulaiAgent before replacing its executable.");
+                return 1;
+            }
+            var timer = Stopwatch.StartNew();
+            return WaitForExecutableRelease(binary, TimeSpan.FromSeconds(90), () => timer.Elapsed,
+                () => System.Threading.Thread.Sleep(500), Logger.Info, allowMissing) ? 0 : 1;
+        }
+
+        // A stopped SCM service can still have a live process, and a manual
+        // --run-once invocation is independent of the service. Never terminate
+        // either process: wait for the exact installed image to be released.
+        internal static bool WaitForExecutableRelease(string binary, TimeSpan timeout,
+            Func<TimeSpan> elapsed, Action wait, Action<string> log, bool allowMissing = false)
+        {
+            binary = Path.GetFullPath(binary);
+            string previous = null;
+            while (true)
+            {
+                string reason = null;
+                foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(binary)))
+                {
+                    using (process)
+                    {
+                        try
+                        {
+                            if (!process.HasExited && string.Equals(process.MainModule.FileName, binary, StringComparison.OrdinalIgnoreCase))
+                                reason = "installed executable still running, PID=" + process.Id;
+                        }
+                        catch (InvalidOperationException) { } // Process exited during inspection.
+                        catch (System.ComponentModel.Win32Exception) { } // File probe below remains mandatory.
+                    }
+                }
+                if (reason == null)
+                {
+                    try
+                    {
+                        // Read/write plus exclusive sharing rejects a mapped executable
+                        // as well as external handles. Opening must never truncate it.
+                        using (var file = new FileStream(binary, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+                        log("Agent executable is released and ready for replacement.");
+                        return true;
+                    }
+                    catch (FileNotFoundException ex)
+                    {
+                        // An aborted installer can have removed the destination.
+                        // Recovery must still be able to restore the saved image.
+                        if (allowMissing)
+                        {
+                            log("Agent executable is absent; ready to restore the saved image.");
+                            return true;
+                        }
+                        reason = ex.GetType().Name + ": " + ex.Message;
+                    }
+                    catch (IOException ex) { reason = ex.GetType().Name + ": " + ex.Message; }
+                    catch (UnauthorizedAccessException ex) { reason = ex.GetType().Name + ": " + ex.Message; }
+                }
+                if (reason != previous)
+                {
+                    log("Waiting for agent executable release: " + reason);
+                    previous = reason;
+                }
+                if (elapsed() >= timeout)
+                {
+                    log("Agent replacement canceled before file installation: executable not released. " + reason);
+                    return false;
+                }
+                wait();
+            }
         }
         internal static Version ParseVersion(string value)
         {

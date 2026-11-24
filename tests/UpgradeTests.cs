@@ -7,8 +7,15 @@ namespace RsAgent
 {
     internal static class UpgradeTests
     {
-        private static int Main()
+        private static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--hold-upgrade-image")
+            {
+                Console.WriteLine("ready");
+                Console.ReadLine();
+                return 0;
+            }
+            ExecutableReleaseTests();
             ReleaseSelectionTests();
             UninstallationDelayTests();
             if (!Program.IsMissingUninstallService(new InvalidOperationException("missing", new System.ComponentModel.Win32Exception(1060))) ||
@@ -61,6 +68,77 @@ namespace RsAgent
                 throw new Exception("Default update preference or opt-out is incorrect.");
             Console.WriteLine("PASS: numeric upgrade ordering, downgrade rejection, malformed and prerelease versions.");
             return 0;
+        }
+
+        private static void ExecutableReleaseTests()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "agent-release-tests-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "FirulaiAgent.exe");
+            var messages = new System.Collections.Generic.List<string>();
+            try
+            {
+                File.WriteAllText(path, "unchanged fixture");
+                if (!InstallerUpgrade.WaitForExecutableRelease(path, TimeSpan.Zero, () => TimeSpan.Zero,
+                    () => { throw new Exception("Unlocked file waited"); }, messages.Add))
+                    throw new Exception("Released file was rejected");
+                if (File.ReadAllText(path) != "unchanged fixture") throw new Exception("Probe modified the file");
+                int waits = 0;
+                using (var held = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    if (InstallerUpgrade.WaitForExecutableRelease(path, TimeSpan.FromSeconds(2),
+                        () => TimeSpan.FromSeconds(waits), () => waits++, messages.Add))
+                        throw new Exception("Locked executable accepted");
+                    if (waits != 2) throw new Exception("Lock wait was not bounded");
+                }
+                waits = 0;
+                if (InstallerUpgrade.WaitForExecutableRelease(Path.Combine(directory, "missing.exe"), TimeSpan.Zero,
+                    () => TimeSpan.Zero, () => waits++, messages.Add) || waits != 0)
+                    throw new Exception("Missing executable accepted or retried past deadline");
+                if (!InstallerUpgrade.WaitForExecutableRelease(Path.Combine(directory, "missing.exe"), TimeSpan.Zero,
+                    () => TimeSpan.Zero, () => { throw new Exception("Missing recovery target waited"); }, messages.Add, true))
+                    throw new Exception("Recovery could not restore an absent executable");
+                if (File.Exists(Path.Combine(directory, "missing.exe"))) throw new Exception("Recovery probe created a file");
+
+                // Exercise a real running image, independently of any Windows service.
+                File.Copy(typeof(UpgradeTests).Assembly.Location, path, true);
+                var start = new System.Diagnostics.ProcessStartInfo(path, "--hold-upgrade-image") {
+                    UseShellExecute = false, CreateNoWindow = true,
+                    RedirectStandardInput = true, RedirectStandardOutput = true
+                };
+                using (var child = System.Diagnostics.Process.Start(start))
+                {
+                    try
+                    {
+                        var ready = child.StandardOutput.ReadLineAsync();
+                        if (!ready.Wait(10000) || ready.Result != "ready") throw new Exception("Fixture did not start");
+                        waits = 0;
+                        if (InstallerUpgrade.WaitForExecutableRelease(path, TimeSpan.Zero, () => TimeSpan.Zero,
+                            () => waits++, messages.Add)) throw new Exception("Running installed image accepted");
+                        if (child.HasExited) throw new Exception("Release check terminated a running inventory");
+                        if (!InstallerUpgrade.WaitForExecutableRelease(path, TimeSpan.FromSeconds(10),
+                            () => TimeSpan.FromSeconds(waits), () => {
+                                waits++;
+                                child.StandardInput.WriteLine();
+                                if (!child.WaitForExit(10000)) throw new Exception("Fixture did not exit");
+                            }, messages.Add) || waits != 1)
+                            throw new Exception("Exited process did not release its executable");
+                    }
+                    finally
+                    {
+                        if (!child.HasExited) { child.StandardInput.WriteLine(); child.WaitForExit(10000); }
+                    }
+                }
+                if (!messages.Exists(message => message.Contains("PID=")) ||
+                    !messages.Exists(message => message.Contains("canceled before file installation")))
+                    throw new Exception("Missing actionable blocker/timeout diagnostics");
+                Console.WriteLine("PASS: executable release, real child process, external file lock, timeout and non-destructive probe.");
+            }
+            finally
+            {
+                File.Delete(path);
+                Directory.Delete(directory);
+            }
         }
 
         private static void UninstallationDelayTests()

@@ -204,3 +204,24 @@ jobs:
           } else {
             Write-Warning 'Silent install/uninstall test awaits VERIFY_UUID and VERIFY_TOKEN.'
           }
+  verify_upgrade:
+    needs: verify_artifact
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.include_update_manifest && 'signed-firulai-release' || 'signed-firulai-installer' }}
+          path: dist
+      - name: Exercise signed installer with blocked executable on isolated host
+        shell: pwsh
+        run: ./scripts/test-isolated-upgrade.ps1 -InstallerPath dist/FirulaiAgent.exe
+      - name: Preserve isolated upgrade acceptance logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-upgrade-acceptance
+          path: upgrade-acceptance-logs/
+          if-no-files-found: ignore
