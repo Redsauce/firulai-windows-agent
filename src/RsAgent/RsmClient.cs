@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
@@ -125,7 +122,9 @@ namespace RsAgent
             var serializer = InventoryCollector.CreateInventorySerializer();
             var inventory = serializer.Deserialize<Dictionary<string, object>>(inventoryJson);
             inventory["RStoken"] = config.Token;
-            await SendEventAsync(config, "newServerData", PrepareInventoryTransport(serializer.Serialize(inventory))).ConfigureAwait(false);
+            await InventoryUpload.SendAsync(config, serializer.Serialize(inventory), async payload => {
+                await SendEventAsync(config, "newServerData", payload).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         // Receiver must support this versioned envelope before publishing this agent.
@@ -136,16 +135,8 @@ namespace RsAgent
             if (raw.Length > 64 * 1024 * 1024)
                 throw new InvalidOperationException("Inventory exceeds the 64 MiB uncompressed transport limit.");
             if (raw.Length < 1024 * 1024) return json;
-            byte[] compressed;
-            using (var output = new MemoryStream())
-            {
-                using (var gzip = new GZipStream(output, CompressionMode.Compress, true))
-                    gzip.Write(raw, 0, raw.Length);
-                compressed = output.ToArray();
-            }
-            string digest;
-            using (var sha = SHA256.Create())
-                digest = BitConverter.ToString(sha.ComputeHash(raw)).Replace("-", "").ToLowerInvariant();
+            var compressed = InventoryUpload.Compress(raw);
+            var digest = InventoryUpload.Hash(raw);
             var envelope = InventoryCollector.CreateInventorySerializer().Serialize(new Dictionary<string, object>
             {
                 { "inventory_transport", "gzip-base64-v1" },

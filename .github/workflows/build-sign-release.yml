@@ -49,6 +49,15 @@ jobs:
           }
           "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Test inventory transport and upgrade compatibility
+        shell: pwsh
+        run: |
+          ./scripts/test-inventory-fragments.ps1
+          ./scripts/test-large-inventory.ps1
+          ./scripts/test-api-redirects.ps1
+          ./scripts/test-upgrade.ps1
+          ./scripts/test-installer-startup.ps1
+          ./scripts/test-installer-endpoint.ps1
       - name: Build agent
         shell: pwsh
         run: |

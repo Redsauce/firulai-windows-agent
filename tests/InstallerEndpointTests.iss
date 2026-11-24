@@ -17,6 +17,7 @@ OutputBaseFilename=ApiEndpointTests
 var
   TestRedirectCode: Integer;
   TestCalls: Integer;
+  LegacyDetected: Boolean;
 
 function TestTransportUrl(Url: string): string;
 begin

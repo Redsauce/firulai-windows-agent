@@ -2,7 +2,7 @@ param([string]$ExportTransport, [string]$CompressInventory, [string]$CompressedO
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $output = Join-Path ([IO.Path]::GetTempPath()) ('rsagent-large-inventory-' + [Guid]::NewGuid().ToString('N') + '.exe')
-$sources = @('RsmClient.cs', 'InventoryCollector.cs', 'AgentConfig.cs', 'AgentText.cs', 'AgentState.cs', 'SystemEligibility.cs') |
+$sources = @('RsmClient.cs', 'InventoryUpload.cs', 'InventoryCollector.cs', 'AgentConfig.cs', 'AgentText.cs', 'AgentState.cs', 'SystemEligibility.cs') |
     ForEach-Object { Join-Path "$repo\src\RsAgent" $_ }
 try {
     & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /target:exe /main:RsAgent.LargeInventoryTests "/out:$output" `
