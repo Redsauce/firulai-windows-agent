@@ -23,7 +23,7 @@ namespace RsAgent
             var payload = serializer.Serialize(new Dictionary<string, object>
             {
                 { "itemTypeID", "191" },
-                { "propertyIDs", new[] { "1780", "1751", "1972", "1785", "1752", "1749", "1750" } },
+                { "propertyIDs", new[] { "1780", "1751", "1972", "1785", "1752", "1754", "1749", "1750" } },
                 { "translateIDs", false },
                 { "filterRules", new[] { new Dictionary<string, string>
                     { { "propertyID", "1780" }, { "value", config.Uuid }, { "operation", "=" } } } }

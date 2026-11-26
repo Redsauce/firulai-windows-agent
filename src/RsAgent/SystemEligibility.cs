@@ -27,16 +27,22 @@ namespace RsAgent
             if (installing)
             {
                 var os = Field(row, "1752");
+                var osId = Field(row, "1754");
                 var host = Field(row, "1749");
                 var fqdn = Field(row, "1750");
                 var localHost = Environment.MachineName;
                 var localFqdn = InventoryCollector.GetFqdn();
-                if (!(os.Equals("windows", StringComparison.OrdinalIgnoreCase) ||
-                    os.StartsWith("windows ", StringComparison.OrdinalIgnoreCase)) ||
-                    ((!string.IsNullOrEmpty(host) || !string.IsNullOrEmpty(fqdn)) &&
+                var isWindows = !string.IsNullOrEmpty(osId)
+                    ? osId.Equals("windows", StringComparison.OrdinalIgnoreCase)
+                    : os.Equals("windows", StringComparison.OrdinalIgnoreCase) ||
+                      os.StartsWith("windows ", StringComparison.OrdinalIgnoreCase) ||
+                      os.StartsWith("Microsoft Windows", StringComparison.OrdinalIgnoreCase);
+                if (!isWindows)
+                    throw new SystemEligibilityException("identity", AgentText.T("rsm.systemIdentityMismatch") + " [platform]");
+                if ((!string.IsNullOrEmpty(host) || !string.IsNullOrEmpty(fqdn)) &&
                     !MatchesIdentity(host, localHost, localFqdn) &&
-                    !MatchesIdentity(fqdn, localHost, localFqdn)))
-                    throw new SystemEligibilityException("identity", AgentText.T("rsm.systemIdentityMismatch"));
+                    !MatchesIdentity(fqdn, localHost, localFqdn))
+                    throw new SystemEligibilityException("identity", AgentText.T("rsm.systemIdentityMismatch") + " [hostname/FQDN]");
             }
             else
             {

@@ -48,6 +48,14 @@ namespace RsAgent
             installedWindows["1752"] = "Windows 10 Pro";
             installedWindows["1749"] = Environment.MachineName;
             Check("reinstall detected Windows edition", installedWindows, true, "");
+            var microsoftWindows = Row("Agente desinstalado", "uncovered");
+            microsoftWindows["1752"] = "Microsoft Windows 11 Pro";
+            microsoftWindows["1754"] = "windows";
+            microsoftWindows["1749"] = Environment.MachineName;
+            Check("reinstall Microsoft Windows edition", microsoftWindows, true, "");
+            var legacyMicrosoftWindows = Row("Agente desinstalado", "uncovered");
+            legacyMicrosoftWindows["1752"] = "Microsoft Windows 11 Pro";
+            Check("reinstall legacy Microsoft Windows label", legacyMicrosoftWindows, true, "");
             Check("uncovered install defers capacity to activation", Row("", "uncovered"), true, "");
             var wrongPlatform = Row("", "covered"); wrongPlatform["1752"] = "Linux";
             Check("wrong platform", wrongPlatform, true, "identity");

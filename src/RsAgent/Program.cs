@@ -108,6 +108,16 @@ private static int ValidateForInstaller(string mode, string configPath, string r
                     }
                 }
             }
+            catch (SystemEligibilityException ex)
+            {
+                File.WriteAllText(resultPath, ex.Message);
+                return 1;
+            }
+            catch (InvalidOperationException ex)
+            {
+                File.WriteAllText(resultPath, ex.Message);
+                return 1;
+            }
             catch (Exception)
             {
                 File.WriteAllText(resultPath, AgentText.T("rsm.systemValidationFailed"));
