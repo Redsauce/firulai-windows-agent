@@ -100,17 +100,34 @@ namespace RsAgent
             };
         }
 
+        internal static string ReliableDiskManufacturer(string value)
+        {
+            var manufacturer = (value ?? "").Trim();
+            var label = manufacturer.Trim('(', ')').Trim();
+            if (label.Length == 0
+                || string.Equals(label, "Standard disk drives", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(label, "Unidades de disco estándar", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(label, "Unknown", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(label, "Desconocido", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(label, "Generic", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(label, "Genérico", StringComparison.OrdinalIgnoreCase))
+                return "";
+            return manufacturer;
+        }
+
         private static Dictionary<string, object> CollectHardware()
         {
             var cpu = QueryFirst("SELECT Name FROM Win32_Processor");
             var firmware = new List<Dictionary<string, string>>();
 
-            foreach (var disk in Query("SELECT DeviceID, Model FROM Win32_DiskDrive"))
+            foreach (var disk in Query("SELECT DeviceID, Model, Manufacturer, FirmwareRevision FROM Win32_DiskDrive"))
             {
                 firmware.Add(new Dictionary<string, string>
                 {
                     { "device", WmiString(disk, "DeviceID", "").Replace(@"\\.\", "") },
-                    { "model", WmiString(disk, "Model", "Unknown") }
+                    { "model", WmiString(disk, "Model", "") },
+                    { "manufacturer", ReliableDiskManufacturer(WmiString(disk, "Manufacturer", "")) },
+                    { "version", WmiString(disk, "FirmwareRevision", "") }
                 });
             }
 

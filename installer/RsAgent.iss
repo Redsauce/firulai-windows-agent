@@ -1,6 +1,6 @@
 #define MyAppName "firulaiAgent"
 #define MyAppDisplayName "Firulai Security Agent"
-#define MyAppVersion "0.20.21"
+#define MyAppVersion "0.20.22"
 #define MyAppPublisher "Redsauce"
 #if GetEnv("PUBLISHER_NAME") != ""
   #undef MyAppPublisher
@@ -1505,8 +1505,7 @@ begin
     Exit;
   end;
 
-  Result := T('uuidValidateDenied') + '.' + #13#10 +
-    T('responseLabel') + ResponseBody;
+  Result := T('uuidValidateDenied') + '.';
 end;
 
 function ActivateSystemInRsm(): string;
@@ -1541,8 +1540,7 @@ begin
   if (StatusCode < 200) or (StatusCode >= 300) then
   begin
     Result := T('statusUpdateDenied') + ' (HTTP ' + IntToStr(StatusCode) + ').' + #13#10 +
-      T('statusUpdateDeniedAdvice') + #13#10 +
-      T('responseLabel') + ResponseBody;
+      T('statusUpdateDeniedAdvice');
     Exit;
   end;
 
@@ -1560,8 +1558,7 @@ begin
       Result := T('capacityExceeded');
       Exit;
     end;
-    Result := T('statusUpdateFailed') + #13#10 +
-      T('responseLabel') + ResponseBody;
+    Result := T('statusUpdateFailed');
   end;
 end;
 
@@ -2311,14 +2308,14 @@ begin
   ValidationError := CheckUuidAvailable();
   if ValidationError <> '' then
   begin
-    Result := LocalizedPrepareInstallFailure(T('uuidInvalidNotFound'));
+    Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 
   ValidationError := ActivateSystemInRsm();
   if ValidationError <> '' then
   begin
-    Result := LocalizedPrepareInstallFailure(T('uuidInvalidNotFound'));
+    Result := LocalizedPrepareInstallFailure(ValidationError);
     Exit;
   end;
 

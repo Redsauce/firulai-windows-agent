@@ -149,7 +149,7 @@ Información básica del host:
 Información de hardware necesaria para correlación técnica:
 
 - Modelo de CPU.
-- Discos detectados mediante WMI, incluyendo dispositivo y modelo.
+- Discos detectados mediante WMI: dispositivo, modelo, fabricante y revisión de firmware (vacíos cuando no estén disponibles).
 
 ### `components`
 
